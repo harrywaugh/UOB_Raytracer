@@ -61,8 +61,10 @@ bool ClosestIntersection(vec4 start, vec4 dir, const vector<Triangle>& triangles
     vec3 x = glm::inverse( A ) * b;
 
     if (x.x >= 0 && x.y > 0 && x.z > 0 && (x.y + x.z) < 1) {
-      closestIntersection.position = vec4(x.x, x.y, x.z, 1.0);
-      // closestIntersection.distance = 
+      vec3 v03 = vec3(v0.x, v0.y, v0.z);
+      vec3 pos = v03 + (x.y * e1) + (x.z * e2);
+      closestIntersection.position = vec4(pos.x, pos.y, pos.z, 1.0);
+      closestIntersection.distance = x.x;
       closestIntersection.triangleIndex = i;
       return true;
     }
