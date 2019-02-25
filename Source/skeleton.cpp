@@ -24,6 +24,8 @@ struct Intersection {
   int triangleIndex;
 };
 
+float focalLength = 500.0;
+vec4 cameraPos(3.0, 3.0, -10.0, 1.0);
 
 vector<Triangle> triangles;
 
@@ -57,8 +59,8 @@ bool ClosestIntersection(vec4 start, vec4 dir, const vector<Triangle>& triangles
     vec3 e1 = vec3(v1.x-v0.x,v1.y-v0.y,v1.z-v0.z);
     vec3 e2 = vec3(v2.x-v0.x,v2.y-v0.y,v2.z-v0.z);
     vec3 b = vec3(start.x-v0.x,start.y-v0.y,start.z-v0.z);
-    mat3 A( -d, e1, e2 );
-    vec3 x = glm::inverse( A ) * b;
+    mat3 A(-d, e1, e2);
+    vec3 x = glm::inverse(A) * b;
 
     if (x.x >= 0 && x.y > 0 && x.z > 0 && (x.y + x.z) < 1) {
       vec3 v03 = vec3(v0.x, v0.y, v0.z);
@@ -77,11 +79,16 @@ void Draw(screen* screen) {
   /* Clear buffer */
   memset(screen->buffer, 0, screen->height*screen->width*sizeof(uint32_t));
 
-  vec3 colour(1.0,0.0,0.0);
-  for(int i=0; i<1000; i++) {
-    uint32_t x = rand() % screen->width;
-    uint32_t y = rand() % screen->height;
-    PutPixelSDL(screen, x, y, colour);
+  for (int y = 0; y < screen->height; y++) {
+    for (int x = 0; x < screen->width; x++) {
+      vec4 d = vec4(x - screen->width, y - screen->height, focalLength, 1.0);
+      Intersection intersection;
+      if (ClosestIntersection(cameraPos, d, triangles, intersection)) {
+        PutPixelSDL(screen, x, y, triangles.at(intersection.triangleIndex).color);
+      } else {
+        PutPixelSDL(screen, x, y, vec3(0.0,0.0,0.0));
+      }
+    }
   }
 }
 
@@ -92,6 +99,8 @@ bool Update() {
   int t2 = SDL_GetTicks();
   float dt = float(t2-t);
   t = t2;
+  
+  printf("pos: %f, %f, %f, %f\n", cameraPos.x, cameraPos.y, cameraPos.z, focalLength);
 
   SDL_Event e;
   while(SDL_PollEvent(&e)) {
