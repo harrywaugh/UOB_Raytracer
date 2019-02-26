@@ -12,6 +12,8 @@ using glm::vec3;
 using glm::mat3;
 using glm::vec4;
 using glm::mat4;
+using glm::cos;
+using glm::sin;
 
 SDL_Event event;
 
@@ -87,10 +89,10 @@ void Draw(screen* screen) {
   mat4 R;
   for (int y = 0; y < screen->height; y++) {
     for (int x = 0; x < screen->width; x++) {
-      float r[16] = {glm::cos(yaw),                  glm::sin(yaw),                 0.0f,            1.0f,
-                    -glm::sin(yaw)*glm::cos(pitch),  glm::cos(yaw)*glm::cos(pitch), glm::sin(pitch), 1.0f,
-                     glm::sin(yaw)*glm::sin(pitch), -glm::cos(yaw)*glm::sin(pitch), glm::cos(pitch), 1.0f,
-                     1.0f,                           1.0f,                          1.0f,            1.0f};
+      float r[16] = {cos(yaw),                  sin(yaw),            0.0f,       1.0f,
+                    -sin(yaw)*glm::cos(pitch),  cos(yaw)*cos(pitch), sin(pitch), 1.0f,
+                     sin(yaw)*glm::sin(pitch), -cos(yaw)*sin(pitch), cos(pitch), 1.0f,
+                     1.0f,                      1.0f,                1.0f,       1.0f};
       mat4 R;
       memcpy( glm::value_ptr( R ), r, sizeof( r ) );
       vec4 d = vec4(x - screen->width/2, y - screen->height/2, focalLength, 1.0);
