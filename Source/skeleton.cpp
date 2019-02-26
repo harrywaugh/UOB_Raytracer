@@ -14,8 +14,8 @@ using glm::mat4;
 
 SDL_Event event;
 
-#define SCREEN_WIDTH 320
-#define SCREEN_HEIGHT 256
+#define SCREEN_WIDTH 500
+#define SCREEN_HEIGHT 500
 #define FULLSCREEN_MODE false
 
 struct Intersection {
@@ -25,7 +25,7 @@ struct Intersection {
 };
 
 float focalLength = 500.0;
-vec4 cameraPos(0.0, 0.0, -10.0, 1.0);
+vec4 cameraPos(0.0, 0.0, -3.0, 1.0);
 
 vector<Triangle> triangles;
 
@@ -62,7 +62,7 @@ bool ClosestIntersection(vec4 start, vec4 dir, const vector<Triangle>& triangles
     mat3 A(-d, e1, e2);
     vec3 x = glm::inverse(A) * b;
 
-    if (x.x >= 0 && x.y > 0 && x.z > 0 && (x.y + x.z) < 1 && x.x < curr_t) {
+    if (x.x >= 0 && x.y >= 0 && x.z >= 0 && (x.y + x.z) <= 1 && x.x < curr_t) {
       vec3 v03 = vec3(v0.x, v0.y, v0.z);
       vec3 pos = v03 + (x.y * e1) + (x.z * e2);
       closestIntersection.position = vec4(pos.x, pos.y, pos.z, 1.0);
