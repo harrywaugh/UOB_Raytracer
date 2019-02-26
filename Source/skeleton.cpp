@@ -52,7 +52,7 @@ int main(int argc, char* argv[]) {
 bool ClosestIntersection(vec4 start, vec4 dir, const vector<Triangle>& triangles, Intersection& closestIntersection) {
   float m = std::numeric_limits<float>::max();
   vec3 d = vec3(dir.x, dir.y, dir.z);
-  for (int i = 0; i < triangles.size(); i++) {
+  for (uint i = 0; i < triangles.size(); i++) {
     vec4 v0 = triangles.at(i).v0;
     vec4 v1 = triangles.at(i).v1;
     vec4 v2 = triangles.at(i).v2;
