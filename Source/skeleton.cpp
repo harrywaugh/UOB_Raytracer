@@ -26,6 +26,9 @@ struct Intersection {
 
 float focalLength = 500.0;
 vec4 cameraPos(0.0, 0.0, -3.0, 1.0);
+float pitch = 0.0f;
+float yaw = 0.0f;
+
 
 vector<Triangle> triangles;
 
@@ -80,10 +83,18 @@ bool ClosestIntersection(vec4 start, vec4 dir, const vector<Triangle>& triangles
 void Draw(screen* screen) {
   /* Clear buffer */
   memset(screen->buffer, 0, screen->height*screen->width*sizeof(uint32_t));
-
+  mat4 R;
   for (int y = 0; y < screen->height; y++) {
     for (int x = 0; x < screen->width; x++) {
+      float r[16] = {glm::cos(yaw),                  glm::sin(yaw),                 0.0f,            1.0f, 
+                    -glm::sin(yaw)*glm::cos(pitch),  glm::cos(yaw)*glm::cos(pitch), glm::sin(pitch), 1.0f,
+                     glm::sin(yaw)*glm::sin(pitch), -glm::cos(yaw)*glm::sin(pitch), glm::cos(pitch), 1.0f,
+                     1.0f,                           1.0f,                          1.0f,            1.0f};
+      mat4 R;
+      memcpy( glm::value_ptr( R ), r, sizeof( r ) );
       vec4 d = vec4(x - screen->width/2, y - screen->height/2, focalLength, 1.0);
+      d = R*d;
+
       Intersection intersection;
       if (ClosestIntersection(cameraPos, d, triangles, intersection)) {
         PutPixelSDL(screen, x, y, triangles.at(intersection.triangleIndex).color);
