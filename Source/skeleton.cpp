@@ -112,20 +112,26 @@ bool Update() {
 	    int key_code = e.key.keysym.sym;
 	    switch(key_code) {
 	      case SDLK_UP:
-      		/* Move camera forward */
+      		cameraPos.z += 0.2;
       		break;
 	      case SDLK_DOWN:
-      		/* Move camera backwards */
+      		cameraPos.z -= 0.2;
       		break;
 	      case SDLK_LEFT:
-      		/* Move camera left */
+      		cameraPos.x -= 0.2;
       		break;
 	      case SDLK_RIGHT:
-      		/* Move camera right */
+      		cameraPos.x += 0.2;
       		break;
 	      case SDLK_ESCAPE:
       		/* Move camera quit */
       		return false;
+        case SDLK_i:
+          focalLength += 10;
+          break;
+        case SDLK_o:
+          focalLength -= 10;
+          break;
       }
 	  }
   }
