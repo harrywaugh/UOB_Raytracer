@@ -25,7 +25,7 @@ struct Intersection {
 };
 
 float focalLength = 500.0;
-vec4 cameraPos(3.0, 3.0, -10.0, 1.0);
+vec4 cameraPos(0.0, 0.0, -10.0, 1.0);
 
 vector<Triangle> triangles;
 
@@ -81,7 +81,7 @@ void Draw(screen* screen) {
 
   for (int y = 0; y < screen->height; y++) {
     for (int x = 0; x < screen->width; x++) {
-      vec4 d = vec4(x - screen->width, y - screen->height, focalLength, 1.0);
+      vec4 d = vec4(x - screen->width/2, y - screen->height/2, focalLength, 1.0);
       Intersection intersection;
       if (ClosestIntersection(cameraPos, d, triangles, intersection)) {
         PutPixelSDL(screen, x, y, triangles.at(intersection.triangleIndex).color);
@@ -99,7 +99,7 @@ bool Update() {
   int t2 = SDL_GetTicks();
   float dt = float(t2-t);
   t = t2;
-  
+
   printf("pos: %f, %f, %f, %f\n", cameraPos.x, cameraPos.y, cameraPos.z, focalLength);
 
   SDL_Event e;
