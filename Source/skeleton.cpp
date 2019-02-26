@@ -24,28 +24,27 @@ SDL_Event event;
 struct Intersection {
   vec4 position;
   float distance;
-  int triangleIndex;
+  int triangle_index;
 };
 
-float focalLength = 500.0;
-vec4 cameraPos(0.0, 0.0, -3.0, 1.0);
+float focal_length = 500.0;
+vec4  camera_position(0.0, 0.0, -3.0, 1.0);
 float pitch = 0.0f;
 float yaw = 0.0f;
 
 
 vector<Triangle> triangles;
 
-bool Update();
-void Draw(screen* screen);
+bool update();
+void draw(screen* screen);
 
 int main(int argc, char* argv[]) {
-
   screen *screen = InitializeSDL(SCREEN_WIDTH, SCREEN_HEIGHT, FULLSCREEN_MODE);
 
   LoadTestModel(triangles);
 
-  while (Update()) {
-    Draw(screen);
+  while (update()) {
+    draw(screen);
     SDL_Renderframe(screen);
   }
 
@@ -55,8 +54,8 @@ int main(int argc, char* argv[]) {
   return 0;
 }
 
-bool ClosestIntersection(vec4 start, vec4 dir, const vector<Triangle>& triangles, Intersection& closestIntersection) {
-  float curr_t = std::numeric_limits<float>::max();
+bool closest_intersection(vec4 start, vec4 dir, const vector<Triangle>& triangles, Intersection& closest_intersection) {
+  float current_t = std::numeric_limits<float>::max();
   vec3 d = vec3(dir.x, dir.y, dir.z);
   for (uint i = 0; i < triangles.size(); i++) {
     vec4 v0 = triangles.at(i).v0;
@@ -68,22 +67,20 @@ bool ClosestIntersection(vec4 start, vec4 dir, const vector<Triangle>& triangles
     mat3 A(-d, e1, e2);
     vec3 x = glm::inverse(A) * b;
 
-    if (x.x >= 0 && x.y >= 0 && x.z >= 0 && (x.y + x.z) <= 1 && x.x < curr_t) {
-      vec3 v03 = vec3(v0.x, v0.y, v0.z);
-      vec3 pos = v03 + (x.y * e1) + (x.z * e2);
-      closestIntersection.position = vec4(pos.x, pos.y, pos.z, 1.0);
-      closestIntersection.distance = x.x;
-      closestIntersection.triangleIndex = i;
-      curr_t = x.x;
+    if (x.x >= 0 && x.y >= 0 && x.z >= 0 && (x.y + x.z) <= 1 && x.x < current_t) {
+      vec3 position = vec3(v0.x, v0.y, v0.z) + (x.y * e1) + (x.z * e2);
+      closest_intersection.position = vec4(position.x, position.y, position.z, 1.0);
+      closest_intersection.distance = x.x;
+      closest_intersection.triangle_index = i;
+      current_t = x.x;
     }
   }
-  if(curr_t == std::numeric_limits<float>::max())
-    return false;
+  if (current_t == std::numeric_limits<float>::max()) return false;
   return true;
 }
 
 /*Place your drawing here*/
-void Draw(screen* screen) {
+void draw(screen* screen) {
   /* Clear buffer */
   memset(screen->buffer, 0, screen->height*screen->width*sizeof(uint32_t));
   mat4 R;
@@ -94,13 +91,13 @@ void Draw(screen* screen) {
                      sin(yaw)*glm::sin(pitch), -cos(yaw)*sin(pitch), cos(pitch), 1.0f,
                      1.0f,                      1.0f,                1.0f,       1.0f};
       mat4 R;
-      memcpy( glm::value_ptr( R ), r, sizeof( r ) );
-      vec4 d = vec4(x - screen->width/2, y - screen->height/2, focalLength, 1.0);
+      memcpy(glm::value_ptr(R), r, sizeof(r));
+      vec4 d = vec4(x - screen->width/2, y - screen->height/2, focal_length, 1.0);
       d = R * d;
 
       Intersection intersection;
-      if (ClosestIntersection(cameraPos, d, triangles, intersection)) {
-        PutPixelSDL(screen, x, y, triangles.at(intersection.triangleIndex).color);
+      if (closest_intersection(camera_position, d, triangles, intersection)) {
+        PutPixelSDL(screen, x, y, triangles.at(intersection.triangle_index).color);
       } else {
         PutPixelSDL(screen, x, y, vec3(0.0,0.0,0.0));
       }
@@ -109,14 +106,12 @@ void Draw(screen* screen) {
 }
 
 /*Place updates of parameters here*/
-bool Update() {
-  static int t = SDL_GetTicks();
-  /* Compute frame time */
-  int t2 = SDL_GetTicks();
-  float dt = float(t2-t);
-  t = t2;
-
-  printf("pos: %f, %f, %f, %f\n", cameraPos.x, cameraPos.y, cameraPos.z, focalLength);
+bool update() {
+  // static int t = SDL_GetTicks();
+  // /* Compute frame time */
+  // int t2 = SDL_GetTicks();
+  // float dt = float(t2-t);
+  // t = t2;
 
   SDL_Event e;
   while(SDL_PollEvent(&e)) {
@@ -138,22 +133,22 @@ bool Update() {
       		yaw -= 0.2;
       		break;
         case SDLK_w:
-          cameraPos.z += 0.2;
+          camera_position.z += 0.2;
           break;
         case SDLK_s:
-          cameraPos.z -= 0.2;
+          camera_position.z -= 0.2;
           break;
         case SDLK_a:
-          cameraPos.x -= 0.2;
+          camera_position.x -= 0.2;
           break;
         case SDLK_d:
-          cameraPos.x += 0.2;
+          camera_position.x += 0.2;
           break;
         case SDLK_i:
-          focalLength += 10;
+          focal_length += 10;
           break;
         case SDLK_o:
-          focalLength -= 10;
+          focal_length -= 10;
           break;
         case SDLK_ESCAPE:
       		/* Move camera quit */
