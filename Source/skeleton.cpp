@@ -50,7 +50,7 @@ int main(int argc, char* argv[]) {
 }
 
 bool ClosestIntersection(vec4 start, vec4 dir, const vector<Triangle>& triangles, Intersection& closestIntersection) {
-  float m = std::numeric_limits<float>::max();
+  float curr_t = std::numeric_limits<float>::max();
   vec3 d = vec3(dir.x, dir.y, dir.z);
   for (uint i = 0; i < triangles.size(); i++) {
     vec4 v0 = triangles.at(i).v0;
@@ -62,16 +62,18 @@ bool ClosestIntersection(vec4 start, vec4 dir, const vector<Triangle>& triangles
     mat3 A(-d, e1, e2);
     vec3 x = glm::inverse(A) * b;
 
-    if (x.x >= 0 && x.y > 0 && x.z > 0 && (x.y + x.z) < 1) {
+    if (x.x >= 0 && x.y > 0 && x.z > 0 && (x.y + x.z) < 1 && x.x < curr_t) {
       vec3 v03 = vec3(v0.x, v0.y, v0.z);
       vec3 pos = v03 + (x.y * e1) + (x.z * e2);
       closestIntersection.position = vec4(pos.x, pos.y, pos.z, 1.0);
       closestIntersection.distance = x.x;
       closestIntersection.triangleIndex = i;
-      return true;
+      curr_t = x.x;
     }
   }
-  return false;
+  if(curr_t == std::numeric_limits<float>::max())
+    return false;
+  return true;
 }
 
 /*Place your drawing here*/
