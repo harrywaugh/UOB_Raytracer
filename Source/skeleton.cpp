@@ -5,6 +5,7 @@
 #include "TestModelH.h"
 #include <stdint.h>
 #include <limits.h>
+#include <glm/gtc/type_ptr.hpp>
 
 using namespace std;
 using glm::vec3;
@@ -86,14 +87,14 @@ void Draw(screen* screen) {
   mat4 R;
   for (int y = 0; y < screen->height; y++) {
     for (int x = 0; x < screen->width; x++) {
-      float r[16] = {glm::cos(yaw),                  glm::sin(yaw),                 0.0f,            1.0f, 
+      float r[16] = {glm::cos(yaw),                  glm::sin(yaw),                 0.0f,            1.0f,
                     -glm::sin(yaw)*glm::cos(pitch),  glm::cos(yaw)*glm::cos(pitch), glm::sin(pitch), 1.0f,
                      glm::sin(yaw)*glm::sin(pitch), -glm::cos(yaw)*glm::sin(pitch), glm::cos(pitch), 1.0f,
                      1.0f,                           1.0f,                          1.0f,            1.0f};
       mat4 R;
       memcpy( glm::value_ptr( R ), r, sizeof( r ) );
       vec4 d = vec4(x - screen->width/2, y - screen->height/2, focalLength, 1.0);
-      d = R*d;
+      d = R * d;
 
       Intersection intersection;
       if (ClosestIntersection(cameraPos, d, triangles, intersection)) {
@@ -123,26 +124,38 @@ bool Update() {
 	    int key_code = e.key.keysym.sym;
 	    switch(key_code) {
 	      case SDLK_UP:
-      		cameraPos.z += 0.2;
+          pitch += 0.2;
       		break;
 	      case SDLK_DOWN:
-      		cameraPos.z -= 0.2;
+          pitch -= 0.2;
       		break;
 	      case SDLK_LEFT:
-      		cameraPos.x -= 0.2;
+      		yaw += 0.2;
       		break;
 	      case SDLK_RIGHT:
-      		cameraPos.x += 0.2;
+      		yaw -= 0.2;
       		break;
-	      case SDLK_ESCAPE:
-      		/* Move camera quit */
-      		return false;
+        case SDLK_w:
+          cameraPos.z += 0.2;
+          break;
+        case SDLK_s:
+          cameraPos.z -= 0.2;
+          break;
+        case SDLK_a:
+          cameraPos.x -= 0.2;
+          break;
+        case SDLK_d:
+          cameraPos.x += 0.2;
+          break;
         case SDLK_i:
           focalLength += 10;
           break;
         case SDLK_o:
           focalLength -= 10;
           break;
+        case SDLK_ESCAPE:
+      		/* Move camera quit */
+      		return false;
       }
 	  }
   }
