@@ -95,7 +95,7 @@ vec3 direct_light(const Intersection& intersection) {
   float radius = sqrt(square(intersection.position.x - light_position.x) +
                       square(intersection.position.y - light_position.y) +
                       square(intersection.position.z - light_position.z));
-  vec4 r = intersection.position - light_position;
+  vec4 r = light_position - intersection.position;
   vec4 n = triangles.at(intersection.triangle_index).normal;
   vec3 D = (vec3) (light_color * max(glm::dot(r, n) , 0)) / (float) (4 * M_PI * radius * radius);
   return D;
@@ -121,7 +121,7 @@ void draw(screen* screen) {
       if (closest_intersection(camera_position, d, triangles, intersection)) {
         PutPixelSDL(screen, x, y, direct_light(intersection));
       } else {
-        PutPixelSDL(screen, x, y, vec3(1.0,0.0,0.0));
+        PutPixelSDL(screen, x, y, vec3(0.0,0.0,0.0));
       }
     }
   }
@@ -155,16 +155,20 @@ bool update() {
       		yaw -= 0.2;
       		break;
         case SDLK_w:
-          camera_position.z += 0.2;
+          // camera_position.z += 0.2;
+          light_position.z += 0.2;
           break;
         case SDLK_s:
-          camera_position.z -= 0.2;
+          // camera_position.z -= 0.2;
+          light_position.z -= 0.2;
           break;
         case SDLK_a:
-          camera_position.x -= 0.2;
+          // camera_position.x -= 0.2;
+          light_position.x += 0.2;
           break;
         case SDLK_d:
-          camera_position.x += 0.2;
+          // camera_position.x += 0.2;
+          light_position.x -= 0.2;
           break;
         case SDLK_i:
           focal_length += 10;
