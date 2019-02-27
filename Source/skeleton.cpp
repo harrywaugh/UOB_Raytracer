@@ -140,20 +140,20 @@ bool update() {
     if (e.type == SDL_QUIT) {
       return false;
     } else if (e.type == SDL_KEYDOWN) {
-	    int key_code = e.key.keysym.sym;
-	    switch(key_code) {
-	      case SDLK_UP:
+      int key_code = e.key.keysym.sym;
+      switch(key_code) {
+        case SDLK_UP:
           pitch += 0.2;
-      		break;
-	      case SDLK_DOWN:
+          break;
+        case SDLK_DOWN:
           pitch -= 0.2;
-      		break;
-	      case SDLK_LEFT:
-      		yaw += 0.2;
-      		break;
-	      case SDLK_RIGHT:
-      		yaw -= 0.2;
-      		break;
+          break;
+        case SDLK_LEFT:
+          yaw += 0.2;
+          break;
+        case SDLK_RIGHT:
+          yaw -= 0.2;
+          break;
         case SDLK_w:
           // camera_position.z += 0.2;
           light_position.z += 0.2;
@@ -164,11 +164,11 @@ bool update() {
           break;
         case SDLK_a:
           // camera_position.x -= 0.2;
-          light_position.x += 0.2;
+          light_position.x -= 0.2;
           break;
         case SDLK_d:
           // camera_position.x += 0.2;
-          light_position.x -= 0.2;
+          light_position.x += 0.2;
           break;
         case SDLK_i:
           focal_length += 10;
@@ -177,8 +177,8 @@ bool update() {
           focal_length -= 10;
           break;
         case SDLK_ESCAPE:
-      		/* Move camera quit */
-      		return false;
+          /* Move camera quit */
+          return false;
       }
 	  }
   }
