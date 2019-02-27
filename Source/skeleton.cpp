@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <limits.h>
 #include <glm/gtc/type_ptr.hpp>
+#include <math.h>
 
 using namespace std;
 using glm::vec3;
@@ -32,6 +33,8 @@ vec4  camera_position(0.0, 0.0, -3.0, 1.0);
 float pitch = 0.0f;
 float yaw = 0.0f;
 
+vec4 light_position(0, -0.5, -0.7, 1.0);
+vec3 light_color = 14.f * vec3(1, 1, 1);
 
 vector<Triangle> triangles;
 
@@ -79,6 +82,25 @@ bool closest_intersection(vec4 start, vec4 dir, const vector<Triangle>& triangle
   return true;
 }
 
+float square(float x) {
+  return x * x;
+}
+
+float max(float x, float y) {
+  if (x >= y) return x;
+  else return y;
+}
+
+vec3 direct_light(const Intersection& intersection) {
+  float radius = sqrt(square(intersection.position.x - light_position.x) +
+                      square(intersection.position.y - light_position.y) +
+                      square(intersection.position.z - light_position.z));
+  vec4 r = intersection.position - light_position;
+  vec4 n = triangles.at(intersection.triangle_index).normal;
+  vec3 D = (vec3) (light_color * max(glm::dot(r, n) , 0)) / (float) (4 * M_PI * radius * radius);
+  return D;
+}
+
 /*Place your drawing here*/
 void draw(screen* screen) {
   /* Clear buffer */
@@ -97,9 +119,9 @@ void draw(screen* screen) {
 
       Intersection intersection;
       if (closest_intersection(camera_position, d, triangles, intersection)) {
-        PutPixelSDL(screen, x, y, triangles.at(intersection.triangle_index).color);
+        PutPixelSDL(screen, x, y, direct_light(intersection));
       } else {
-        PutPixelSDL(screen, x, y, vec3(0.0,0.0,0.0));
+        PutPixelSDL(screen, x, y, vec3(1.0,0.0,0.0));
       }
     }
   }
