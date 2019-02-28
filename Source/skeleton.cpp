@@ -31,7 +31,7 @@ struct Intersection {
 float focal_length = 500.0;
 vec4  camera_position(0.0, 0.0, -3.0, 1.0);
 float pitch = 0.0f;
-float yaw = 0.0f;
+float roll = 0.0f;
 
 vec4 light_position(0, -0.5, -0.7, 1.0);
 vec3 light_color = 14.f * vec3(1, 1, 1);
@@ -108,10 +108,12 @@ void draw(screen* screen) {
   mat4 R;
   for (int y = 0; y < screen->height; y++) {
     for (int x = 0; x < screen->width; x++) {
-      float r[16] = {cos(yaw),                  sin(yaw),            0.0f,       1.0f,
-                    -sin(yaw)*glm::cos(pitch),  cos(yaw)*cos(pitch), sin(pitch), 1.0f,
-                     sin(yaw)*glm::sin(pitch), -cos(yaw)*sin(pitch), cos(pitch), 1.0f,
-                     1.0f,                      1.0f,                1.0f,       1.0f};
+      //Despite what ainsley says.. rotation around: x = Pitch, y = Roll, z = Yaw
+      //We only need to implement rotation around y and x axis
+      float r[16] = {cos(roll),           sin(pitch)*sin(pitch),       sin(roll)*cos(pitch),     1.0f,
+                     0.0f,                cos(pitch),                 -sin(pitch) ,              1.0f,
+                     -sin(roll),          cos(roll)*sin(pitch),        cos(pitch)*cos(roll),     1.0f,
+                     1.0f,                      1.0f,                1.0f,                       1.0f};
       mat4 R;
       memcpy(glm::value_ptr(R), r, sizeof(r));
       vec4 d = vec4(x - screen->width/2, y - screen->height/2, focal_length, 1.0);
@@ -143,16 +145,16 @@ bool update() {
       int key_code = e.key.keysym.sym;
       switch(key_code) {
         case SDLK_UP:
-          pitch += 0.2;
+          pitch += 0.1;
           break;
         case SDLK_DOWN:
-          pitch -= 0.2;
+          pitch -= 0.1;
           break;
         case SDLK_LEFT:
-          yaw += 0.2;
+          roll += 0.1;
           break;
         case SDLK_RIGHT:
-          yaw -= 0.2;
+          roll -= 0.1;
           break;
         case SDLK_w:
           // camera_position.z += 0.2;
