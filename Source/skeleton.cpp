@@ -36,19 +36,31 @@ float roll = 0.0f;
 vec4 light_position(0, -0.5, -0.7, 1.0);
 vec3 light_color = 14.f * vec3(1, 1, 1);
 
+bool quit = false;
+
 vector<Triangle> triangles;
 
 bool update();
 void draw(screen* screen);
 
 int main(int argc, char* argv[]) {
+
+  // Initialise screen
   screen *screen = InitializeSDL(SCREEN_WIDTH, SCREEN_HEIGHT, FULLSCREEN_MODE);
 
+  //Load Cornell Box
   LoadTestModel(triangles);
 
-  while (update()) {
-    draw(screen);
-    SDL_Renderframe(screen);
+  draw(screen);
+  SDL_Renderframe(screen);
+
+  //While user hasn't quit
+  while (!quit) {
+    if (update())  {
+      printf("Update Scene\n");
+      draw(screen);
+      SDL_Renderframe(screen);
+    }
   }
 
   SDL_SaveImage(screen, "screenshot.bmp");
@@ -110,7 +122,7 @@ void draw(screen* screen) {
     for (int x = 0; x < screen->width; x++) {
       //Despite what ainsley says.. rotation around: x = Pitch, y = Roll, z = Yaw
       //We only need to implement rotation around y and x axis
-      float r[16] = {cos(roll),           sin(pitch)*sin(pitch),       sin(roll)*cos(pitch),     1.0f,
+      float r[16] = {cos(roll),           sin(pitch)*sin(roll),       sin(roll)*cos(pitch),     1.0f,
                      0.0f,                cos(pitch),                 -sin(pitch) ,              1.0f,
                      -sin(roll),          cos(roll)*sin(pitch),        cos(pitch)*cos(roll),     1.0f,
                      1.0f,                      1.0f,                1.0f,                       1.0f};
@@ -136,10 +148,11 @@ bool update() {
   // int t2 = SDL_GetTicks();
   // float dt = float(t2-t);
   // t = t2;
-
+  // Change scene via key events
   SDL_Event e;
   while(SDL_PollEvent(&e)) {
     if (e.type == SDL_QUIT) {
+      quit = true;
       return false;
     } else if (e.type == SDL_KEYDOWN) {
       int key_code = e.key.keysym.sym;
@@ -180,9 +193,11 @@ bool update() {
           break;
         case SDLK_ESCAPE:
           /* Move camera quit */
+          quit = true;
           return false;
       }
+      return true;
 	  }
   }
-  return true;
+  return false;
 }
