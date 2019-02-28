@@ -125,6 +125,13 @@ vec3 direct_light(const Intersection& intersection) {
   vec4 n = triangles.at(intersection.triangle_index).normal;
   vec3 p = triangles.at(intersection.triangle_index).color;
   vec3 D = (vec3) (light_color * max(glm::dot(r, n) , 0)) / (float) (4 * M_PI * radius * radius);
+
+  Intersection shadow_intersection;
+
+  if (closest_intersection((intersection.position + vec4(0.01 * r.x, 0.01 * r.y, 0.01 * r.z, 1.0)), r, triangles, shadow_intersection)) {
+    if (shadow_intersection.distance < radius) return vec3(0, 0, 0);
+  }
+
   return p * D;
 }
 
