@@ -17,8 +17,8 @@ using glm::sin;
 
 SDL_Event event;
 
-#define SCREEN_WIDTH 750
-#define SCREEN_HEIGHT 750
+#define SCREEN_WIDTH 600
+#define SCREEN_HEIGHT 600
 #define FULLSCREEN_MODE false
 
 
@@ -34,7 +34,7 @@ float pitch = 0.0f;
 float roll = 0.0f;
 
 vec4 light_position(0, -0.5, -0.7, 1.0);
-vec3 light_color = 14.f * vec3(1, 1, 1);
+vec3 light_color = 14.f * vec3(0.7, 0, 0.7);
 
 bool quit = false;
 
