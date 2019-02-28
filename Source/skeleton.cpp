@@ -31,10 +31,10 @@ struct Intersection {
 float focal_length = 500.0;
 vec4  camera_position(0.0, 0.0, -3.0, 1.0);
 float pitch = 0.0f;
-float roll = 0.0f;
+float yaw = 0.0f;
 
 vec4 light_position(0, -0.5, -0.7, 1.0);
-vec3 light_color = 14.f * vec3(0.7, 0, 0.7);
+vec3 light_color = 14.f * vec3(1, 1, 1);
 
 bool quit = false;
 
@@ -48,18 +48,17 @@ int main(int argc, char* argv[]) {
   // Initialise screen
   screen *screen = InitializeSDL(SCREEN_WIDTH, SCREEN_HEIGHT, FULLSCREEN_MODE);
 
-  //Load Cornell Box
+  // Load Cornell Box
   LoadTestModel(triangles);
 
-  //Draw initial scene
+  // Draw initial scene
   draw(screen);
   SDL_Renderframe(screen);
 
-  //While user hasn't quit
+  // While user hasn't quit
   while (!quit) {
-    //If there is an update to the scene, then draw changes. Check if user wants to quit
+    // If there is an update to the scene, then draw changes. Check if user wants to quit
     if (update())  {
-      printf("Update Scene\n");
       draw(screen);
       SDL_Renderframe(screen);
     }
@@ -74,10 +73,10 @@ int main(int argc, char* argv[]) {
 bool closest_intersection(vec4 start, vec4 dir, const vector<Triangle>& triangles, Intersection& closest_intersection) {
   // Set closest intersection to be the max float value
   float current_t = std::numeric_limits<float>::max();
-  //Make 4D ray into 3D ray
+  // Make 4D ray into 3D ray
   vec3 d = vec3(dir.x, dir.y, dir.z);
   for (uint i = 0; i < triangles.size(); i++) {
-    //Define two corners of triangle relative to the other corner
+    // Define two corners of triangle relative to the other corner
     vec4 v0 = triangles.at(i).v0;
     vec4 v1 = triangles.at(i).v1;
     vec4 v2 = triangles.at(i).v2;
@@ -88,7 +87,7 @@ bool closest_intersection(vec4 start, vec4 dir, const vector<Triangle>& triangle
     // mat3 A(-d, e1, e2);
     // vec3 x = glm::inverse(A) * b;
 
-    //Cramers, might be det repeated computation..?
+    // Cramers, might be det repeated computation..?
     float detA = glm::determinant(mat3(-d, e1, e2));
     float detA0 = glm::determinant(mat3(b, e1, e2));
     float detA1 = glm::determinant(mat3(-d, b, e2));
@@ -96,7 +95,7 @@ bool closest_intersection(vec4 start, vec4 dir, const vector<Triangle>& triangle
 
     vec3 x(detA0/detA, detA1/detA, detA2/detA);
 
-    //If ray goes through triangle, and is the closest triangle
+    // If ray goes through triangle, and is the closest triangle
     if (x.x >= 0 && x.y >= 0 && x.z >= 0 && (x.y + x.z) <= 1 && x.x < current_t) {
       vec3 position = vec3(v0.x, v0.y, v0.z) + (x.y * e1) + (x.z * e2);
       closest_intersection.position = vec4(position.x, position.y, position.z, 1.0);
@@ -124,8 +123,9 @@ vec3 direct_light(const Intersection& intersection) {
                       square(intersection.position.z - light_position.z));
   vec4 r = light_position - intersection.position;
   vec4 n = triangles.at(intersection.triangle_index).normal;
+  vec3 p = triangles.at(intersection.triangle_index).color;
   vec3 D = (vec3) (light_color * max(glm::dot(r, n) , 0)) / (float) (4 * M_PI * radius * radius);
-  return D;
+  return p * D;
 }
 
 /*Place your drawing here*/
@@ -135,23 +135,23 @@ void draw(screen* screen) {
   mat4 R;
   for (int y = 0; y < screen->height; y++) {
     for (int x = 0; x < screen->width; x++) {
-      //Despite what ainsley says.. rotation around: x = Pitch, y = Roll, z = Yaw
-      //We only need to implement rotation around y and x axis
-      float r[16] = {cos(roll),           sin(pitch)*sin(roll),       sin(roll)*cos(pitch),     1.0f,
-                     0.0f,                cos(pitch),                 -sin(pitch) ,              1.0f,
-                     -sin(roll),          cos(roll)*sin(pitch),        cos(pitch)*cos(roll),     1.0f,
-                     1.0f,                      1.0f,                1.0f,                       1.0f};
+      // Despite what ainsley says.. rotation around: x = Pitch, y = Roll, z = Yaw
+      // We only need to implement rotation around y and x axis
+      float r[16] = {cos(yaw),  sin(pitch)*sin(yaw),   sin(yaw)*cos(pitch),  1.0f,
+                     0.0f,      cos(pitch),           -sin(pitch),           1.0f,
+                    -sin(yaw),  cos(yaw)*sin(pitch),   cos(pitch)*cos(yaw),  1.0f,
+                     1.0f,      1.0f,                  1.0f,                 1.0f};
       mat4 R;
       memcpy(glm::value_ptr(R), r, sizeof(r));
 
-      //Declare ray for given position on the screen. Rotate ray by current view angle
+      // Declare ray for given position on the screen. Rotate ray by current view angle
       vec4 d = vec4(x - screen->width/2, y - screen->height/2, focal_length, 1.0);
       d = R * d;
 
-      //Find intersection point with closest geometry. If no intersection, paint the abyss
+      // Find intersection point with closest geometry. If no intersection, paint the abyss
       Intersection intersection;
       if (closest_intersection(camera_position, d, triangles, intersection)) {
-        //On finding the closest intersection
+        // On finding the closest intersection
         PutPixelSDL(screen, x, y, direct_light(intersection));
       } else {
         PutPixelSDL(screen, x, y, vec3(0.0,0.0,0.0));
@@ -183,10 +183,10 @@ bool update() {
           pitch -= 0.1;
           break;
         case SDLK_LEFT:
-          roll += 0.1;
+          yaw += 0.1;
           break;
         case SDLK_RIGHT:
-          roll -= 0.1;
+          yaw -= 0.1;
           break;
         case SDLK_w:
           // camera_position.z += 0.2;
@@ -211,7 +211,6 @@ bool update() {
           focal_length -= 10;
           break;
         case SDLK_ESCAPE:
-          /* Move camera quit */
           quit = true;
           return false;
       }
