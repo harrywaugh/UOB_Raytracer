@@ -17,8 +17,8 @@ using glm::sin;
 
 SDL_Event event;
 
-#define SCREEN_WIDTH 600
-#define SCREEN_HEIGHT 600
+#define SCREEN_WIDTH 1200
+#define SCREEN_HEIGHT 1200
 #define FULLSCREEN_MODE false
 
 
@@ -118,19 +118,32 @@ float max(float x, float y) {
 }
 
 vec3 direct_light(const Intersection& intersection) {
-  float radius = sqrt(square(intersection.position.x - light_position.x) +
-                      square(intersection.position.y - light_position.y) +
-                      square(intersection.position.z - light_position.z));
+  
+  //Vector from the light to the point of intersection
   vec4 r = light_position - intersection.position;
+  //Distance of the checked point to the light source
+  float radius = glm::length(r);
+
+  
+  Intersection obstacle_intersection;
+
+  if (closest_intersection(intersection.position + vec4(r.x * 0.01f, r.y * 0.01f, r.z * 0.01f, 1.0f),
+                                                               r, triangles, obstacle_intersection)) {
+    printf("%f %f\n", radius, obstacle_intersection.distance);
+    if (obstacle_intersection.distance < radius) {
+      for (float i = 0.1; i <=1; i+=0.1f)
+        if (obstacle_intersection.distance < i) return vec3(i/1, i/1, i/1);
+    }
+  }
+
+  //Get the normal of the triangle, the light has hit
   vec4 n = triangles.at(intersection.triangle_index).normal;
+
+  // Get colour of the triangle the light has hit
   vec3 p = triangles.at(intersection.triangle_index).color;
+  //Intensity of the colour, based on the distance from the light
   vec3 D = (vec3) (light_color * max(glm::dot(r, n) , 0)) / (float) (4 * M_PI * radius * radius);
 
-  Intersection shadow_intersection;
-
-  if (closest_intersection((intersection.position + vec4(0.01 * r.x, 0.01 * r.y, 0.01 * r.z, 1.0)), r, triangles, shadow_intersection)) {
-    if (shadow_intersection.distance < radius) return vec3(0, 0, 0);
-  }
 
   return p * D;
 }
