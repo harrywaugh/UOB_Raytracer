@@ -98,8 +98,11 @@ bool closest_intersection(vec4 start, vec4 dir, const vector<Triangle>& triangle
     // If ray goes through triangle, and is the closest triangle
     if (x.x >= 0 && x.y >= 0 && x.z >= 0 && (x.y + x.z) <= 1 && x.x < current_t) {
       vec3 position = vec3(v0.x, v0.y, v0.z) + (x.y * e1) + (x.z * e2);
+
       closest_intersection.position = vec4(position.x, position.y, position.z, 1.0);
-      closest_intersection.distance = x.x;
+      // printf("position<%f, %f, %f> -> %f\n", position[0], position[1], position[2], x.x);
+
+      closest_intersection.distance = glm::length(x.x*d);
       closest_intersection.triangle_index = i;
       current_t = x.x;
     }
@@ -120,19 +123,22 @@ float max(float x, float y) {
 vec3 direct_light(const Intersection& intersection) {
   
   //Vector from the light to the point of intersection
+  // printf("Light<%f, %f, %f> \n", light_position[0], light_position[1], light_position[2]);
+  // printf("Intersection<%f, %f, %f>\n", intersection.position[0], intersection.position[1], intersection.position[2]);
+
   vec4 r = light_position - intersection.position;
   //Distance of the checked point to the light source
   float radius = glm::length(r);
-
+  // printf("TriangleToLight<%f, %f, %f> -> Length: %f\n", r[0], r[1], r[2], radius);
   
   Intersection obstacle_intersection;
 
-  if (closest_intersection(intersection.position + vec4(r.x * 0.01f, r.y * 0.01f, r.z * 0.01f, 1.0f),
-                                                               r, triangles, obstacle_intersection)) {
-    printf("%f %f\n", radius, obstacle_intersection.distance);
-    if (obstacle_intersection.distance < radius) {
-      for (float i = 0.1; i <=1; i+=0.1f)
-        if (obstacle_intersection.distance < i) return vec3(i/1, i/1, i/1);
+  if (closest_intersection(intersection.position +vec4(r.x*0.001f, r.y*0.001f, r.z*0.001f, 1.0f),
+      r, triangles, obstacle_intersection)) {
+    if (glm::length(obstacle_intersection.distance) < radius) {
+      return vec3(0.0f, 0.0f, 0.0f);
+      // for (float i = 0.1; i <=1; i+=0.1f)
+      //   if (obstacle_intersection.distance < i) return vec3(i/1, i/1, i/1);
     }
   }
 
