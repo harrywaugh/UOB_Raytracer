@@ -14,11 +14,12 @@ using glm::vec4;
 using glm::mat4;
 using glm::cos;
 using glm::sin;
+using glm::length;
 
 SDL_Event event;
 
-#define SCREEN_WIDTH 1200
-#define SCREEN_HEIGHT 1200
+#define SCREEN_WIDTH 700
+#define SCREEN_HEIGHT 700
 #define FULLSCREEN_MODE false
 
 
@@ -100,9 +101,7 @@ bool closest_intersection(vec4 start, vec4 dir, const vector<Triangle>& triangle
       vec3 position = vec3(v0.x, v0.y, v0.z) + (x.y * e1) + (x.z * e2);
 
       closest_intersection.position = vec4(position.x, position.y, position.z, 1.0);
-      // printf("position<%f, %f, %f> -> %f\n", position[0], position[1], position[2], x.x);
-
-      closest_intersection.distance = glm::length(x.x*d);
+      closest_intersection.distance = length(x.x * d);
       closest_intersection.triangle_index = i;
       current_t = x.x;
     }
@@ -121,47 +120,37 @@ float max(float x, float y) {
 }
 
 vec3 direct_light(const Intersection& intersection) {
-  
-  //Vector from the light to the point of intersection
-  // printf("Light<%f, %f, %f> \n", light_position[0], light_position[1], light_position[2]);
-  // printf("Intersection<%f, %f, %f>\n", intersection.position[0], intersection.position[1], intersection.position[2]);
 
+  // Vector from the light to the point of intersection
   vec4 r = light_position - intersection.position;
-  //Distance of the checked point to the light source
-  float radius = glm::length(r);
-  // printf("TriangleToLight<%f, %f, %f> -> Length: %f\n", r[0], r[1], r[2], radius);
-  
-  Intersection obstacle_intersection;
+  // Distance of the checked point to the light source
+  float radius = length(r);
 
-  if (closest_intersection(intersection.position +vec4(r.x*0.001f, r.y*0.001f, r.z*0.001f, 1.0f),
-      r, triangles, obstacle_intersection)) {
-    if (glm::length(obstacle_intersection.distance) < radius) {
-      return vec3(0.0f, 0.0f, 0.0f);
-      // for (float i = 0.1; i <=1; i+=0.1f)
-      //   if (obstacle_intersection.distance < i) return vec3(i/1, i/1, i/1);
-    }
+  Intersection obstacle_intersection;
+  float threshold = 0.001f;
+
+  if (closest_intersection(intersection.position + vec4(r.x * threshold, r.y * threshold, r.z * threshold, 1.0f),
+                           r, triangles, obstacle_intersection)) {
+    if (obstacle_intersection.distance < radius) return vec3(0, 0, 0);
   }
 
-  //Get the normal of the triangle, the light has hit
+  // Get the normal of the triangle that the light has hit
   vec4 n = triangles.at(intersection.triangle_index).normal;
-
   // Get colour of the triangle the light has hit
   vec3 p = triangles.at(intersection.triangle_index).color;
-  //Intensity of the colour, based on the distance from the light
+  // Intensity of the colour, based on the distance from the light
   vec3 D = (vec3) (light_color * max(glm::dot(r, n) , 0)) / (float) (4 * M_PI * radius * radius);
-
 
   return p * D;
 }
 
-/*Place your drawing here*/
+// Place your drawing here
 void draw(screen* screen) {
-  /* Clear buffer */
+  // Clear the buffer
   memset(screen->buffer, 0, screen->height*screen->width*sizeof(uint32_t));
   mat4 R;
   for (int y = 0; y < screen->height; y++) {
     for (int x = 0; x < screen->width; x++) {
-      // Despite what ainsley says.. rotation around: x = Pitch, y = Roll, z = Yaw
       // We only need to implement rotation around y and x axis
       float r[16] = {cos(yaw),  sin(pitch)*sin(yaw),   sin(yaw)*cos(pitch),  1.0f,
                      0.0f,      cos(pitch),           -sin(pitch),           1.0f,
@@ -177,19 +166,21 @@ void draw(screen* screen) {
       // Find intersection point with closest geometry. If no intersection, paint the abyss
       Intersection intersection;
       if (closest_intersection(camera_position, d, triangles, intersection)) {
-        // On finding the closest intersection
+        // If the ray drawn does intersect with geometry then draw the correct
+        // colour returned by direct_light()
         PutPixelSDL(screen, x, y, direct_light(intersection));
       } else {
+        // Otherwise draw black
         PutPixelSDL(screen, x, y, vec3(0.0,0.0,0.0));
       }
     }
   }
 }
 
-/*Place updates of parameters here*/
+// Place updates of parameters here
 bool update() {
   // static int t = SDL_GetTicks();
-  // /* Compute frame time */
+  // // Compute frame time
   // int t2 = SDL_GetTicks();
   // float dt = float(t2-t);
   // t = t2;
@@ -203,10 +194,10 @@ bool update() {
       int key_code = e.key.keysym.sym;
       switch(key_code) {
         case SDLK_UP:
-          pitch += 0.1;
+          pitch -= 0.1;
           break;
         case SDLK_DOWN:
-          pitch -= 0.1;
+          pitch += 0.1;
           break;
         case SDLK_LEFT:
           yaw += 0.1;
