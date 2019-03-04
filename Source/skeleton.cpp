@@ -36,6 +36,7 @@ float yaw = 0.0f;
 
 vec4 light_position(0, -0.5, -0.7, 1.0);
 vec3 light_color = 14.f * vec3(1, 1, 1);
+vec3 indirect_light = 0.5f * vec3(1, 1, 1);
 
 bool quit = false;
 
@@ -136,12 +137,10 @@ vec3 direct_light(const Intersection& intersection) {
 
   // Get the normal of the triangle that the light has hit
   vec4 n = triangles.at(intersection.triangle_index).normal;
-  // Get colour of the triangle the light has hit
-  vec3 p = triangles.at(intersection.triangle_index).color;
   // Intensity of the colour, based on the distance from the light
   vec3 D = (vec3) (light_color * max(glm::dot(r, n) , 0)) / (float) (4 * M_PI * radius * radius);
 
-  return p * D;
+  return D;
 }
 
 // Place your drawing here
@@ -168,7 +167,10 @@ void draw(screen* screen) {
       if (closest_intersection(camera_position, d, triangles, intersection)) {
         // If the ray drawn does intersect with geometry then draw the correct
         // colour returned by direct_light()
-        PutPixelSDL(screen, x, y, direct_light(intersection));
+        // Get colour of the triangle the light has hit
+        vec3 p = triangles.at(intersection.triangle_index).color;
+        vec3 final_color = (direct_light(intersection) + indirect_light);
+        PutPixelSDL(screen, x, y, final_color);
       } else {
         // Otherwise draw black
         PutPixelSDL(screen, x, y, vec3(0.0,0.0,0.0));
