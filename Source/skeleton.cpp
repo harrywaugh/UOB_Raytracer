@@ -169,7 +169,7 @@ void draw(screen* screen) {
         // colour returned by direct_light()
         // Get colour of the triangle the light has hit
         vec3 p = triangles.at(intersection.triangle_index).color;
-        vec3 final_color = (direct_light(intersection) + indirect_light);
+        vec3 final_color = p * (direct_light(intersection) + indirect_light);
         PutPixelSDL(screen, x, y, final_color);
       } else {
         // Otherwise draw black
