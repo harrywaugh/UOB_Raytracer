@@ -18,8 +18,8 @@ using glm::length;
 
 SDL_Event event;
 
-#define SCREEN_WIDTH 700
-#define SCREEN_HEIGHT 700
+#define SCREEN_WIDTH 1400
+#define SCREEN_HEIGHT 1400
 #define FULLSCREEN_MODE false
 
 
