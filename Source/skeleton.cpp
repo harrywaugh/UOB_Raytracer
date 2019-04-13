@@ -141,7 +141,7 @@ void offload_rendering(screen* screen, t_ocl ocl)  {
                0.0f,        cos(pitch),           -sin(pitch),            
               -sin(yaw),    cos(yaw)*sin(pitch),   cos(pitch)*cos(yaw)};
   // memcpy(glm::value_ptr(R), r, sizeof(r));
-
+  printf("r 0 %f 1 %f\n", r[0], r[1]);
   err = clEnqueueWriteBuffer(ocl.queue, ocl.rotation_matrix_buffer, CL_TRUE, 0,
   sizeof(cl_float) * 9, &r, 0, NULL, NULL);
   checkError(err, "writing rotation matrix data", __LINE__);

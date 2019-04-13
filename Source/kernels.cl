@@ -80,11 +80,12 @@ bool closest_intersection(float4 start, float3 d, global float3 *triangle_vertex
 
 
 kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexes,   global float3 *triangle_normals,
-				 global float3 *triangle_colors, global float3 *rot_matrix,           float4 camera_pos, int triangle_n)
+				 global float3 *triangle_colors, global float3 *rot_matrix,           float3 camera_pos, int triangle_n)
 {         /* accumulated magnitudes of velocity for each cell */
   const short x = get_global_id(0);
   const short y = get_global_id(1);
 
+  printf("r 0 %f 1 %f\n", rot_matrix[0], rot_matrix[1]);
 
 
   // if(x==0 && y==0)  {
