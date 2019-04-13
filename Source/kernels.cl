@@ -2,8 +2,8 @@
 
 constant float focal_length = 500.0;
 constant float3 indirect_light = (float3)(0.5f, 0.5f, 0.5f);
-#define SCREEN_WIDTH 1400
-#define SCREEN_HEIGHT 1400
+#define SCREEN_WIDTH 1024
+#define SCREEN_HEIGHT 1024
 
 /////READ ONLY BUFFERS
 
@@ -81,37 +81,36 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
   const short x = get_global_id(0);
   const short y = get_global_id(1);
 
-  screen_buffer[y*SCREEN_WIDTH+x] = 0;
 
 
- //  if(x==0 && y==0)  {
- //  	printf("Triangle n %d\n", triangle_n);
- //  // 	printf("Triangle 0: norm  %f col %f\n",       triangle_normals[0].s0, triangle_colors[0].s0);
- //  // 	printf("Triangle 1: v0x  %f v1x %f v2x %f\n", triangle_vertexes[3].s0, triangle_vertexes[4].s0, triangle_vertexes[5].s0);
- //  // 	printf("Triangle 1: norm  %f col %f\n",       triangle_normals[1].s0, triangle_colors[1].s0);
+  if(x==0 && y==0)  {
+  	printf("Triangle n %d\n", triangle_n);
+  // 	printf("Triangle 0: norm  %f col %f\n",       triangle_normals[0].s0, triangle_colors[0].s0);
+  // 	printf("Triangle 1: v0x  %f v1x %f v2x %f\n", triangle_vertexes[3].s0, triangle_vertexes[4].s0, triangle_vertexes[5].s0);
+  // 	printf("Triangle 1: norm  %f col %f\n",       triangle_normals[1].s0, triangle_colors[1].s0);
 
- //  }
- //  // Declare ray for given position on the screen. Rotate ray by current view angle
- //  float3 d = (float3) (x - SCREEN_WIDTH/2.0, y - SCREEN_HEIGHT/2.0, focal_length);
- //  // d = R * d;
+  }
+  // Declare ray for given position on the screen. Rotate ray by current view angle
+  float3 d = (float3) (x - SCREEN_WIDTH/2.0, y - SCREEN_HEIGHT/2.0, focal_length);
+  // d = R * d;
 
- //  // Find intersection point with closest geometry. If no intersection, paint the abyss
- //  Intersection intersection;
- //  if (closest_intersection(camera_pos, d, triangle_vertexes, &intersection, triangle_n)) {
- //    float3 p = triangle_colors[intersection.triangle_index];
- //    // vec3 final_color = p*(direct_light(intersection) + indirect_light);
-	// if( x<0 || x>=SCREEN_WIDTH || y<0 || y>=SCREEN_HEIGHT )  {
-	// 	printf("apa\n");
-	// 	return;
-	// }
-	// uint r = (uint) min(max(255*p.x, 0.f), 255.f);
-	// uint g = (uint) min(max(255*p.y, 0.f), 255.f);
-	// uint b = (uint) min(max(255*p.z, 0.f), 255.f);
- //  	// screen_buffer[y*SCREEN_WIDTH+x] = (128<<24) + (r<<16) + (g<<8) + b;
- //  } else {
- //    // Otherwise draw black
- //  	screen_buffer[y*SCREEN_WIDTH+x] = 0;
- //  }
+  // Find intersection point with closest geometry. If no intersection, paint the abyss
+  Intersection intersection;
+  if (closest_intersection(camera_pos, d, triangle_vertexes, &intersection, triangle_n)) {
+    float3 p = triangle_colors[intersection.triangle_index];
+    // vec3 final_color = p*(direct_light(intersection) + indirect_light);
+	if( x<0 || x>=SCREEN_WIDTH || y<0 || y>=SCREEN_HEIGHT )  {
+		printf("apa\n");
+		return;
+	}
+	uint r = (uint) min(max(255*p.x, 0.f), 255.f);
+	uint g = (uint) min(max(255*p.y, 0.f), 255.f);
+	uint b = (uint) min(max(255*p.z, 0.f), 255.f);
+  	screen_buffer[y*SCREEN_WIDTH+x] = (128<<24) + (r<<16) + (g<<8) + b;
+  } else {
+    // Otherwise draw black
+  	screen_buffer[y*SCREEN_WIDTH+x] = 0;
+  }
 
 }
 
