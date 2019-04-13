@@ -7,11 +7,11 @@ constant float3 indirect_light = (float3)(0.5f, 0.5f, 0.5f);
 
 typedef struct
 {
-  float4 v0;
-  float4 v1;
-  float4 v2;
-  float4 normal;
-  float3 color;
+  double4 v0;
+  double4 v1;
+  double4 v2;
+  double4 normal;
+  double3 color;
 } triangle;
 
 kernel void draw(global uint  *screen_buffer, global triangle *triangles, 
