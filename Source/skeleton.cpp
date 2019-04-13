@@ -94,6 +94,7 @@ float max(float x, float y) {
 
 int main(int argc, char* argv[]) {
   t_ocl    ocl; 
+  cl_int err;
 
   printf("Triangle size %lu\n", sizeof(Triangle));
   printf("triangle size %lu\n", sizeof(triangle));
@@ -104,11 +105,18 @@ int main(int argc, char* argv[]) {
   // Load Cornell Box
   LoadTestModel(triangles);
 
+
+  err = clEnqueueWriteBuffer(ocl.queue, ocl.screen_buffer, CL_TRUE, 0,
+  sizeof(cl_uint) * SCREEN_WIDTH * SCREEN_HEIGHT, screen->buffer, 0, NULL, NULL);
+  checkError(err, "writing screen buffer data", __LINE__);
+  // err = clEnqueueWriteBuffer(ocl.queue, ocl.screen_buffer, CL_TRUE, 0,
+  // sizeof(cl_uint) * SCREEN_WIDTH * SCREEN_HEIGHT, screen->buffer, 0, NULL, NULL);
+  // checkError(err, "writing triangles data", __LINE__);
+
+
   printf("Triangles Length size %lu\n",  triangles.size());
 
   opencl_initialise(&ocl);
-
-
 
   // Draw initial scene
   draw(screen, ocl);
@@ -122,7 +130,18 @@ int main(int argc, char* argv[]) {
       draw(screen, ocl);
       auto stop = high_resolution_clock::now();
       auto duration = duration_cast<microseconds>(stop - start); 
-      cout << "Draw Function: "<< duration.count() << "micro seconds" <<  endl; 
+      cout << "Draw Function: "<< duration.count() << " micro seconds" <<  endl; 
+
+
+      err = clEnqueueWriteBuffer(ocl.queue, ocl.screen_buffer, CL_TRUE, 0,
+      sizeof(cl_uint) * SCREEN_WIDTH * SCREEN_HEIGHT, screen->buffer, 0, NULL, NULL);
+      checkError(err, "writing screen buffer data", __LINE__);
+
+      err = clEnqueueReadBuffer(ocl.queue, ocl.screen_buffer, CL_TRUE, 0,
+      sizeof(cl_uint) * SCREEN_WIDTH * SCREEN_HEIGHT, screen->buffer, 0, NULL, NULL);
+      checkError(err, "writing screen buffer data", __LINE__);
+
+
       SDL_Renderframe(screen);
     }
   }
