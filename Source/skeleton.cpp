@@ -98,12 +98,17 @@ int main(int argc, char* argv[]) {
   printf("Triangle size %lu\n", sizeof(Triangle));
   printf("triangle size %lu\n", sizeof(triangle));
 
-  opencl_initialise(&ocl);
 
   screen *screen = InitializeSDL(SCREEN_WIDTH, SCREEN_HEIGHT, FULLSCREEN_MODE);
 
   // Load Cornell Box
   LoadTestModel(triangles);
+
+  printf("Triangles Length size %lu\n",  triangles.size());
+
+  opencl_initialise(&ocl);
+
+
 
   // Draw initial scene
   draw(screen, ocl);
