@@ -1,7 +1,7 @@
 #pragma OPENCL EXTENSION cl_khr_fp64 : enable
 
 float focal_length = 500.0;
-float4 vf = (float4) (a, b, c, d);
+float3 indirect_light = (float3)(0.5f, 0.5f, 0.5f);
 #define SCREEN_WIDTH 1400
 #define SCREEN_HEIGHT 1400
 
