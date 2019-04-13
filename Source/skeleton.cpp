@@ -176,7 +176,6 @@ void draw(screen* screen) {
                0.0f,      cos(pitch),           -sin(pitch),           1.0f,
               -sin(yaw),  cos(yaw)*sin(pitch),   cos(pitch)*cos(yaw),  1.0f,
                1.0f,      1.0f,                  1.0f,                 1.0f};
-  mat4 R;
   memcpy(glm::value_ptr(R), r, sizeof(r));
   for (int y = 0; y < screen->height; y++) {
     for (int x = 0; x < screen->width; x++) {
