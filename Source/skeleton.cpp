@@ -45,6 +45,7 @@ typedef struct
   //Memory Buffers
   cl_mem screen_buffer;
   cl_mem triangles_buffer;
+  cl_mem rotation_matrix_buffer;
 } t_ocl;
           
 
@@ -199,7 +200,7 @@ void draw(screen* screen, t_ocl ocl) {
                1.0f,      1.0f,                  1.0f,                   1.0f};
   memcpy(glm::value_ptr(R), r, sizeof(r));
 
-  err = clSetKernelArg(ocl.draw, 2, sizeof(cl_float), &r);
+  err = clSetKernelArg(ocl.draw, 2, sizeof(cl_mem), &ocl.rotation_matrix_buffer);
   checkError(err, "setting draw arg 2", __LINE__);
   err = clSetKernelArg(ocl.draw, 3, sizeof(cl_float4), &camera_position);
   checkError(err, "setting draw arg 3", __LINE__);
@@ -357,7 +358,10 @@ void opencl_initialise(t_ocl *ocl)  {
                                 sizeof(cl_uint)  * SCREEN_WIDTH * SCREEN_HEIGHT, NULL, &err);
   checkError(err, "creating screen buffer", __LINE__);
   ocl->triangles_buffer       = clCreateBuffer(ocl->context, CL_MEM_READ_WRITE,
-                                sizeof(cl_uint)  * SCREEN_WIDTH * SCREEN_HEIGHT, NULL, &err);
+                                sizeof(Triangle)  * triangles.size(), NULL, &err);
+  checkError(err, "creating screen buffer", __LINE__);
+  ocl->rotation_matrix_buffer = clCreateBuffer(ocl->context, CL_MEM_READ_WRITE,
+                                sizeof(cl_float) * 16 , NULL, &err);
   checkError(err, "creating screen buffer", __LINE__);
 
   // Set kernel arguments
@@ -365,6 +369,8 @@ void opencl_initialise(t_ocl *ocl)  {
   checkError(err, "setting draw arg 0", __LINE__);
   err = clSetKernelArg(ocl->draw, 1, sizeof(cl_mem), &ocl->triangles_buffer);
   checkError(err, "setting draw arg 1", __LINE__);
+  err = clSetKernelArg(ocl->draw, 2, sizeof(cl_mem), &ocl->rotation_matrix_buffer);
+  checkError(err, "setting draw arg 2", __LINE__);
 }
 
 void checkError(cl_int err, const char *op, const int line)
