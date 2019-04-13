@@ -32,7 +32,7 @@ void PutPixelSDL(global uint *screen_buffer, int x, int y, float3 colour) {
 }
 
 
-kernel closest_intersection(float4 start, float3 d, global float3 *triangle_vertexes, private Intersection* closest_intersection, int triangle_n) {
+bool closest_intersection(float4 start, float3 d, global float3 *triangle_vertexes, private Intersection* closest_intersection, int triangle_n) {
   // Set closest intersection to be the max float value
   float current_t = 99999999999999.0f;
   // Make 4D ray into 3D ray
