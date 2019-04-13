@@ -363,7 +363,7 @@ void opencl_initialise(t_ocl *ocl)  {
   // Set kernel arguments
   err = clSetKernelArg(ocl->draw, 0, sizeof(cl_mem), &ocl->screen_buffer);
   checkError(err, "setting draw arg 0", __LINE__);
-  err = clSetKernelArg(ocl->draw, 1, sizeof(cl_mem), &triangles_buffer);
+  err = clSetKernelArg(ocl->draw, 1, sizeof(cl_mem), &ocl->triangles_buffer);
   checkError(err, "setting draw arg 1", __LINE__);
 }
 
