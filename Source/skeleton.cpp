@@ -8,8 +8,10 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <math.h>
 #include <CL/opencl.h>
+#include <chrono> 
 
 using namespace std;
+using namespace std::chrono; 
 using glm::vec3;
 using glm::mat3;
 using glm::vec4;
@@ -19,6 +21,8 @@ using glm::sin;
 using glm::length;
 
 SDL_Event event;
+
+
 
 #define OCLFILE "Source/kernels.cl"
 #define WORK_SIZE_X 32                 
@@ -93,7 +97,11 @@ int main(int argc, char* argv[]) {
   while (!quit) {
     // If there is an update to the scene, then draw changes. Check if user wants to quit
     if (update())  {
+      auto start = high_resolution_clock::now();
       draw(screen);
+      auto stop = high_resolution_clock::now();
+      auto duration = duration_cast<microseconds>(stop - start); 
+      cout << duration.count() << "s for Draw Function" <<  endl; 
       SDL_Renderframe(screen);
     }
   }
@@ -117,9 +125,6 @@ bool closest_intersection(vec4 start, vec4 dir, const vector<Triangle>& triangle
     vec3 e1 = vec3(v1.x-v0.x,v1.y-v0.y,v1.z-v0.z);
     vec3 e2 = vec3(v2.x-v0.x,v2.y-v0.y,v2.z-v0.z);
     vec3 b = vec3(start.x-v0.x,start.y-v0.y,start.z-v0.z);
-
-    // mat3 A(-d, e1, e2);
-    // vec3 x = glm::inverse(A) * b;
 
     // Cramers, might be det repeated computation..?
     float detA = glm::determinant(mat3(-d, e1, e2));
