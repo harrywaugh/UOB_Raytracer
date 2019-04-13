@@ -66,16 +66,6 @@ bool quit = false;
 vector<Triangle> triangles;
 
 
-typedef struct
-{
-  cl_float4 v0;
-  cl_float4 v1;
-  cl_float4 v2;
-  cl_float4 normal;
-  cl_float3 color;
-} triangle;
-
-
 bool update();
 void draw(screen* screen, t_ocl ocl);
 void checkError(cl_int err, const char *op, const int line);
@@ -95,10 +85,7 @@ float max(float x, float y) {
 
 int main(int argc, char* argv[]) {
   t_ocl    ocl; 
-  cl_int err;
 
-  printf("Triangle size %lu\n", sizeof(Triangle));
-  printf("triangle size %lu\n", sizeof(triangle));
 
 
   screen *screen = InitializeSDL(SCREEN_WIDTH, SCREEN_HEIGHT, FULLSCREEN_MODE);
@@ -114,10 +101,6 @@ int main(int argc, char* argv[]) {
 
   opencl_initialise(&ocl);
 
-
-  err = clEnqueueWriteBuffer(ocl.queue, ocl.triangles_buffer, CL_TRUE, 0,
-  sizeof(Triangle) * triangles.size(), &triangles, 0, NULL, NULL);
-  checkError(err, "writing triangle buffer data", __LINE__);
 
 
   // Draw initial scene
@@ -239,7 +222,6 @@ vec3 direct_light(const Intersection& intersection) {
 
 // Place your drawing here
 void draw(screen* screen, t_ocl ocl) {
-  cl_int err;
   // Clear the buffer
   // memset(screen->buffer, 0, screen->height*screen->width*sizeof(uint32_t));
   mat4 R;
@@ -403,7 +385,7 @@ void opencl_initialise(t_ocl *ocl)  {
                                 sizeof(cl_uint)  * SCREEN_WIDTH * SCREEN_HEIGHT, NULL, &err);
   checkError(err, "creating screen buffer", __LINE__);
   ocl->triangles_buffer       = clCreateBuffer(ocl->context, CL_MEM_READ_WRITE,
-                                (sizeof(Triangle)  * triangles.size()), NULL, &err);
+                                (sizeof(cl_float3)  * triangles.size()*3), NULL, &err);
   checkError(err, "creating Triangle buffer", __LINE__);
   ocl->rotation_matrix_buffer = clCreateBuffer(ocl->context, CL_MEM_READ_WRITE,
                                 sizeof(cl_float) * 16 , NULL, &err);
@@ -416,6 +398,20 @@ void opencl_initialise(t_ocl *ocl)  {
   checkError(err, "setting draw arg 1", __LINE__);
   err = clSetKernelArg(ocl->draw, 2, sizeof(cl_mem), &ocl->rotation_matrix_buffer);
   checkError(err, "setting draw arg 2", __LINE__);
+
+  cl_float3 *triangle_vertexes = (cl_float3*)malloc(sizeof(cl_float3)*triangles.size()*3);
+
+  for (uint i = 0; i < triangles.size(); i++)  {
+    triangle_vertexes[i*3]   = {triangles[i].v0.x, triangles[i].v0.y, triangles[i].v0.z};
+    triangle_vertexes[i*3+1] = {triangles[i].v1.x, triangles[i].v1.y, triangles[i].v1.z};
+    triangle_vertexes[i*3+2] = {triangles[i].v2.x, triangles[i].v2.y, triangles[i].v2.z};
+  }
+
+  err = clEnqueueWriteBuffer(ocl->queue, ocl->triangles_buffer, CL_TRUE, 0,
+  sizeof(cl_float3) * triangles.size()*3, &triangle_vertexes, 0, NULL, NULL);
+  checkError(err, "writing triangle buffer data", __LINE__);
+
+
 }
   
 void checkError(cl_int err, const char *op, const int line)
