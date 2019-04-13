@@ -7,11 +7,11 @@ constant float3 indirect_light = (float3)(0.5f, 0.5f, 0.5f);
 
 typedef struct
 {
-  float4 v0;
-  float4 v1;
-  float4 v2;
-  float4 normal;
-  float3 color;
+  double4 v0;
+  double4 v1;
+  double4 v2;
+  double4 normal;
+  double3 color;
 } triangle;
 
 kernel void draw(global uint  *screen_buffer, global triangle *triangles, 
@@ -19,9 +19,12 @@ kernel void draw(global uint  *screen_buffer, global triangle *triangles,
 {         /* accumulated magnitudes of velocity for each cell */
   const short x = get_global_id(0);
   const short y = get_global_id(1);
-  if(x==0 && y==0)
+  if(x==0 && y==0)  {
   	printf("Triangle 0: v0x  %f v1x %f v2x %f normal %f col %f\n", triangles[0].v0.x, triangles[0].v1.x, triangles[0].v2.x, 
                                                                	   triangles[0].normal.x, triangles[0].color.x );
+  	printf("Triangle 1: v0x  %f v1x %f v2x %f normal %f col %f\n", triangles[1].v0.x, triangles[1].v1.x, triangles[1].v2.x, 
+                                                               	   triangles[1].normal.x, triangles[1].color.x );
+  }
 
 }
 
