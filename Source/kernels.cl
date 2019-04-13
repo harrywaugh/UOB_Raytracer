@@ -65,7 +65,7 @@ kernel closest_intersection(float4 start, float3 d, global float3 *triangle_vert
 
       closest_intersection.position = (float3) (position.x, position.y, position.z);
       float3 dist_vec = x.x*d;
-      closest_intersection.distance = native_sqrt(dist_vec.x*dist_vec.x + dist_vec.y*dist_vec.y + dist_vec.z*dist_vec.z)
+      closest_intersection.distance = native_sqrt(dist_vec.x*dist_vec.x + dist_vec.y*dist_vec.y + dist_vec.z*dist_vec.z);
       closest_intersection.triangle_index = i;
       current_t = x.x;
     }

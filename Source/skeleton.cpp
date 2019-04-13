@@ -114,7 +114,7 @@ int main(int argc, char* argv[]) {
     // If there is an update to the scene, then draw changes. Check if user wants to quit
     if (update())  {
       auto start = high_resolution_clock::now();
-      draw(screen, ocl);
+      // draw(screen, ocl);
       auto stop = high_resolution_clock::now();
       auto duration = duration_cast<microseconds>(stop - start); 
       cout << "Draw Function: "<< duration.count() << " micro seconds" <<  endl; 
@@ -183,7 +183,7 @@ bool closest_intersection(vec4 start, vec4 dir, const vector<Triangle>& triangle
     float detA1 = glm::determinant(mat3(-d, b, e2));
     float detA2 = glm::determinant(mat3(-d, e1, b));
 
-    vec3 x(detA0/detA, detA1/detA, detA2/detA);
+    float3 x = (float3) (detA0/detA, detA1/detA, detA2/detA);
 
     // If ray goes through triangle, and is the closest triangle
     if (x.x >= 0 && x.y >= 0 && x.z >= 0 && (x.y + x.z) <= 1 && x.x < current_t) {
