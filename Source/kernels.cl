@@ -85,7 +85,7 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
   const short x = get_global_id(0);
   const short y = get_global_id(1);
 
-  printf("r 0 %f 1 %f\n", rot_matrix[0], rot_matrix[1]);
+  // printf("r 0 %f 1 %f\n", rot_matrix[0], rot_matrix[1]);
 
 
   // if(x==0 && y==0)  {
