@@ -6,14 +6,14 @@ constant float3 indirect_light = (float3)(0.5f, 0.5f, 0.5f);
 #define SCREEN_HEIGHT 1400
 
 
-kernel void draw(global uint  *screen_buffer, global float3 *triangles_vertexes, 
-				 global float *rot_matrix,           float4 camera_pos)
+kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexes,   global float4 *triangle_normals,
+				 global float3 *triangle_colors, global float *rot_matrix,           float4 camera_pos)
 {         /* accumulated magnitudes of velocity for each cell */
   const short x = get_global_id(0);
   const short y = get_global_id(1);
   if(x==0 && y==0)  {
-  	printf("Triangle 0: v0x  %f v1x %f v2x %f\n", triangles_vertexes[0].s0, triangles_vertexes[1].s0, triangles_vertexes[2].s0);
-  	printf("Triangle 1: v0x  %f v1x %f v2x %f\n", triangles_vertexes[3].s0, triangles_vertexes[4].s0, triangles_vertexes[5].s0);
+  	printf("Triangle 0: v0x  %f v1x %f v2x %f\n", triangle_vertexes[0].s0, triangle_vertexes[1].s0, triangle_vertexes[2].s0);
+  	printf("Triangle 1: v0x  %f v1x %f v2x %f\n", triangle_vertexes[3].s0, triangle_vertexes[4].s0, triangle_vertexes[5].s0);
   }
 }
 

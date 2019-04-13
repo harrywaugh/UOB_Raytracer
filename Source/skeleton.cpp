@@ -45,6 +45,8 @@ typedef struct
   //Memory Buffers
   cl_mem screen_buffer;
   cl_mem triangles_buffer;
+  cl_mem normal_buffer;
+  cl_mem color_buffer;
   cl_mem rotation_matrix_buffer;
 } t_ocl;
           
@@ -144,10 +146,10 @@ void offload_rendering(screen* screen, t_ocl ocl)  {
   checkError(err, "writing rotation matrix data", __LINE__);
 
   //Set Camera Position and Rotation Matrix Arguments
-  err = clSetKernelArg(ocl.draw, 2, sizeof(cl_mem), &ocl.rotation_matrix_buffer);
-  checkError(err, "setting draw arg 2", __LINE__);
-  err = clSetKernelArg(ocl.draw, 3, sizeof(cl_float4), &camera_position);
-  checkError(err, "setting draw arg 3", __LINE__);
+  err = clSetKernelArg(ocl.draw, 4, sizeof(cl_mem), &ocl.rotation_matrix_buffer);
+  checkError(err, "setting draw arg 4", __LINE__);
+  err = clSetKernelArg(ocl.draw, 5, sizeof(cl_float4), &camera_position);
+  checkError(err, "setting draw arg 5", __LINE__);
 
   // Enqueue kernel
   size_t global_size[2] = {SCREEN_WIDTH, SCREEN_HEIGHT};
@@ -385,11 +387,18 @@ void opencl_initialise(t_ocl *ocl)  {
                                 sizeof(cl_uint)  * SCREEN_WIDTH * SCREEN_HEIGHT, NULL, &err);
   checkError(err, "creating screen buffer", __LINE__);
   ocl->triangles_buffer       = clCreateBuffer(ocl->context, CL_MEM_READ_WRITE,
-                                (sizeof(cl_float3)  * triangles.size()*3), NULL, &err);
+                                (sizeof(cl_float3) * triangles.size()*3), NULL, &err);
   checkError(err, "creating Triangle buffer", __LINE__);
   ocl->rotation_matrix_buffer = clCreateBuffer(ocl->context, CL_MEM_READ_WRITE,
                                 sizeof(cl_float) * 16 , NULL, &err);
   checkError(err, "creating Rot Mat Buffer buffer", __LINE__);
+  ocl->normal_buffer = clCreateBuffer(ocl->context, CL_MEM_READ_WRITE,
+                                sizeof(cl_float4) * triangles.size() , NULL, &err);
+  checkError(err, "creating Normal Buffer buffer", __LINE__);
+  ocl->color_buffer = clCreateBuffer(ocl->context, CL_MEM_READ_WRITE,
+                                sizeof(cl_float3) * triangles.size() , NULL, &err);
+  checkError(err, "creating Color Buffer buffer", __LINE__);
+
 
   // Set kernel arguments
   err = clSetKernelArg(ocl->draw, 0, sizeof(cl_mem), &ocl->screen_buffer);
@@ -400,15 +409,27 @@ void opencl_initialise(t_ocl *ocl)  {
   checkError(err, "setting draw arg 2", __LINE__);
 
   cl_float3 *triangle_vertexes = (cl_float3*)malloc(sizeof(cl_float3)*triangles.size()*3);
+  cl_float3 *triangle_normals  = (cl_float4*)malloc(sizeof(cl_float4)*triangles.size());
+  cl_float3 *triangle_colors   = (cl_float3*)malloc(sizeof(cl_float3)*triangles.size());
 
   for (uint i = 0; i < triangles.size(); i++)  {
     triangle_vertexes[i*3]   = {triangles[i].v0.x, triangles[i].v0.y, triangles[i].v0.z};
     triangle_vertexes[i*3+1] = {triangles[i].v1.x, triangles[i].v1.y, triangles[i].v1.z};
     triangle_vertexes[i*3+2] = {triangles[i].v2.x, triangles[i].v2.y, triangles[i].v2.z};
+    triangle_normals[i]      = {triangles[i].normal.x, triangles[i].normal.y, triangles[i].normal.z};
+    triangle_normals[i]      = {triangles[i].color.x, triangles[i].color.y, triangles[i].color.z};
   }
 
   err = clEnqueueWriteBuffer(ocl->queue, ocl->triangles_buffer, CL_TRUE, 0,
   sizeof(cl_float3) * triangles.size()*3, triangle_vertexes, 0, NULL, NULL);
+  checkError(err, "writing triangle buffer data", __LINE__);
+
+  err = clEnqueueWriteBuffer(ocl->queue, ocl->normal_buffer, CL_TRUE, 0,
+  sizeof(cl_float3) * triangles.size(), triangle_normals, 0, NULL, NULL);
+  checkError(err, "writing triangle buffer data", __LINE__);
+
+  err = clEnqueueWriteBuffer(ocl->queue, ocl->color_buffer, CL_TRUE, 0,
+  sizeof(cl_float3) * triangles.size(), triangle_colors, 0, NULL, NULL);
   checkError(err, "writing triangle buffer data", __LINE__);
 
 
