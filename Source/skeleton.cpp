@@ -68,9 +68,9 @@ vector<Triangle> triangles;
 
 typedef struct
 {
-  cl_int4 v0;
-  cl_int4 v1;
-  cl_int4 v2;
+  cl_float4 v0;
+  cl_float4 v1;
+  cl_float4 v2;
   cl_float4 normal;
   cl_float3 color;
 } triangle;
@@ -105,10 +105,11 @@ int main(int argc, char* argv[]) {
 
   // Load Cornell Box
   LoadTestModel(triangles);
-  printf("Triangle 0: v0x  %f v1x %f v2x %f normal %f col %f\n", triangles[0].v0.x, triangles[0].v1.x, triangles[0].v2.x, 
-                                                               triangles[0].normal.x, triangles[0].color.x );
-  printf("Triangle 1: v0x  %f v1x %f v2x %f normal %f col %f\n", triangles[1].v0.x, triangles[1].v1.x, triangles[1].v2.x, 
-                                                               triangles[1].normal.x, triangles[1].color.x );
+  cout << "Triangle 0: v0x  " << triangles[0].v0.x << " v1x " << triangles[0].v1.x << " v2x " << triangles[0].v2.x
+                << " normal " << triangles[0].normal.x << " col " << triangles[0].color.x << "\n" << endl;
+  cout << "Triangle 1: v0x  " << triangles[1].v0.x << " v1x " << triangles[1].v1.x << " v2x " << triangles[1].v2.x
+              << " normal " << triangles[1].normal.x << " col " << triangles[1].color.x << "\n" << endl;
+
   printf("Triangles Length size %lu\n",  triangles.size());
 
   opencl_initialise(&ocl);
@@ -416,7 +417,7 @@ void opencl_initialise(t_ocl *ocl)  {
   err = clSetKernelArg(ocl->draw, 2, sizeof(cl_mem), &ocl->rotation_matrix_buffer);
   checkError(err, "setting draw arg 2", __LINE__);
 }
-
+  
 void checkError(cl_int err, const char *op, const int line)
 {
   if (err != CL_SUCCESS)

@@ -7,11 +7,11 @@ constant float3 indirect_light = (float3)(0.5f, 0.5f, 0.5f);
 
 typedef struct
 {
-  double4 v0;
-  double4 v1;
-  double4 v2;
-  double4 normal;
-  double3 color;
+  float4 v0;
+  float4 v1;
+  float4 v2;
+  float4 normal;
+  float3 color;
 } triangle;
 
 kernel void draw(global uint  *screen_buffer, global triangle *triangles, 
@@ -20,12 +20,11 @@ kernel void draw(global uint  *screen_buffer, global triangle *triangles,
   const short x = get_global_id(0);
   const short y = get_global_id(1);
   if(x==0 && y==0)  {
-  	printf("Triangle 0: v0x  %f v1x %f v2x %f normal %f col %f\n", triangles[0].v0.s0, triangles[0].v1.s0, triangles[0].v2.s0, 
-                                                               	   triangles[0].normal.s0, triangles[0].color.s0 );
-  	printf("Triangle 1: v0x  %f v1x %f v2x %f normal %f col %f\n", triangles[1].v0.s0, triangles[1].v1.s0, triangles[1].v2.s0, 
-                                                               	   triangles[1].normal.s0, triangles[1].color.s0 );
+	  cout << "Triangle 0: v0x  " << triangles[0].v0.x << " v1x " << triangles[0].v1.x << " v2x " << triangles[0].v2.x
+	                << " normal " << triangles[0].normal.x << " col " << triangles[0].color.x << "\n" << endl;
+	  cout << "Triangle 1: v0x  " << triangles[1].v0.x << " v1x " << triangles[1].v1.x << " v2x " << triangles[1].v2.x
+	              << " normal " << triangles[1].normal.x << " col " << triangles[1].color.x << "\n" << endl;
   }
-
 }
 
 // bool closest_intersection(vec4 start, vec4 dir, const vector<Triangle>& triangles, Intersection& closest_intersection) {
