@@ -27,7 +27,7 @@ void PutPixelSDL(global uint *screen_buffer, int x, int y, float3 colour) {
   uint r = (uint) min(max(255*colour.x, 0.f), 255.f);
   uint g = (uint) min(max(255*colour.y, 0.f), 255.f);
   uint b = (uint) min(max(255*colour.z, 0.f), 255.f);
-  if(x<0 && y==0)  {
+  // if(x<0 && y==0)  {
   	printf("R %d G %d B %d\n", r, g, b);
   }
   screen_buffer[y*SCREEN_WIDTH+x] = (128<<24) + (r<<16) + (g<<8) + b;
@@ -82,13 +82,13 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
 {         /* accumulated magnitudes of velocity for each cell */
   const short x = get_global_id(0);
   const short y = get_global_id(1);
-  // if(x==0 && y==0)  {
-  // 	printf("Triangle 0: v0x  %f v1x %f v2x %f\n", triangle_vertexes[0].s0, triangle_vertexes[1].s0, triangle_vertexes[2].s0);
+  if(x==0 && y==0)  {
+  	printf("Triangle n %d\n", triangle_n);
   // 	printf("Triangle 0: norm  %f col %f\n",       triangle_normals[0].s0, triangle_colors[0].s0);
   // 	printf("Triangle 1: v0x  %f v1x %f v2x %f\n", triangle_vertexes[3].s0, triangle_vertexes[4].s0, triangle_vertexes[5].s0);
   // 	printf("Triangle 1: norm  %f col %f\n",       triangle_normals[1].s0, triangle_colors[1].s0);
 
-  // }
+  }
   // Declare ray for given position on the screen. Rotate ray by current view angle
   float3 d = (float3) (x - SCREEN_WIDTH/2.0, y - SCREEN_HEIGHT/2.0, focal_length);
   // d = R * d;
