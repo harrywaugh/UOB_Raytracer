@@ -82,6 +82,7 @@ void checkError(cl_int err, const char *op, const int line);
 void die(const char* message, const int line, const char* file);
 void opencl_initialise(t_ocl *ocl);
 cl_device_id selectOpenCLDevice();
+void offload_rendering(screen* screen, t_ocl ocl);
 
 float square(float x) {
   return x * x;
@@ -110,14 +111,9 @@ int main(int argc, char* argv[]) {
   opencl_initialise(&ocl);
 
 
-  err = clEnqueueWriteBuffer(ocl.queue, ocl.screen_buffer, CL_TRUE, 0,
-  sizeof(cl_uint) * SCREEN_WIDTH * SCREEN_HEIGHT, screen->buffer, 0, NULL, NULL);
-  checkError(err, "writing screen buffer data", __LINE__);
-  // err = clEnqueueWriteBuffer(ocl.queue, ocl.screen_buffer, CL_TRUE, 0,
-  // sizeof(cl_uint) * SCREEN_WIDTH * SCREEN_HEIGHT, screen->buffer, 0, NULL, NULL);
-  // checkError(err, "writing triangles data", __LINE__);
-
-
+  err = clEnqueueWriteBuffer(ocl.queue, ocl.triangles_buffer, CL_TRUE, 0,
+  sizeof(Triangle) * triangles.size(), &triangles, 0, NULL, NULL);
+  checkError(err, "writing triangle buffer data", __LINE__);
 
 
   // Draw initial scene
@@ -134,15 +130,7 @@ int main(int argc, char* argv[]) {
       auto duration = duration_cast<microseconds>(stop - start); 
       cout << "Draw Function: "<< duration.count() << " micro seconds" <<  endl; 
 
-
-      err = clEnqueueWriteBuffer(ocl.queue, ocl.screen_buffer, CL_TRUE, 0,
-      sizeof(cl_uint) * SCREEN_WIDTH * SCREEN_HEIGHT, screen->buffer, 0, NULL, NULL);
-      checkError(err, "writing screen buffer data", __LINE__);
-
-      err = clEnqueueReadBuffer(ocl.queue, ocl.screen_buffer, CL_TRUE, 0,
-      sizeof(cl_uint) * SCREEN_WIDTH * SCREEN_HEIGHT, screen->buffer, 0, NULL, NULL);
-      checkError(err, "writing screen buffer data", __LINE__);
-
+      offload_rendering(screen, ocl);
 
       SDL_Renderframe(screen);
     }
@@ -152,6 +140,43 @@ int main(int argc, char* argv[]) {
 
   KillSDL(screen);
   return 0;
+}
+
+void offload_rendering(screen* screen, t_ocl ocl)  {
+  cl_int err;
+  //Calculate rotation matrix, and write it to the buffer. 
+  mat4 R;
+  float r[16] = {cos(yaw),  sin(pitch)*sin(yaw),   sin(yaw)*cos(pitch),  1.0f,
+               0.0f,      cos(pitch),           -sin(pitch),             1.0f,
+              -sin(yaw),  cos(yaw)*sin(pitch),   cos(pitch)*cos(yaw),    1.0f,
+               1.0f,      1.0f,                  1.0f,                   1.0f};
+  memcpy(glm::value_ptr(R), r, sizeof(r));
+
+  err = clEnqueueWriteBuffer(ocl.queue, ocl.rotation_matrix_buffer, CL_TRUE, 0,
+  sizeof(cl_float) * 16, &r, 0, NULL, NULL);
+  checkError(err, "writing rotation matrix data", __LINE__);
+
+  //Set Camera Position and Rotation Matrix Arguments
+  err = clSetKernelArg(ocl.draw, 2, sizeof(cl_mem), &ocl.rotation_matrix_buffer);
+  checkError(err, "setting draw arg 2", __LINE__);
+  err = clSetKernelArg(ocl.draw, 3, sizeof(cl_float4), &camera_position);
+  checkError(err, "setting draw arg 3", __LINE__);
+
+
+  // Enqueue kernel
+  size_t global_size[2] = {SCREEN_WIDTH, SCREEN_HEIGHT};
+  size_t work_size[2] = {WORK_SIZE_X, WORK_SIZE_Y};
+  err = clEnqueueNDRangeKernel(ocl.queue, ocl.draw ,
+                               1, NULL, global_size, work_size, 0, NULL, NULL);
+  checkError(err, "enqueueing draw kernel", __LINE__);
+
+
+
+
+  err = clEnqueueReadBuffer(ocl.queue, ocl.screen_buffer, CL_TRUE, 0,
+  sizeof(cl_uint) * SCREEN_WIDTH * SCREEN_HEIGHT, screen->buffer, 0, NULL, NULL);
+  checkError(err, "writing screen buffer data", __LINE__);
+
 }
 
 bool closest_intersection(vec4 start, vec4 dir, const vector<Triangle>& triangles, Intersection& closest_intersection) {
@@ -225,11 +250,6 @@ void draw(screen* screen, t_ocl ocl) {
               -sin(yaw),  cos(yaw)*sin(pitch),   cos(pitch)*cos(yaw),    1.0f,
                1.0f,      1.0f,                  1.0f,                   1.0f};
   memcpy(glm::value_ptr(R), r, sizeof(r));
-
-  err = clSetKernelArg(ocl.draw, 2, sizeof(cl_mem), &ocl.rotation_matrix_buffer);
-  checkError(err, "setting draw arg 2", __LINE__);
-  err = clSetKernelArg(ocl.draw, 3, sizeof(cl_float4), &camera_position);
-  checkError(err, "setting draw arg 3", __LINE__);
 
 
   for (int y = 0; y < screen->height; y++) {
