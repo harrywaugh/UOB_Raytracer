@@ -44,6 +44,7 @@ typedef struct
 
   //Memory Buffers
   cl_mem screen_buffer;
+  cl_mem triangles_buffer;
 } t_ocl;
           
 
@@ -355,11 +356,14 @@ void opencl_initialise(t_ocl *ocl)  {
   ocl->screen_buffer          = clCreateBuffer(ocl->context, CL_MEM_READ_WRITE,
                                 sizeof(cl_uint)  * SCREEN_WIDTH * SCREEN_HEIGHT, NULL, &err);
   checkError(err, "creating screen buffer", __LINE__);
+  ocl->triangles_buffer       = clCreateBuffer(ocl->context, CL_MEM_READ_WRITE,
+                                sizeof(cl_uint)  * SCREEN_WIDTH * SCREEN_HEIGHT, NULL, &err);
+  checkError(err, "creating screen buffer", __LINE__);
 
   // Set kernel arguments
   err = clSetKernelArg(ocl->draw, 0, sizeof(cl_mem), &ocl->screen_buffer);
   checkError(err, "setting draw arg 0", __LINE__);
-  err = clSetKernelArg(ocl->draw, 1, sizeof(Triangle)*triangles.size(), &triangles);
+  err = clSetKernelArg(ocl->draw, 1, sizeof(cl_mem), &triangles_buffer);
   checkError(err, "setting draw arg 1", __LINE__);
 }
 
