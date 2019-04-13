@@ -158,9 +158,9 @@ void offload_rendering(screen* screen, t_ocl ocl)  {
   checkError(err, "enqueueing draw kernel", __LINE__);
 
 
-  err = clEnqueueReadBuffer(ocl.queue, ocl.screen_buffer, CL_TRUE, 0,
-  sizeof(cl_uint) * SCREEN_WIDTH * SCREEN_HEIGHT, screen->buffer, 0, NULL, NULL);
-  checkError(err, "writing screen buffer data", __LINE__);
+  // err = clEnqueueReadBuffer(ocl.queue, ocl.screen_buffer, CL_TRUE, 0,
+  // sizeof(cl_uint) * SCREEN_WIDTH * SCREEN_HEIGHT, screen->buffer, 0, NULL, NULL);
+  // checkError(err, "reading screen buffer data", __LINE__);
 }
 
 bool closest_intersection(vec4 start, vec4 dir, const vector<Triangle>& triangles, Intersection& closest_intersection) {
