@@ -93,13 +93,13 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
 
   // Find intersection point with closest geometry. If no intersection, paint the abyss
   Intersection intersection;
-  if (closest_intersection(camera_pos, d, triangle_vertexes, intersection, triangle_n)) {
+  if (closest_intersection(camera_pos, d, triangle_vertexes, &intersection, triangle_n)) {
     float3 p = triangle_colors[intersection.triangle_index];
     // vec3 final_color = p*(direct_light(intersection) + indirect_light);
     PutPixelSDL(screen_buffer, x, y, p);
   } else {
     // Otherwise draw black
-    PutPixelSDL(screen_buffer, x, y, vec3(0.0f, 0.0f, 0.0f));
+    PutPixelSDL(screen_buffer, x, y, (float3)(0.0f, 0.0f, 0.0f));
   }
 
 }
