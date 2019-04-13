@@ -105,6 +105,10 @@ int main(int argc, char* argv[]) {
   // Load Cornell Box
   LoadTestModel(triangles);
 
+  printf("Triangles Length size %lu\n",  triangles.size());
+
+  opencl_initialise(&ocl);
+
 
   err = clEnqueueWriteBuffer(ocl.queue, ocl.screen_buffer, CL_TRUE, 0,
   sizeof(cl_uint) * SCREEN_WIDTH * SCREEN_HEIGHT, screen->buffer, 0, NULL, NULL);
@@ -114,9 +118,7 @@ int main(int argc, char* argv[]) {
   // checkError(err, "writing triangles data", __LINE__);
 
 
-  printf("Triangles Length size %lu\n",  triangles.size());
 
-  opencl_initialise(&ocl);
 
   // Draw initial scene
   draw(screen, ocl);
