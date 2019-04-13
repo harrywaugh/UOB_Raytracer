@@ -407,6 +407,10 @@ void opencl_initialise(t_ocl *ocl)  {
   checkError(err, "setting draw arg 1", __LINE__);
   err = clSetKernelArg(ocl->draw, 2, sizeof(cl_mem), &ocl->rotation_matrix_buffer);
   checkError(err, "setting draw arg 2", __LINE__);
+  err = clSetKernelArg(ocl->draw, 3, sizeof(cl_mem), &ocl->normal_buffer);
+  checkError(err, "setting draw arg 3", __LINE__);
+  err = clSetKernelArg(ocl->draw, 4, sizeof(cl_mem), &ocl->color_buffer);
+  checkError(err, "setting draw arg 4", __LINE__);
 
   cl_float3 *triangle_vertexes = (cl_float3*)malloc(sizeof(cl_float3)*triangles.size()*3);
   cl_float3 *triangle_normals  = (cl_float4*)malloc(sizeof(cl_float4)*triangles.size());

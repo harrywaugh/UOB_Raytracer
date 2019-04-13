@@ -4,7 +4,7 @@ constant float focal_length = 500.0;
 constant float3 indirect_light = (float3)(0.5f, 0.5f, 0.5f);
 #define SCREEN_WIDTH 1400
 #define SCREEN_HEIGHT 1400
-
+/////READ ONLY BUFFERS
 
 kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexes,   global float4 *triangle_normals,
 				 global float3 *triangle_colors, global float *rot_matrix,           float4 camera_pos)
