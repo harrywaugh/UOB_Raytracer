@@ -11,9 +11,10 @@ B_DIR=Build
 EXEC=$(B_DIR)/$(FILE)
 
 # default build settings
-CC_OPTS=-c -pipe -Wall -Wno-switch -ggdb -g3 -O3 -lOpenCL
+CC_OPTS=-c -pipe -Wall -Wno-switch -ggdb -g3 -O3 
 LN_OPTS=
 CC=g++
+OpenCL_FLAGS = -lOpenCL
 
 ########
 #       SDL options
@@ -35,13 +36,13 @@ OBJ = $(B_DIR)/$(FILE).o
 ########
 #   Objects
 $(B_DIR)/$(FILE).o : $(S_DIR)/$(FILE).cpp $(S_DIR)/SDLauxiliary.h $(S_DIR)/TestModelH.h
-	$(CC) $(CC_OPTS) -o $(B_DIR)/$(FILE).o $(S_DIR)/$(FILE).cpp $(SDL_CFLAGS) $(GLM_CFLAGS)
+	$(CC) $(CC_OPTS) -o $(B_DIR)/$(FILE).o   $(S_DIR)/$(FILE).cpp $(SDL_CFLAGS) $(GLM_CFLAGS) 
 
 
 ########
 #   Main build rule
 Build : $(OBJ) Makefile
-	$(CC) $(LN_OPTS) -o $(EXEC) $(OBJ) $(SDL_LDFLAGS)
+	$(CC) $(LN_OPTS) -o $(EXEC) $(OBJ) $(SDL_LDFLAGS) $(OpenCL_FLAGS)
 
 
 clean:
