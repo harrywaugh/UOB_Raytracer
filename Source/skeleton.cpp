@@ -141,7 +141,7 @@ void offload_rendering(screen* screen, t_ocl ocl)  {
   // memcpy(glm::value_ptr(R), r, sizeof(r));
 
   err = clEnqueueWriteBuffer(ocl.queue, ocl.rotation_matrix_buffer, CL_TRUE, 0,
-  sizeof(cl_float) * 16, &r, 0, NULL, NULL);
+  sizeof(cl_float) * 9, &r, 0, NULL, NULL);
   checkError(err, "writing rotation matrix data", __LINE__);
 
   //Set Camera Position and Rotation Matrix Arguments
