@@ -63,10 +63,10 @@ bool closest_intersection(float4 start, float3 d, global float3 *triangle_vertex
     if (x.x >= 0 && x.y >= 0 && x.z >= 0 && (x.y + x.z) <= 1 && x.x < current_t) {
       float3 position = ((float3) (v0.x, v0.y, v0.z)) + (x.y * e1) + (x.z * e2);
 
-      closest_intersection.position = (float3) (position.x, position.y, position.z);
+      closest_intersection->position = (float3) (position.x, position.y, position.z);
       float3 dist_vec = x.x*d;
-      closest_intersection.distance = native_sqrt(dist_vec.x*dist_vec.x + dist_vec.y*dist_vec.y + dist_vec.z*dist_vec.z);
-      closest_intersection.triangle_index = i;
+      closest_intersection->distance = native_sqrt(dist_vec.x*dist_vec.x + dist_vec.y*dist_vec.y + dist_vec.z*dist_vec.z);
+      closest_intersection->triangle_index = i;
       current_t = x.x;
     }
   }
