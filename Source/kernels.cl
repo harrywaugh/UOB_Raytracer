@@ -4,10 +4,79 @@ constant float focal_length = 500.0;
 constant float3 indirect_light = (float3)(0.5f, 0.5f, 0.5f);
 #define SCREEN_WIDTH 1400
 #define SCREEN_HEIGHT 1400
+
 /////READ ONLY BUFFERS
 
-kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexes,   global float4 *triangle_normals,
-				 global float3 *triangle_colors, global float *rot_matrix,           float4 camera_pos)
+struct Intersection {
+  float4 position;
+  float distance;
+  int triangle_index;
+};
+
+inline float det(float3 M[3]) {
+	return M[0].x * (M[1].y * M[2].z - M[1].z * M[2].y) -
+		   M[0].y * (M[1].x * M[2].z - M[1].z * M[2].x) +
+		   M[0].z * (M[1].x * M[2].y - M[1].y * M[2].x);
+}
+
+void PutPixelSDL(global uint *screen_buffer,, int x, int y, float3 colour) {
+  if(x<0 || x>=SCREEN_WIDTH || y<0 || y>=SCREEN_HEIGHT)  {
+      printf("apa\n");
+      return;
+    }
+  uint r = (uint) min(max(255*colour.x, 0.f), 255.f);
+  uint g = (uint) min(max(255*colour.y, 0.f), 255.f);
+  uint b = (uint) min(max(255*colour.z, 0.f), 255.f);
+
+  s->buffer[y*SCREEN_WIDTH+x] = (128<<24) + (r<<16) + (g<<8) + b;
+}
+
+
+kernel closest_intersection(float4 start, float3 d, global float3 *triangle_vertexes, Intersection* closest_intersection, int triangle_n) {
+  // Set closest intersection to be the max float value
+  float current_t = 99999999999999.0f;
+  // Make 4D ray into 3D ray
+  for (uint i = 0; i < triangle_n; i++) {
+    // Define two corners of triangle relative to the other corner
+    float3 v0 = triangle_vertexes[i*3];
+    float3 v1 = triangle_vertexes[i*3+1];
+    float3 v2 = triangle_vertexes[i*3+2];
+
+    float3 e1 = (float3) (v1.x-v0.x,    v1.y-v0.y,    v1.z-v0.z);
+    float3 e2 = (float3) (v2.x-v0.x,    v2.y-v0.y,    v2.z-v0.z);
+    float3 b  = (float3) (start.x-v0.x, start.y-v0.y, start.z-v0.z);
+
+    // Cramers, might be det repeated computation..?
+    float3 A[3]  = {-d, e1, e2};
+    float3 A0[3] = {b, e1, e2};
+    float3 A1[3] = {-d, b, e2};
+    float3 A2[3] = {-d, e1, b};
+
+    float detA  = det(A);
+    float detA0 = det(A0);
+    float detA1 = det(A1);
+    float detA2 = det(A2); 
+
+    vec3 x(detA0/detA, detA1/detA, detA2/detA);
+
+    // If ray goes through triangle, and is the closest triangle
+    if (x.x >= 0 && x.y >= 0 && x.z >= 0 && (x.y + x.z) <= 1 && x.x < current_t) {
+      float3 position = ((float3) (v0.x, v0.y, v0.z)) + (x.y * e1) + (x.z * e2);
+
+      closest_intersection.position = (float3) (position.x, position.y, position.z);
+      float3 dist_vec = x.x*d;
+      closest_intersection.distance = native_sqrt(dist_vec.x*dist_vec.x + dist_vec.y*dist_vec.y + dist_vec.z*dist_vec.z)
+      closest_intersection.triangle_index = i;
+      current_t = x.x;
+    }
+  }
+  if (current_t == 99999999999999.0f) return false;
+  return true;
+}
+
+
+kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexes,   global float3 *triangle_normals,
+				 global float3 *triangle_colors, global float *rot_matrix,           float4 camera_pos, int triangle_n)
 {         /* accumulated magnitudes of velocity for each cell */
   const short x = get_global_id(0);
   const short y = get_global_id(1);
@@ -19,57 +88,23 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
 
   // }
   // Declare ray for given position on the screen. Rotate ray by current view angle
-  // vec4 d = vec4(x - screen->width/2, y - screen->height/2, focal_length, 1.0);
+  float4 d = (float4) (x - SCREEN_WIDTH/2.0, y - SCREEN_HEIGHT/2.0, focal_length, 1.0);
   // d = R * d;
 
-  // // Find intersection point with closest geometry. If no intersection, paint the abyss
-  // Intersection intersection;
-  // if (closest_intersection(camera_position, d, triangles, intersection)) {
-  //   vec3 p = triangles.at(intersection.triangle_index).color;
-  //   // vec3 final_color = p*(direct_light(intersection) + indirect_light);
-  //   PutPixelSDL(screen, x, y, p);
-  // } else {
-  //   // Otherwise draw black
-  //   PutPixelSDL(screen_buffer, x, y, vec3(0.0f, 0.0f, 0.0f));
-  // }
+  // Find intersection point with closest geometry. If no intersection, paint the abyss
+  Intersection intersection;
+  if (closest_intersection(camera_pos, d, triangle_vertexes, intersection, triangle_n)) {
+    float3 p = triangle_colors[intersection.triangle_index];
+    // vec3 final_color = p*(direct_light(intersection) + indirect_light);
+    PutPixelSDL(screen_buffer, x, y, p);
+  } else {
+    // Otherwise draw black
+    PutPixelSDL(screen_buffer, x, y, vec3(0.0f, 0.0f, 0.0f));
+  }
 
 }
 
-// bool closest_intersection(vec4 start, vec4 dir, const vector<Triangle>& triangles, Intersection& closest_intersection) {
-//   // Set closest intersection to be the max float value
-//   float current_t = std::numeric_limits<float>::max();
-//   // Make 4D ray into 3D ray
-//   vec3 d = vec3(dir.x, dir.y, dir.z);
-//   for (uint i = 0; i < triangles.size(); i++) {
-//     // Define two corners of triangle relative to the other corner
-//     vec4 v0 = triangles.at(i).v0;
-//     vec4 v1 = triangles.at(i).v1;
-//     vec4 v2 = triangles.at(i).v2;
-//     vec3 e1 = vec3(v1.x-v0.x,v1.y-v0.y,v1.z-v0.z);
-//     vec3 e2 = vec3(v2.x-v0.x,v2.y-v0.y,v2.z-v0.z);
-//     vec3 b = vec3(start.x-v0.x,start.y-v0.y,start.z-v0.z);
 
-//     // Cramers, might be det repeated computation..?
-//     float detA = glm::determinant(mat3(-d, e1, e2));
-//     float detA0 = glm::determinant(mat3(b, e1, e2));
-//     float detA1 = glm::determinant(mat3(-d, b, e2));
-//     float detA2 = glm::determinant(mat3(-d, e1, b));
-
-//     vec3 x(detA0/detA, detA1/detA, detA2/detA);
-
-//     // If ray goes through triangle, and is the closest triangle
-//     if (x.x >= 0 && x.y >= 0 && x.z >= 0 && (x.y + x.z) <= 1 && x.x < current_t) {
-//       vec3 position = vec3(v0.x, v0.y, v0.z) + (x.y * e1) + (x.z * e2);
-
-//       closest_intersection.position = vec4(position.x, position.y, position.z, 1.0);
-//       closest_intersection.distance = length(x.x * d);
-//       closest_intersection.triangle_index = i;
-//       current_t = x.x;
-//     }
-//   }
-//   if (current_t == std::numeric_limits<float>::max()) return false;
-//   return true;
-// }
 
 // vec3 direct_light(const Intersection& intersection) {
 
