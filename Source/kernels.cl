@@ -57,7 +57,7 @@ kernel closest_intersection(float4 start, float3 d, global float3 *triangle_vert
     float detA1 = det(A1);
     float detA2 = det(A2); 
 
-    vec3 x(detA0/detA, detA1/detA, detA2/detA);
+    float3 x = (float3) (detA0/detA, detA1/detA, detA2/detA);
 
     // If ray goes through triangle, and is the closest triangle
     if (x.x >= 0 && x.y >= 0 && x.z >= 0 && (x.y + x.z) <= 1 && x.x < current_t) {

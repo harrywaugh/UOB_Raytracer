@@ -183,7 +183,7 @@ bool closest_intersection(vec4 start, vec4 dir, const vector<Triangle>& triangle
     float detA1 = glm::determinant(mat3(-d, b, e2));
     float detA2 = glm::determinant(mat3(-d, e1, b));
 
-    float3 x = (float3) (detA0/detA, detA1/detA, detA2/detA);
+    vec3 x(detA0/detA, detA1/detA, detA2/detA);
 
     // If ray goes through triangle, and is the closest triangle
     if (x.x >= 0 && x.y >= 0 && x.z >= 0 && (x.y + x.z) <= 1 && x.x < current_t) {
