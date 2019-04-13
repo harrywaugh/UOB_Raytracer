@@ -199,7 +199,7 @@ void draw(screen* screen) {
         PutPixelSDL(screen, x, y, final_color);
       } else {
         // Otherwise draw black
-        PutPixelSDL(screen, x, y, vec3(0.0,0.0,0.0));
+        PutPixelSDL(screen, x, y, vec3(0.0f, 0.0f, 0.0f));
       }
     }
   }
@@ -330,7 +330,6 @@ void opencl_initialise(t_ocl *ocl)  {
     // Create OpenCL kernels
   ocl->draw = clCreateKernel(ocl->program, "draw", &err);
   checkError(err, "creating draw kernel", __LINE__);
-
 }
 
 void checkError(cl_int err, const char *op, const int line)

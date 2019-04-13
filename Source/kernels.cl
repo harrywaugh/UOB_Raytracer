@@ -1,13 +1,17 @@
 #pragma OPENCL EXTENSION cl_khr_fp64 : enable
-#include <glm/vec4.hpp>
-#include <glm/vec3.hpp>
+
+float focal_length = 500.0;
+float4 vf = (float4) (a, b, c, d);
+#define SCREEN_WIDTH 1400
+#define SCREEN_HEIGHT 1400
+
 typedef struct
 {
-  glm::vec4 v0;
-  glm::vec4 v1;
-  glm::vec4 v2;
-  glm::vec4 normal;
-  glm::vec3 color;
+  int4 v0;
+  int4 v1;
+  int4 v2;
+  float4 normal;
+  float3 color;
 } triangle;
 
 kernel void draw(global uint *screen_buffer, global triangle *triangle, global float *r)
