@@ -21,9 +21,9 @@ inline float det(float3 M[3]) {
 
 void PutPixelSDL(global uint *screen_buffer, int x, int y, float3 colour) {
   if(x<0 || x>=SCREEN_WIDTH || y<0 || y>=SCREEN_HEIGHT)  {
-      printf("apa\n");
-      return;
-    }
+    printf("apa\n");
+    return;
+  }
   uint r = (uint) min(max(255*colour.x, 0.f), 255.f);
   uint g = (uint) min(max(255*colour.y, 0.f), 255.f);
   uint b = (uint) min(max(255*colour.z, 0.f), 255.f);
@@ -96,10 +96,10 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
   if (closest_intersection(camera_pos, d, triangle_vertexes, &intersection, triangle_n)) {
     float3 p = triangle_colors[intersection.triangle_index];
     // vec3 final_color = p*(direct_light(intersection) + indirect_light);
-    // PutPixelSDL(screen_buffer, x, y, p);
+    PutPixelSDL(screen_buffer, x, y, p);
   } else {
     // Otherwise draw black
-    // PutPixelSDL(screen_buffer, x, y, (float3)(0.0f, 0.0f, 0.0f));
+    PutPixelSDL(screen_buffer, x, y, (float3)(0.0f, 0.0f, 0.0f));
   }
 
 }
