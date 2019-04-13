@@ -85,7 +85,7 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
   const short x = get_global_id(0);
   const short y = get_global_id(1);
 
-  printf("r 0 %f 1 %f\n", rot_matrix[0].x, rot_matrix[1].x);
+  printf("r 0 %f 1 %f\n", rot_matrix[0].x, rot_matrix[0].y);
 
 
   // if(x==0 && y==0)  {
@@ -99,7 +99,7 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
 
   // Declare ray for given position on the screen. Rotate ray by current view angle
   float3 d = (float3) (x - SCREEN_WIDTH/2.0, y - SCREEN_HEIGHT/2.0, focal_length);
-  d =        (float3) (dot_product(rot_matrix[0], d), dot_product(rot_matrix[1], d), dot_product(rot_matrix[2], d));
+  d        = (float3) (dot_product(rot_matrix[0], d), dot_product(rot_matrix[1], d), dot_product(rot_matrix[2], d));
 
   // Find intersection point with closest geometry. If no intersection, paint the abyss
   Intersection intersection;
