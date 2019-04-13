@@ -43,7 +43,7 @@ typedef struct
   cl_kernel draw;
 
   //Memory Buffers
-  cl_mem cells;
+  cl_mem screen_buffer;
 } t_ocl;
           
 
@@ -64,8 +64,18 @@ bool quit = false;
 vector<Triangle> triangles;
 
 
+typedef struct
+{
+  cl_int4 v0;
+  cl_int4 v1;
+  cl_int4 v2;
+  cl_float4 normal;
+  cl_float3 color;
+} triangle;
+
+
 bool update();
-void draw(screen* screen);
+void draw(screen* screen, t_ocl ocl);
 void checkError(cl_int err, const char *op, const int line);
 void die(const char* message, const int line, const char* file);
 void opencl_initialise(t_ocl *ocl);
@@ -90,7 +100,7 @@ int main(int argc, char* argv[]) {
   LoadTestModel(triangles);
 
   // Draw initial scene
-  draw(screen);
+  draw(screen, ocl);
   SDL_Renderframe(screen);
 
   // While user hasn't quit
@@ -98,7 +108,7 @@ int main(int argc, char* argv[]) {
     // If there is an update to the scene, then draw changes. Check if user wants to quit
     if (update())  {
       auto start = high_resolution_clock::now();
-      draw(screen);
+      draw(screen, ocl);
       auto stop = high_resolution_clock::now();
       auto duration = duration_cast<microseconds>(stop - start); 
       cout << "Draw Function: "<< duration.count() << "micro seconds" <<  endl; 
@@ -172,16 +182,24 @@ vec3 direct_light(const Intersection& intersection) {
 }
 
 // Place your drawing here
-void draw(screen* screen) {
+void draw(screen* screen, t_ocl ocl) {
+  cl_int err;
   // Clear the buffer
   // memset(screen->buffer, 0, screen->height*screen->width*sizeof(uint32_t));
   mat4 R;
 
   float r[16] = {cos(yaw),  sin(pitch)*sin(yaw),   sin(yaw)*cos(pitch),  1.0f,
-               0.0f,      cos(pitch),           -sin(pitch),           1.0f,
-              -sin(yaw),  cos(yaw)*sin(pitch),   cos(pitch)*cos(yaw),  1.0f,
-               1.0f,      1.0f,                  1.0f,                 1.0f};
+               0.0f,      cos(pitch),           -sin(pitch),             1.0f,
+              -sin(yaw),  cos(yaw)*sin(pitch),   cos(pitch)*cos(yaw),    1.0f,
+               1.0f,      1.0f,                  1.0f,                   1.0f};
   memcpy(glm::value_ptr(R), r, sizeof(r));
+
+  err = clSetKernelArg(ocl.draw, 2, sizeof(cl_float), &r);
+  checkError(err, "setting draw arg 2", __LINE__);
+  err = clSetKernelArg(ocl.draw, 3, sizeof(cl_float4), &camera_position);
+  checkError(err, "setting draw arg 3", __LINE__);
+
+
   for (int y = 0; y < screen->height; y++) {
     for (int x = 0; x < screen->width; x++) {
       // Declare ray for given position on the screen. Rotate ray by current view angle
@@ -265,8 +283,6 @@ bool update() {
   return false;
 }
 
-
-
 #define MAX_DEVICES 32
 #define MAX_DEVICE_NAME 1024 
 
@@ -330,6 +346,17 @@ void opencl_initialise(t_ocl *ocl)  {
     // Create OpenCL kernels
   ocl->draw = clCreateKernel(ocl->program, "draw", &err);
   checkError(err, "creating draw kernel", __LINE__);
+
+  // Allocate OpenCL buffers
+  ocl->screen_buffer          = clCreateBuffer(ocl->context, CL_MEM_READ_WRITE,
+                                sizeof(cl_uint)  * SCREEN_WIDTH * SCREEN_HEIGHT, NULL, &err);
+  checkError(err, "creating screen buffer", __LINE__);
+
+  // Set kernel arguments
+  err = clSetKernelArg(ocl->draw, 0, sizeof(cl_mem), &ocl->screen_buffer);
+  checkError(err, "setting draw arg 0", __LINE__);
+  err = clSetKernelArg(ocl->draw, 1, sizeof(triangle)*triangles.size(), &triangles);
+  checkError(err, "setting draw arg 1", __LINE__);
 }
 
 void checkError(cl_int err, const char *op, const int line)

@@ -14,9 +14,9 @@ typedef struct
   float3 color;
 } triangle;
 
-kernel void draw(global uint *screen_buffer, global triangle *triangle, global float *r)
+kernel void draw(global uint  *screen_buffer, global triangle *triangles, 
+				 global float *rot_matrix,    global float4 camera_pos)
 {         /* accumulated magnitudes of velocity for each cell */
-
   const short x = get_global_id(0);
   const short y = get_global_id(1);
 
