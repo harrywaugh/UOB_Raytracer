@@ -7,9 +7,9 @@ constant float3 indirect_light = (float3)(0.5f, 0.5f, 0.5f);
 
 typedef struct
 {
-  int4 v0;
-  int4 v1;
-  int4 v2;
+  float4 v0;
+  float4 v1;
+  float4 v2;
   float4 normal;
   float3 color;
 } triangle;
