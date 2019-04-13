@@ -15,7 +15,7 @@ typedef struct
 } triangle;
 
 kernel void draw(global uint  *screen_buffer, global triangle *triangles, 
-				 global float *rot_matrix,           float4 camera_pos)
+				 float *rot_matrix,           float4 camera_pos)
 {         /* accumulated magnitudes of velocity for each cell */
   const short x = get_global_id(0);
   const short y = get_global_id(1);
