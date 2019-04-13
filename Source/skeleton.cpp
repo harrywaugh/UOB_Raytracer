@@ -135,10 +135,9 @@ void offload_rendering(screen* screen, t_ocl ocl)  {
   cl_int err;
   //Calculate rotation matrix, and write it to the buffer. 
   // mat4 R;
-  float r[16] = {cos(yaw),  sin(pitch)*sin(yaw),   sin(yaw)*cos(pitch),  1.0f,
-               0.0f,      cos(pitch),           -sin(pitch),             1.0f,
-              -sin(yaw),  cos(yaw)*sin(pitch),   cos(pitch)*cos(yaw),    1.0f,
-               1.0f,      1.0f,                  1.0f,                   1.0f};
+  float r[9] = {cos(yaw),  sin(pitch)*sin(yaw),   sin(yaw)*cos(pitch), 
+               0.0f,        cos(pitch),           -sin(pitch),            
+              -sin(yaw),    cos(yaw)*sin(pitch),   cos(pitch)*cos(yaw)};
   // memcpy(glm::value_ptr(R), r, sizeof(r));
 
   err = clEnqueueWriteBuffer(ocl.queue, ocl.rotation_matrix_buffer, CL_TRUE, 0,
@@ -159,7 +158,7 @@ void offload_rendering(screen* screen, t_ocl ocl)  {
 
   err = clFinish(ocl.queue);
   checkError(err, "Waiting to finish draw kernel", __LINE__);
-  
+
   err = clEnqueueReadBuffer(ocl.queue, ocl.screen_buffer, CL_TRUE, 0,
   sizeof(cl_uint) * SCREEN_WIDTH * SCREEN_HEIGHT, screen->buffer, 0, NULL, NULL);
   checkError(err, "reading screen buffer data", __LINE__);
@@ -392,7 +391,7 @@ void opencl_initialise(t_ocl *ocl)  {
                                 (sizeof(cl_float3) * triangles.size()*3), NULL, &err);
   checkError(err, "creating Triangle buffer", __LINE__);
   ocl->rotation_matrix_buffer = clCreateBuffer(ocl->context, CL_MEM_READ_WRITE,
-                                sizeof(cl_float) * 16 , NULL, &err);
+                                sizeof(cl_float) * 9 , NULL, &err);
   checkError(err, "creating Rot Mat Buffer buffer", __LINE__);
   ocl->normal_buffer = clCreateBuffer(ocl->context, CL_MEM_READ_WRITE,
                                 sizeof(cl_float3) * triangles.size() , NULL, &err);

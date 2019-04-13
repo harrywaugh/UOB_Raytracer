@@ -19,6 +19,10 @@ inline float det(float3 M[3]) {
 		   M[0].z * (M[1].x * M[2].y - M[1].y * M[2].x);
 }
 
+inline float dot_product(float3 a, float3 b) {
+	return a.x * b.x + a.y * b.y + a.y * b.y;
+}
+
 // void PutPixelSDL(global uint *screen_buffer, int x, int y, float3 colour) {
 //   if(x<0 || x>=SCREEN_WIDTH || y<0 || y>=SCREEN_HEIGHT)  {
 //     printf("apa\n");
@@ -76,23 +80,25 @@ bool closest_intersection(float4 start, float3 d, global float3 *triangle_vertex
 
 
 kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexes,   global float3 *triangle_normals,
-				 global float3 *triangle_colors, global float *rot_matrix,           float4 camera_pos, int triangle_n)
+				 global float3 *triangle_colors, global float3 *rot_matrix,           float4 camera_pos, int triangle_n)
 {         /* accumulated magnitudes of velocity for each cell */
   const short x = get_global_id(0);
   const short y = get_global_id(1);
 
 
 
-  if(x==0 && y==0)  {
-  	printf("Triangle n %d\n", triangle_n);
-  // 	printf("Triangle 0: norm  %f col %f\n",       triangle_normals[0].s0, triangle_colors[0].s0);
-  // 	printf("Triangle 1: v0x  %f v1x %f v2x %f\n", triangle_vertexes[3].s0, triangle_vertexes[4].s0, triangle_vertexes[5].s0);
-  // 	printf("Triangle 1: norm  %f col %f\n",       triangle_normals[1].s0, triangle_colors[1].s0);
+  // if(x==0 && y==0)  {
+  // 	printf("Triangle n %d\n", triangle_n);
+  // // 	printf("Triangle 0: norm  %f col %f\n",       triangle_normals[0].s0, triangle_colors[0].s0);
+  // // 	printf("Triangle 1: v0x  %f v1x %f v2x %f\n", triangle_vertexes[3].s0, triangle_vertexes[4].s0, triangle_vertexes[5].s0);
+  // // 	printf("Triangle 1: norm  %f col %f\n",       triangle_normals[1].s0, triangle_colors[1].s0);
 
-  }
+  // }
+
+
   // Declare ray for given position on the screen. Rotate ray by current view angle
   float3 d = (float3) (x - SCREEN_WIDTH/2.0, y - SCREEN_HEIGHT/2.0, focal_length);
-  // d = R * d;
+  d =        (float3) (dot_product(rot_matrix[0], d), dot_product(rot_matrix[1], d), dot_product(rot_matrix[2], d))
 
   // Find intersection point with closest geometry. If no intersection, paint the abyss
   Intersection intersection;
