@@ -134,12 +134,12 @@ int main(int argc, char* argv[]) {
 void offload_rendering(screen* screen, t_ocl ocl)  {
   cl_int err;
   //Calculate rotation matrix, and write it to the buffer. 
-  mat4 R;
+  // mat4 R;
   float r[16] = {cos(yaw),  sin(pitch)*sin(yaw),   sin(yaw)*cos(pitch),  1.0f,
                0.0f,      cos(pitch),           -sin(pitch),             1.0f,
               -sin(yaw),  cos(yaw)*sin(pitch),   cos(pitch)*cos(yaw),    1.0f,
                1.0f,      1.0f,                  1.0f,                   1.0f};
-  memcpy(glm::value_ptr(R), r, sizeof(r));
+  // memcpy(glm::value_ptr(R), r, sizeof(r));
 
   err = clEnqueueWriteBuffer(ocl.queue, ocl.rotation_matrix_buffer, CL_TRUE, 0,
   sizeof(cl_float) * 16, &r, 0, NULL, NULL);
@@ -157,10 +157,11 @@ void offload_rendering(screen* screen, t_ocl ocl)  {
   err = clEnqueueNDRangeKernel(ocl.queue, ocl.draw , 2, NULL, global_size, work_size, 0, NULL, NULL);
   checkError(err, "enqueueing draw kernel", __LINE__);
 
-
-  // err = clEnqueueReadBuffer(ocl.queue, ocl.screen_buffer, CL_TRUE, 0,
-  // sizeof(cl_uint) * SCREEN_WIDTH * SCREEN_HEIGHT, screen->buffer, 0, NULL, NULL);
-  // checkError(err, "reading screen buffer data", __LINE__);
+  err = clFinish(ocl.queue);
+  checkError(err, "Waiting to finish draw kernel", __LINE__);
+  err = clEnqueueReadBuffer(ocl.queue, ocl.screen_buffer, CL_TRUE, 0,
+  sizeof(cl_uint) * SCREEN_WIDTH * SCREEN_HEIGHT, screen->buffer, 0, NULL, NULL);
+  checkError(err, "reading screen buffer data", __LINE__);
 }
 
 bool closest_intersection(vec4 start, vec4 dir, const vector<Triangle>& triangles, Intersection& closest_intersection) {
