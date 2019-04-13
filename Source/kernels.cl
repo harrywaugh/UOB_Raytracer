@@ -28,7 +28,6 @@ void PutPixelSDL(global uint *screen_buffer, int x, int y, float3 colour) {
   uint g = (uint) min(max(255*colour.y, 0.f), 255.f);
   uint b = (uint) min(max(255*colour.z, 0.f), 255.f);
   // if(x<0 && y==0)  {
-  	printf("R %d G %d B %d\n", r, g, b);
   // screen_buffer[y*SCREEN_WIDTH+x] = (128<<24) + (r<<16) + (g<<8) + b;
 }
 
