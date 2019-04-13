@@ -40,7 +40,7 @@ typedef struct
 
   cl_program program;
   //Kernels
-  cl_kernel  accelerate_flow0;
+  cl_kernel draw;
 
   //Memory Buffers
   cl_mem cells;
@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
       draw(screen);
       auto stop = high_resolution_clock::now();
       auto duration = duration_cast<microseconds>(stop - start); 
-      cout << duration.count() << "s for Draw Function" <<  endl; 
+      cout << "Draw Function: "<< duration.count() << "micro seconds" <<  endl; 
       SDL_Renderframe(screen);
     }
   }
@@ -326,6 +326,11 @@ void opencl_initialise(t_ocl *ocl)  {
     free(buildlog);
   }
   checkError(err, "building program", __LINE__);
+
+    // Create OpenCL kernels
+  ocl->draw = clCreateKernel(ocl->program, "draw", &err);
+  checkError(err, "creating draw kernel", __LINE__);
+
 }
 
 void checkError(cl_int err, const char *op, const int line)
