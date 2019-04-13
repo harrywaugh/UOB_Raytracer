@@ -19,7 +19,9 @@ kernel void draw(global uint  *screen_buffer, global triangle *triangles,
 {         /* accumulated magnitudes of velocity for each cell */
   const short x = get_global_id(0);
   const short y = get_global_id(1);
-
+  if(x==0 && y==0)
+  	printf("Triangle 0: v0x  %f v1x %f v2x %f normal %f col %f\n", triangles[0].v0.x, triangles[0].v1.x, triangles[0].v2.x, 
+                                                               	   triangles[0].normal.x, triangles[0].color.x );
 
 }
 

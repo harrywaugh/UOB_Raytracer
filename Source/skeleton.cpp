@@ -105,7 +105,10 @@ int main(int argc, char* argv[]) {
 
   // Load Cornell Box
   LoadTestModel(triangles);
-
+  printf("Triangle 0: v0x  %f v1x %f v2x %f normal %f col %f\n", triangles[0].v0.x, triangles[0].v1.x, triangles[0].v2.x, 
+                                                               triangles[0].normal.x, triangles[0].color.x );
+  printf("Triangle 1: v0x  %f v1x %f v2x %f normal %f col %f\n", triangles[1].v0.x, triangles[1].v1.x, triangles[1].v2.x, 
+                                                               triangles[1].normal.x, triangles[1].color.x );
   printf("Triangles Length size %lu\n",  triangles.size());
 
   opencl_initialise(&ocl);
@@ -161,7 +164,6 @@ void offload_rendering(screen* screen, t_ocl ocl)  {
   checkError(err, "setting draw arg 2", __LINE__);
   err = clSetKernelArg(ocl.draw, 3, sizeof(cl_float4), &camera_position);
   checkError(err, "setting draw arg 3", __LINE__);
-
 
   // Enqueue kernel
   size_t global_size[2] = {SCREEN_WIDTH, SCREEN_HEIGHT};
