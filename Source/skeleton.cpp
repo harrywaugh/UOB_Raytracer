@@ -408,7 +408,7 @@ void opencl_initialise(t_ocl *ocl)  {
   }
 
   err = clEnqueueWriteBuffer(ocl->queue, ocl->triangles_buffer, CL_TRUE, 0,
-  sizeof(cl_float3) * triangles.size()*3, &triangle_vertexes, 0, NULL, NULL);
+  sizeof(cl_float3) * triangles.size()*3, triangle_vertexes, 0, NULL, NULL);
   checkError(err, "writing triangle buffer data", __LINE__);
 
 
