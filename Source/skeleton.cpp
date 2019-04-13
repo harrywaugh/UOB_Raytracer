@@ -171,16 +171,15 @@ void draw(screen* screen) {
   // Clear the buffer
   // memset(screen->buffer, 0, screen->height*screen->width*sizeof(uint32_t));
   mat4 R;
+
+  float r[16] = {cos(yaw),  sin(pitch)*sin(yaw),   sin(yaw)*cos(pitch),  1.0f,
+               0.0f,      cos(pitch),           -sin(pitch),           1.0f,
+              -sin(yaw),  cos(yaw)*sin(pitch),   cos(pitch)*cos(yaw),  1.0f,
+               1.0f,      1.0f,                  1.0f,                 1.0f};
+  mat4 R;
+  memcpy(glm::value_ptr(R), r, sizeof(r));
   for (int y = 0; y < screen->height; y++) {
     for (int x = 0; x < screen->width; x++) {
-      // We only need to implement rotation around y and x axis
-      float r[16] = {cos(yaw),  sin(pitch)*sin(yaw),   sin(yaw)*cos(pitch),  1.0f,
-                     0.0f,      cos(pitch),           -sin(pitch),           1.0f,
-                    -sin(yaw),  cos(yaw)*sin(pitch),   cos(pitch)*cos(yaw),  1.0f,
-                     1.0f,      1.0f,                  1.0f,                 1.0f};
-      mat4 R;
-      memcpy(glm::value_ptr(R), r, sizeof(r));
-
       // Declare ray for given position on the screen. Rotate ray by current view angle
       vec4 d = vec4(x - screen->width/2, y - screen->height/2, focal_length, 1.0);
       d = R * d;
