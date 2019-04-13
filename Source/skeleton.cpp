@@ -393,7 +393,7 @@ void opencl_initialise(t_ocl *ocl)  {
                                 sizeof(cl_float) * 16 , NULL, &err);
   checkError(err, "creating Rot Mat Buffer buffer", __LINE__);
   ocl->normal_buffer = clCreateBuffer(ocl->context, CL_MEM_READ_WRITE,
-                                sizeof(cl_float4) * triangles.size() , NULL, &err);
+                                sizeof(cl_float3) * triangles.size() , NULL, &err);
   checkError(err, "creating Normal Buffer buffer", __LINE__);
   ocl->color_buffer = clCreateBuffer(ocl->context, CL_MEM_READ_WRITE,
                                 sizeof(cl_float3) * triangles.size() , NULL, &err);
