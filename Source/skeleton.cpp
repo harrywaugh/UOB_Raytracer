@@ -96,11 +96,6 @@ int main(int argc, char* argv[]) {
 
   // Load Cornell Box
   LoadTestModel(triangles);
-  cout << "Triangle 0: v0x  " << triangles[0].v0.x << " v1x " << triangles[0].v1.x << " v2x " << triangles[0].v2.x
-                << " normal " << triangles[0].normal.x << " col " << triangles[0].color.x << "\n" << endl;
-  cout << "Triangle 1: v0x  " << triangles[1].v0.x << " v1x " << triangles[1].v1.x << " v2x " << triangles[1].v2.x
-              << " normal " << triangles[1].normal.x << " col " << triangles[1].color.x << "\n" << endl;
-
   printf("Triangles Length size %lu\n",  triangles.size());
 
   opencl_initialise(&ocl);
@@ -142,6 +137,9 @@ void offload_rendering(screen* screen, t_ocl ocl)  {
               -sin(yaw),    cos(yaw)*sin(pitch),   cos(pitch)*cos(yaw)};
   // memcpy(glm::value_ptr(R), r, sizeof(r));
   printf("r 0 %f 1 %f\n", r[0], r[1]);
+  printf("Triangles Length size %lu\n",  triangles.size());
+
+
   err = clEnqueueWriteBuffer(ocl.queue, ocl.rotation_matrix_buffer, CL_TRUE, 0,
   sizeof(cl_float) * 9, &r, 0, NULL, NULL);
   checkError(err, "writing rotation matrix data", __LINE__);
