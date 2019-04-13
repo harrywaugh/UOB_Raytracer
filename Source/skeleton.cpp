@@ -358,11 +358,11 @@ void opencl_initialise(t_ocl *ocl)  {
                                 sizeof(cl_uint)  * SCREEN_WIDTH * SCREEN_HEIGHT, NULL, &err);
   checkError(err, "creating screen buffer", __LINE__);
   ocl->triangles_buffer       = clCreateBuffer(ocl->context, CL_MEM_READ_WRITE,
-                                sizeof(Triangle)  * triangles.size(), NULL, &err);
-  checkError(err, "creating screen buffer", __LINE__);
+                                (int)(sizeof(Triangle)  * triangles.size()), NULL, &err);
+  checkError(err, "creating Triangle buffer", __LINE__);
   ocl->rotation_matrix_buffer = clCreateBuffer(ocl->context, CL_MEM_READ_WRITE,
                                 sizeof(cl_float) * 16 , NULL, &err);
-  checkError(err, "creating screen buffer", __LINE__);
+  checkError(err, "creating Rot Mat Buffer buffer", __LINE__);
 
   // Set kernel arguments
   err = clSetKernelArg(ocl->draw, 0, sizeof(cl_mem), &ocl->screen_buffer);
