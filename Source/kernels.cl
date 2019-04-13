@@ -13,7 +13,10 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
   const short y = get_global_id(1);
   if(x==0 && y==0)  {
   	printf("Triangle 0: v0x  %f v1x %f v2x %f\n", triangle_vertexes[0].s0, triangle_vertexes[1].s0, triangle_vertexes[2].s0);
+  	printf("Triangle 0: norm  %f col %f\n", triangle_normals[0].s0, triangle_colors[0].s0);
   	printf("Triangle 1: v0x  %f v1x %f v2x %f\n", triangle_vertexes[3].s0, triangle_vertexes[4].s0, triangle_vertexes[5].s0);
+  	printf("Triangle 1: norm  %f col %f\n", triangle_normals[1].s0, triangle_colors[1].s0);
+
   }
 }
 
