@@ -132,9 +132,9 @@ void offload_rendering(screen* screen, t_ocl ocl)  {
   cl_int err;
   //Calculate rotation matrix, and write it to the buffer. 
   // mat4 R;
-  float r[9] = {cos(yaw),  sin(pitch)*sin(yaw),   sin(yaw)*cos(pitch), 
-               0.0f,        cos(pitch),           -sin(pitch),            
-              -sin(yaw),    cos(yaw)*sin(pitch),   cos(pitch)*cos(yaw)};
+  float r[9] = {cos(yaw),             0.0f,                 -sin(yaw), 
+               sin(pitch)*sin(yaw),   cos(pitch),           cos(yaw)*sin(pitch),            
+               sin(yaw)*cos(pitch),   -sin(pitch),          cos(pitch)*cos(yaw)};
   // memcpy(glm::value_ptr(R), r, sizeof(r));
   printf("r 0 %f 1 %f 2 %f\n", r[0], r[1], r[2]);
   printf("Triangles Length size %lu\n",  triangles.size());
