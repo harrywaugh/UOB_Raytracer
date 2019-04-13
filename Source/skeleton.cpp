@@ -92,6 +92,10 @@ float max(float x, float y) {
 
 int main(int argc, char* argv[]) {
   t_ocl    ocl; 
+
+  printf("Triangle size %lu\n", sizeof(Triangle));
+  printf("triangle size %lu\n", sizeof(triangle));
+
   opencl_initialise(&ocl);
 
   screen *screen = InitializeSDL(SCREEN_WIDTH, SCREEN_HEIGHT, FULLSCREEN_MODE);
@@ -355,7 +359,7 @@ void opencl_initialise(t_ocl *ocl)  {
   // Set kernel arguments
   err = clSetKernelArg(ocl->draw, 0, sizeof(cl_mem), &ocl->screen_buffer);
   checkError(err, "setting draw arg 0", __LINE__);
-  err = clSetKernelArg(ocl->draw, 1, sizeof(triangle)*triangles.size(), &triangles);
+  err = clSetKernelArg(ocl->draw, 1, sizeof(Triangle)*triangles.size(), &triangles);
   checkError(err, "setting draw arg 1", __LINE__);
 }
 
