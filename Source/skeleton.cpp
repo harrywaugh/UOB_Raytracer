@@ -136,7 +136,7 @@ void offload_rendering(screen* screen, t_ocl ocl)  {
                0.0f,        cos(pitch),           -sin(pitch),            
               -sin(yaw),    cos(yaw)*sin(pitch),   cos(pitch)*cos(yaw)};
   // memcpy(glm::value_ptr(R), r, sizeof(r));
-  printf("r 0 %f 1 %f\n", r[0], r[1]);
+  printf("r 0 %f 1 %f 2 %f\n", r[0], r[1], r[2]);
   printf("Triangles Length size %lu\n",  triangles.size());
 
 
