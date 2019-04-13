@@ -7,11 +7,11 @@ constant float3 indirect_light = (float3)(0.5f, 0.5f, 0.5f);
 
 /////READ ONLY BUFFERS
 
-struct Intersection {
+typedef struct  {
   float4 position;
   float distance;
   int triangle_index;
-};
+} Intersection;
 
 inline float det(float3 M[3]) {
 	return M[0].x * (M[1].y * M[2].z - M[1].z * M[2].y) -
@@ -19,7 +19,7 @@ inline float det(float3 M[3]) {
 		   M[0].z * (M[1].x * M[2].y - M[1].y * M[2].x);
 }
 
-void PutPixelSDL(global uint *screen_buffer,, int x, int y, float3 colour) {
+void PutPixelSDL(global uint *screen_buffer, int x, int y, float3 colour) {
   if(x<0 || x>=SCREEN_WIDTH || y<0 || y>=SCREEN_HEIGHT)  {
       printf("apa\n");
       return;
@@ -28,7 +28,7 @@ void PutPixelSDL(global uint *screen_buffer,, int x, int y, float3 colour) {
   uint g = (uint) min(max(255*colour.y, 0.f), 255.f);
   uint b = (uint) min(max(255*colour.z, 0.f), 255.f);
 
-  s->buffer[y*SCREEN_WIDTH+x] = (128<<24) + (r<<16) + (g<<8) + b;
+  screen_buffer[y*SCREEN_WIDTH+x] = (128<<24) + (r<<16) + (g<<8) + b;
 }
 
 
