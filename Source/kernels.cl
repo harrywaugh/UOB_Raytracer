@@ -1,5 +1,6 @@
 #pragma OPENCL EXTENSION cl_khr_fp64 : enable
-#include <glm/glm.hpp>
+#include <glm/vec4.hpp>
+#include <glm/vec3.hpp>
 typedef struct
 {
   glm::vec4 v0;
