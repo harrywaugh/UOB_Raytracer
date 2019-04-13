@@ -103,10 +103,10 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
 	uint r = (uint) min(max(255*p.x, 0.f), 255.f);
 	uint g = (uint) min(max(255*p.y, 0.f), 255.f);
 	uint b = (uint) min(max(255*p.z, 0.f), 255.f);
-  	screen_buffer[y*SCREEN_WIDTH+x] = (128<<24) + (r<<16) + (g<<8) + b;
+  	// screen_buffer[y*SCREEN_WIDTH+x] = (128<<24) + (r<<16) + (g<<8) + b;
   } else {
     // Otherwise draw black
-  	screen_buffer[y*SCREEN_WIDTH+x] = 0;
+  	// screen_buffer[y*SCREEN_WIDTH+x] = 0;
   }
 
 }
