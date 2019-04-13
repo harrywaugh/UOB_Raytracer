@@ -8,7 +8,7 @@ constant float3 indirect_light = (float3)(0.5f, 0.5f, 0.5f);
 /////READ ONLY BUFFERS
 
 typedef struct  {
-  float4 position;
+  float3 position;
   float distance;
   int triangle_index;
 } Intersection;
@@ -88,7 +88,7 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
 
   // }
   // Declare ray for given position on the screen. Rotate ray by current view angle
-  float4 d = (float4) (x - SCREEN_WIDTH/2.0, y - SCREEN_HEIGHT/2.0, focal_length, 1.0);
+  float3 d = (float3) (x - SCREEN_WIDTH/2.0, y - SCREEN_HEIGHT/2.0, focal_length);
   // d = R * d;
 
   // Find intersection point with closest geometry. If no intersection, paint the abyss
