@@ -20,7 +20,7 @@ using glm::length;
 
 SDL_Event event;
 
-#define OCLFILE         "kernels.cl"
+#define OCLFILE "Source/kernels.cl"
 #define WORK_SIZE_X 32                 
 #define WORK_SIZE_Y 8       
 
@@ -67,6 +67,14 @@ void die(const char* message, const int line, const char* file);
 void opencl_initialise(t_ocl *ocl);
 cl_device_id selectOpenCLDevice();
 
+float square(float x) {
+  return x * x;
+}
+
+float max(float x, float y) {
+  if (x >= y) return x;
+  else return y;
+}
 
 int main(int argc, char* argv[]) {
   t_ocl    ocl; 
@@ -135,15 +143,6 @@ bool closest_intersection(vec4 start, vec4 dir, const vector<Triangle>& triangle
   return true;
 }
 
-float square(float x) {
-  return x * x;
-}
-
-float max(float x, float y) {
-  if (x >= y) return x;
-  else return y;
-}
-
 vec3 direct_light(const Intersection& intersection) {
 
   // Vector from the light to the point of intersection
@@ -170,7 +169,7 @@ vec3 direct_light(const Intersection& intersection) {
 // Place your drawing here
 void draw(screen* screen) {
   // Clear the buffer
-  memset(screen->buffer, 0, screen->height*screen->width*sizeof(uint32_t));
+  // memset(screen->buffer, 0, screen->height*screen->width*sizeof(uint32_t));
   mat4 R;
   for (int y = 0; y < screen->height; y++) {
     for (int x = 0; x < screen->width; x++) {
