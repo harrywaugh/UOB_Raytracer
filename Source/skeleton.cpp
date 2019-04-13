@@ -20,9 +20,28 @@ using glm::length;
 
 SDL_Event event;
 
+#define OCLFILE         "kernels.cl"
+#define WORK_SIZE_X 32                 
+#define WORK_SIZE_Y 8       
+
 #define SCREEN_WIDTH 1400
 #define SCREEN_HEIGHT 1400
 #define FULLSCREEN_MODE false
+
+typedef struct
+{
+  cl_device_id      device;
+  cl_context        context;
+  cl_command_queue  queue;
+
+  cl_program program;
+  //Kernels
+  cl_kernel  accelerate_flow0;
+
+  //Memory Buffers
+  cl_mem cells;
+} t_ocl;
+          
 
 
 struct Intersection {
@@ -30,31 +49,29 @@ struct Intersection {
   float distance;
   int triangle_index;
 };
-
 float focal_length = 500.0;
 vec4  camera_position(0.0, 0.0, -3.0, 1.0);
 float pitch = 0.0f;
 float yaw = 0.0f;
-
 vec4 light_position(0, -0.5, -0.7, 1.0);
 vec3 light_color = 14.f * vec3(1, 1, 1);
 vec3 indirect_light = 0.5f * vec3(1, 1, 1);
-
 bool quit = false;
-
 vector<Triangle> triangles;
+
 
 bool update();
 void draw(screen* screen);
 void checkError(cl_int err, const char *op, const int line);
 void die(const char* message, const int line, const char* file);
-
+void opencl_initialise(t_ocl *ocl);
 cl_device_id selectOpenCLDevice();
 
 
 int main(int argc, char* argv[]) {
+  t_ocl    ocl; 
+  opencl_initialise(&ocl);
 
-  // Initialise screen
   screen *screen = InitializeSDL(SCREEN_WIDTH, SCREEN_HEIGHT, FULLSCREEN_MODE);
 
   // Load Cornell Box
@@ -246,8 +263,68 @@ bool update() {
   return false;
 }
 
+
+
 #define MAX_DEVICES 32
-#define MAX_DEVICE_NAME 1024
+#define MAX_DEVICE_NAME 1024 
+
+void opencl_initialise(t_ocl *ocl)  {
+  cl_int err;
+  char*  ocl_src;        /* OpenCL kernel source */
+  FILE*   fp;            /* file pointer */
+  long   ocl_size;       /* size of OpenCL kernel source */
+  char   message[1024];  /* message buffer */
+
+
+  ocl->device = selectOpenCLDevice();
+
+  // Create OpenCL context
+  ocl->context = clCreateContext(NULL, 1, &ocl->device, NULL, NULL, &err);
+  checkError(err, "creating context", __LINE__);
+
+    fp = fopen(OCLFILE, "r");
+  if (fp == NULL)
+  {
+    sprintf(message, "could not open OpenCL kernel file: %s", OCLFILE);
+    die(message, __LINE__, __FILE__);
+  }
+
+  // Create OpenCL command queue
+  ocl->queue = clCreateCommandQueue(ocl->context, ocl->device, 0, &err);
+  checkError(err, "creating command queue", __LINE__);
+
+  // Load OpenCL kernel source
+  fseek(fp, 0, SEEK_END);
+  ocl_size = ftell(fp) + 1;
+  ocl_src = (char*)malloc(ocl_size);
+  memset(ocl_src, 0, ocl_size);
+  fseek(fp, 0, SEEK_SET);
+  fread(ocl_src, 1, ocl_size, fp);
+  fclose(fp);
+
+  // Create OpenCL program
+  ocl->program = clCreateProgramWithSource(
+    ocl->context, 1, (const char**)&ocl_src, NULL, &err);
+  free(ocl_src);
+  checkError(err, "creating program", __LINE__);
+
+  // Build OpenCL program
+  err = clBuildProgram(ocl->program, 1, &ocl->device, "-cl-fast-relaxed-math -cl-mad-enable", NULL, NULL);
+  if (err == CL_BUILD_PROGRAM_FAILURE)
+  {
+    size_t sz;
+    clGetProgramBuildInfo(
+      ocl->program, ocl->device,
+      CL_PROGRAM_BUILD_LOG, 0, NULL, &sz);
+    char *buildlog = (char*)malloc(sz);
+    clGetProgramBuildInfo(
+      ocl->program, ocl->device,
+      CL_PROGRAM_BUILD_LOG, sz, buildlog, NULL);
+    fprintf(stderr, "\nOpenCL build log:\n\n%s\n", buildlog);
+    free(buildlog);
+  }
+  checkError(err, "building program", __LINE__);
+}
 
 void checkError(cl_int err, const char *op, const int line)
 {
@@ -266,8 +343,6 @@ void die(const char* message, const int line, const char* file)
   fflush(stderr);
   exit(EXIT_FAILURE);
 }
-
-
 cl_device_id selectOpenCLDevice()
 {
   cl_int err;
