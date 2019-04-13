@@ -36,7 +36,7 @@ inline float dot_product(float3 a, float3 b) {
 // }
 
 
-bool closest_intersection(float4 start, float3 d, global float3 *triangle_vertexes, private Intersection* closest_intersection, int triangle_n) {
+bool closest_intersection(float3 start, float3 d, global float3 *triangle_vertexes, private Intersection* closest_intersection, int triangle_n) {
   // Set closest intersection to be the max float value
   float current_t = 99999999999999.0f;
   // Make 4D ray into 3D ray
