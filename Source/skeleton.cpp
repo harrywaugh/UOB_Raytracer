@@ -59,6 +59,8 @@ struct Intersection {
 };
 float focal_length = 500.0;
 vec4  camera_position(0.0, 0.0, -3.0, 1.0);
+cl_float3  cl_camera_position  = {0.0, 0.0, -3.0};
+
 float pitch = 0.0f;
 float yaw = 0.0f;
 vec4 light_position(0, -0.5, -0.7, 1.0);
@@ -147,7 +149,7 @@ void offload_rendering(screen* screen, t_ocl ocl)  {
   //Set Camera Position and Rotation Matrix Arguments
   err = clSetKernelArg(ocl.draw, 4, sizeof(cl_mem), &ocl.rotation_matrix_buffer);
   checkError(err, "setting draw arg 4", __LINE__);
-  err = clSetKernelArg(ocl.draw, 5, sizeof(cl_float4), &camera_position);
+  err = clSetKernelArg(ocl.draw, 5, sizeof(cl_float3), &cl_camera_position);
   checkError(err, "setting draw arg 5", __LINE__);
 
   // Enqueue kernel
