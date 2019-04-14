@@ -103,7 +103,7 @@ int main(int argc, char* argv[]) {
 
 
   // Draw initial scene
-  draw(screen, ocl);
+  offload_rendering(screen, ocl);
   SDL_Renderframe(screen);
 
   // While user hasn't quit
