@@ -1,6 +1,5 @@
 #pragma OPENCL EXTENSION cl_khr_fp64 : enable
 
-constant float focal_length    = 500.0;
 constant float3 indirect_light = (float3)(0.5f, 0.5f, 0.5f);
 constant float3 light_color    = (float3) (14.0f, 14.0f, 14.0f);
 #define SCREEN_WIDTH 1024
@@ -101,7 +100,7 @@ float3 direct_light(const Intersection intersection, global float3 *triangle_ver
 
 
 kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexes,   global float3 *triangle_normals,
-				 global float3 *triangle_colors, global float3 *rot_matrix,           float3 camera_pos, float3 light_pos, int triangle_n)
+				 global float3 *triangle_colors, global float3 *rot_matrix,           float3 camera_pos, float3 light_pos, int triangle_n, float focal_length)
 {         /* accumulated magnitudes of velocity for each cell */
   const short x = get_global_id(0);
   const short y = get_global_id(1);
