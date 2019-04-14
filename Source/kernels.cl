@@ -107,12 +107,12 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
 
 
 
-  if(x==0 && y==0)   {
-  	// printf("r 0 %f 1 %f 2 %f\n", rot_matrix[0].x, rot_matrix[0].y, rot_matrix[0].z);
-  	// printf("r 3 %f 4 %f 5 %f\n", rot_matrix[1].x, rot_matrix[1].y, rot_matrix[1].z);
-  	// printf("r 6 %f 7 %f 8 %f\n", rot_matrix[2].x, rot_matrix[2].y, rot_matrix[2].z);
-  	printf("light.pos 0 %f 1 %f 2 %f\n", light_pos.x, light_pos.y, light_pos.z);
-  }
+  // if(x==0 && y==0)   {
+  // 	// printf("r 0 %f 1 %f 2 %f\n", rot_matrix[0].x, rot_matrix[0].y, rot_matrix[0].z);
+  // 	// printf("r 3 %f 4 %f 5 %f\n", rot_matrix[1].x, rot_matrix[1].y, rot_matrix[1].z);
+  // 	// printf("r 6 %f 7 %f 8 %f\n", rot_matrix[2].x, rot_matrix[2].y, rot_matrix[2].z);
+  // 	printf("light.pos 0 %f 1 %f 2 %f\n", light_pos.x, light_pos.y, light_pos.z);
+  // }
 
 
   // Declare ray for given position on the screen. Rotate ray by current view angle

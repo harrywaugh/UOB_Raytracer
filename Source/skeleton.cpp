@@ -114,9 +114,12 @@ int main(int argc, char* argv[]) {
       offload_rendering(screen, ocl);
       auto stop = high_resolution_clock::now();
       auto duration = duration_cast<microseconds>(stop - start); 
-      cout << "Draw Function: "<< duration.count() << " micro seconds" <<  endl; 
-
-
+      cout << "Offloaded GPU Rendertime: "<< duration.count() << " micro seconds" <<  endl; 
+      auto start = high_resolution_clock::now();
+      draw(screen, ocl);
+      auto stop = high_resolution_clock::now();
+      auto duration = duration_cast<microseconds>(stop - start); 
+      cout << "CPU Draw Time: "<< duration.count() << " micro seconds" <<  endl; 
       SDL_Renderframe(screen);
     }
   }
