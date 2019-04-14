@@ -1,8 +1,8 @@
 #pragma OPENCL EXTENSION cl_khr_fp64 : enable
 
-constant float focal_length = 500.0;
+constant float focal_length    = 500.0;
 constant float3 indirect_light = (float3)(0.5f, 0.5f, 0.5f);
-constant float3 light_color = 14.f * (float3) (1.0f, 1.0f, 1.0f);
+constant float3 light_color    = (float3) (14.0f, 14.0f, 14.0f);
 #define SCREEN_WIDTH 1024
 #define SCREEN_HEIGHT 1024
 
@@ -76,10 +76,10 @@ bool closest_intersection(float3 start, float3 d, global float3 *triangle_vertex
 }
 
 
-float3 direct_light(const Intersection intersection, global float3 *triangle_vertexes, int triangle_n) {
+float3 direct_light(const Intersection intersection, global float3 *triangle_vertexes, float3 light_pos, int triangle_n) {
 
   // Vector from the light to the point of intersection
-  float3 r = light_position - intersection.position;
+  float3 r = light_pos - intersection.position;
   // Distance of the checked point to the light source
   float radius = native_sqrt(r.x*r.x + r.y*r.y + r.z*r.z);;
 
@@ -101,7 +101,7 @@ float3 direct_light(const Intersection intersection, global float3 *triangle_ver
 
 
 kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexes,   global float3 *triangle_normals,
-				 global float3 *triangle_colors, global float3 *rot_matrix,           float3 camera_pos, int triangle_n)
+				 global float3 *triangle_colors, global float3 *rot_matrix,           float3 camera_pos, float3 light_pos, int triangle_n)
 {         /* accumulated magnitudes of velocity for each cell */
   const short x = get_global_id(0);
   const short y = get_global_id(1);
@@ -124,7 +124,7 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
   Intersection intersection;
   if (closest_intersection(camera_pos, d, triangle_vertexes, &intersection, triangle_n)) {
     float3 p = triangle_colors[intersection.triangle_index];
-    float3 final_color = p*(direct_light(intersection, triangle_vertexes, triangle_n) + indirect_light);
+    float3 final_color = p*(direct_light(intersection, triangle_vertexes, light_pos, triangle_n) + indirect_light);
   	PutPixelSDL(screen_buffer, x, y, final_color);
 
   } else {

@@ -149,6 +149,8 @@ void offload_rendering(screen* screen, t_ocl ocl)  {
   checkError(err, "setting draw arg 4", __LINE__);
   err = clSetKernelArg(ocl.draw, 5, sizeof(cl_float3), &cl_camera_position);
   checkError(err, "setting draw arg 5", __LINE__);
+    err = clSetKernelArg(ocl.draw, 6, sizeof(cl_float3), &light_position);
+  checkError(err, "setting draw arg 5", __LINE__);
 
   // Enqueue kernel
   size_t global_size[2] = {SCREEN_WIDTH, SCREEN_HEIGHT};
@@ -418,8 +420,8 @@ void opencl_initialise(t_ocl *ocl)  {
   err = clSetKernelArg(ocl->draw, 4, sizeof(cl_mem), &ocl->rotation_matrix_buffer);
   checkError(err, "setting draw arg 4", __LINE__);
   int n = triangles.size();
-  err = clSetKernelArg(ocl->draw, 6, sizeof(cl_int), &n);
-  checkError(err, "setting draw arg 6", __LINE__);
+  err = clSetKernelArg(ocl->draw, 7, sizeof(cl_int), &n);
+  checkError(err, "setting draw arg 7", __LINE__);
 
   cl_float4 *triangle_vertexes = (cl_float4 *)malloc(sizeof(cl_float4)*triangles.size()*3);
   cl_float4 *triangle_normals  = (cl_float4 *)malloc(sizeof(cl_float4)*triangles.size());
