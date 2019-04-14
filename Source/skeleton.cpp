@@ -116,9 +116,9 @@ int main(int argc, char* argv[]) {
       auto offload_duration = duration_cast<microseconds>(stop - start); 
       cout << "\nOffloaded GPU Rendertime: "<< offload_duration.count() << " micro seconds" <<  endl; 
 
-      auto start = high_resolution_clock::now();
+      start = high_resolution_clock::now();
       draw(screen, ocl);
-      auto stop = high_resolution_clock::now();
+      stop = high_resolution_clock::now();
       auto CPU_duration = duration_cast<microseconds>(stop - start); 
       cout << "CPU Draw Time: "<< CPU_duration.count() << " micro seconds" <<  endl; 
 
