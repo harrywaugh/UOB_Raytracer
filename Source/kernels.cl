@@ -58,16 +58,20 @@ bool closest_intersection(float3 start, float3 d, local float3 *triangle_vertexe
     float detA2 = det(A2); 
 
     float3 x = (float3) (detA0/detA, detA1/detA, detA2/detA);
-    float3 dist_vec = x.x*d;
-    float3 position = ((float3) (v0.x, v0.y, v0.z)) + (x.y * e1) + (x.z * e2);
 
-    bool mask = (x.x >= 0 && x.y >= 0 && x.z >= 0 && (x.y + x.z) <= 1 && x.x < current_t);
-	*closest_intersection       = (mask) ? 
-	                              (Intersection) {(float3) (position.x, position.y, position.z), native_sqrt(dist_vec.x*dist_vec.x + dist_vec.y*dist_vec.y + dist_vec.z*dist_vec.z),i} :
-								  (Intersection) {closest_intersection->position, closest_intersection->distance, closest_intersection->triangle_index};
-	current_t                            = (mask) ? x.x : current_t;
+    // If ray goes through triangle, and is the closest triangle
+    if (x.x >= 0 && x.y >= 0 && x.z >= 0 && (x.y + x.z) <= 1 && x.x < current_t) {
+      float3 position = ((float3) (v0.x, v0.y, v0.z)) + (x.y * e1) + (x.z * e2);
+
+      closest_intersection->position = (float3) (position.x, position.y, position.z);
+      float3 dist_vec = x.x*d;
+      closest_intersection->distance = native_sqrt(dist_vec.x*dist_vec.x + dist_vec.y*dist_vec.y + dist_vec.z*dist_vec.z);
+      closest_intersection->triangle_index = i;
+      current_t = x.x;
+    }
   }
-  return (current_t == MAXFLOAT) ? false : true;
+  if (current_t == MAXFLOAT) return false;
+  return true;
 }
 
 
@@ -82,15 +86,16 @@ float3 direct_light(const Intersection intersection, local float3 *triangle_vert
   float threshold = 0.001f;
   float3 intersect_pos = intersection.position + (float3) (r.x * threshold, r.y * threshold, r.z * threshold);
 
-  bool mask = ((closest_intersection(intersect_pos, r, triangle_vertexes, &obstacle_intersection, triangle_n)) && 
-               (obstacle_intersection.distance < radius)) ^ 1;
+  if (closest_intersection(intersect_pos, r, triangle_vertexes, &obstacle_intersection, triangle_n)) {
+    if (obstacle_intersection.distance < radius) return (float3)(0.0f, 0.0f, 0.0f);
+  }
 
   // Get the normal of the triangle that the light has hit
   float3 n = triangle_normals[intersection.triangle_index];
   // Intensity of the colour, based on the distance from the light
   float3 D = (light_color * max(dot(r, n) , 0.0f)) / (4 * ((float)M_PI) * radius * radius);
 
-  return D*mask;
+  return D;
 }
 
 
