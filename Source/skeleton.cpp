@@ -58,7 +58,7 @@ struct Intersection {
   int triangle_index;
 };
 float focal_length = 100.0;
-vec4  camera_position(0.0, 0.0, -3.0, 1.0);
+vec4  camera_position(0.0, 0.0, -1.0, 1.0);
 cl_float3  cl_camera_position  = {0.0, 0.0, -3.0};
 
 float pitch = 0.0f;
