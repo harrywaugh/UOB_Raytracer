@@ -58,17 +58,15 @@ bool closest_intersection(float3 start, float3 d, local float3 *triangle_vertexe
     float detA2 = det(A2); 
 
     float3 x = (float3) (detA0/detA, detA1/detA, detA2/detA);
+    float3 dist_vec = x.x*d;
+    float3 position = ((float3) (v0.x, v0.y, v0.z)) + (x.y * e1) + (x.z * e2);
 
-    // If ray goes through triangle, and is the closest triangle
-    if (x.x >= 0 && x.y >= 0 && x.z >= 0 && (x.y + x.z) <= 1 && x.x < current_t) {
-      float3 position = ((float3) (v0.x, v0.y, v0.z)) + (x.y * e1) + (x.z * e2);
+    bool mask = (x.x >= 0 && x.y >= 0 && x.z >= 0 && (x.y + x.z) <= 1 && x.x < current_t);
 
-      closest_intersection->position = (float3) (position.x, position.y, position.z);
-      float3 dist_vec = x.x*d;
-      closest_intersection->distance = native_sqrt(dist_vec.x*dist_vec.x + dist_vec.y*dist_vec.y + dist_vec.z*dist_vec.z);
-      closest_intersection->triangle_index = i;
-      current_t = x.x;
-    }
+	closest_intersection->position       = (mask) ? (float3) (position.x, position.y, position.z) : closest_intersection->position;
+	closest_intersection->distance       = (mask) ? native_sqrt(dist_vec.x*dist_vec.x + dist_vec.y*dist_vec.y + dist_vec.z*dist_vec.z) : closest_intersection->distance ;
+	closest_intersection->triangle_index = (mask) ? i : closest_intersection->triangle_index;
+	current_t                            = (mask) ? x.x : current_t;
   }
   return (current_t == MAXFLOAT) ? false : true;
 }
