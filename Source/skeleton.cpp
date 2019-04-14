@@ -136,9 +136,10 @@ void offload_rendering(screen* screen, t_ocl ocl)  {
                0.0f,        cos(pitch),           -sin(pitch),            
               -sin(yaw),    cos(yaw)*sin(pitch),   cos(pitch)*cos(yaw)};
   // memcpy(glm::value_ptr(R), r, sizeof(r));
-  printf("r 0 %f 1 %f 2 %f\n", r[0], r[1], r[2]);
-  printf("Triangles Length size %lu\n",  triangles.size());
 
+  printf("r 0 %f 1 %f 2 %f\n", r[0], r[1], r[2]);
+  printf("r 3 %f 4 %f 5 %f\n", r[3], r[4], r[5]);
+  printf("r 6 %f 7 %f 8 %f\n", r[6], r[7], r[8]);
 
   err = clEnqueueWriteBuffer(ocl.queue, ocl.rotation_matrix_buffer, CL_TRUE, 0,
   sizeof(cl_float) * 9, &r, 0, NULL, NULL);
