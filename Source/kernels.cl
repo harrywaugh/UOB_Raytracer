@@ -2,6 +2,7 @@
 
 constant float focal_length = 500.0;
 constant float3 indirect_light = (float3)(0.5f, 0.5f, 0.5f);
+constant float3 light_color = 14.f * (float3) (1.0f, 1.0f, 1.0f);
 #define SCREEN_WIDTH 1024
 #define SCREEN_HEIGHT 1024
 
@@ -75,6 +76,30 @@ bool closest_intersection(float3 start, float3 d, global float3 *triangle_vertex
 }
 
 
+float3 direct_light(const Intersection intersection, global float3 *triangle_vertexes, int triangle_n) {
+
+  // Vector from the light to the point of intersection
+  float3 r = light_position - intersection.position;
+  // Distance of the checked point to the light source
+  float radius = native_sqrt(r.x*r.x + r.y*r.y + r.z*r.z);;
+
+  Intersection obstacle_intersection;
+  float threshold = 0.001f;
+
+  if (closest_intersection(intersection.position + (float3) (r.x * threshold, r.y * threshold, r.z * threshold), r, 
+  																		triangle_vertexes, &obstacle_intersection)) {
+    if (obstacle_intersection.distance < radius) return (float3)(0.0f, 0.0f, 0.0f);
+  }
+
+  // Get the normal of the triangle that the light has hit
+  float3 n = triangle_vertexes[intersection.triangle_index];
+  // Intensity of the colour, based on the distance from the light
+  float3 D = (float3) (light_color * max(dot(r, n) , 0)) / (4 * M_PI * radius * radius);
+
+  return D;
+}
+
+
 kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexes,   global float3 *triangle_normals,
 				 global float3 *triangle_colors, global float3 *rot_matrix,           float3 camera_pos, int triangle_n)
 {         /* accumulated magnitudes of velocity for each cell */
@@ -99,8 +124,8 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
   Intersection intersection;
   if (closest_intersection(camera_pos, d, triangle_vertexes, &intersection, triangle_n)) {
     float3 p = triangle_colors[intersection.triangle_index];
-    // vec3 final_color = p*(direct_light(intersection) + indirect_light);
-  	PutPixelSDL(screen_buffer, x, y, p);
+    float3 final_color = p*(direct_light(intersection, triangle_vertexes, triangle_n) + indirect_light);
+  	PutPixelSDL(screen_buffer, x, y, final_color);
 
   } else {
     // Otherwise draw black
@@ -110,26 +135,5 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
 
 
 
-// vec3 direct_light(const Intersection& intersection) {
 
-//   // Vector from the light to the point of intersection
-//   vec4 r = light_position - intersection.position;
-//   // Distance of the checked point to the light source
-//   float radius = length(r);
-
-//   Intersection obstacle_intersection;
-//   float threshold = 0.001f;
-
-//   if (closest_intersection(intersection.position + vec4(r.x * threshold, r.y * threshold, r.z * threshold, 1.0f),
-//                            r, triangles, obstacle_intersection)) {
-//     if (obstacle_intersection.distance < radius) return vec3(0, 0, 0);
-//   }
-
-//   // Get the normal of the triangle that the light has hit
-//   vec4 n = triangles.at(intersection.triangle_index).normal;
-//   // Intensity of the colour, based on the distance from the light
-//   vec3 D = (vec3) (light_color * max(glm::dot(r, n) , 0)) / (float) (4 * M_PI * radius * radius);
-
-//   return D;
-// }
 
