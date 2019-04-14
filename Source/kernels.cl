@@ -2,8 +2,8 @@
 
 constant float3 indirect_light = (float3)(0.5f, 0.5f, 0.5f);
 constant float3 light_color    = (float3) (14.0f, 14.0f, 14.0f);
-#define SCREEN_WIDTH 1024
-#define SCREEN_HEIGHT 1024
+#define SCREEN_WIDTH 1536
+#define SCREEN_HEIGHT 1536
 
 /////READ ONLY BUFFERS
 
@@ -38,24 +38,24 @@ bool closest_intersection(float3 start, float3 d, local float3 *triangle_vertexe
   // Make 4D ray into 3D ray
   for (uint i = 0; i < triangle_n; i++) {
     // Define two corners of triangle relative to the other corner
-    float3 v0 = triangle_vertexes[i*3];
-    float3 v1 = triangle_vertexes[i*3+1];
-    float3 v2 = triangle_vertexes[i*3+2];
+    const float3 v0 = triangle_vertexes[i*3];
+    const float3 v1 = triangle_vertexes[i*3+1];
+    const float3 v2 = triangle_vertexes[i*3+2];
 
-    float3 e1 = (float3) (v1.x-v0.x,    v1.y-v0.y,    v1.z-v0.z);
-    float3 e2 = (float3) (v2.x-v0.x,    v2.y-v0.y,    v2.z-v0.z);
-    float3 b  = (float3) (start.x-v0.x, start.y-v0.y, start.z-v0.z);
+    const float3 e1 = (float3) (v1.x-v0.x,    v1.y-v0.y,    v1.z-v0.z);
+    const float3 e2 = (float3) (v2.x-v0.x,    v2.y-v0.y,    v2.z-v0.z);
+    const float3 b  = (float3) (start.x-v0.x, start.y-v0.y, start.z-v0.z);
 
     // Cramers, might be det repeated computation..?
-    float3 A[3]  = {-d, e1, e2};
-    float3 A0[3] = {b,  e1, e2};
-    float3 A1[3] = {-d, b,  e2};
-    float3 A2[3] = {-d, e1, b};
+    const float3 A[3]  = {-d, e1, e2};
+    const float3 A0[3] = {b,  e1, e2};
+    const float3 A1[3] = {-d, b,  e2};
+    const float3 A2[3] = {-d, e1, b};
 
-    float detA  = det(A);
-    float detA0 = det(A0);
-    float detA1 = det(A1);
-    float detA2 = det(A2); 
+    const float detA  = det(A);
+    const float detA0 = det(A0);
+    const float detA1 = det(A1);
+    const float detA2 = det(A2); 
 
     float3 x = (float3) (detA0/detA, detA1/detA, detA2/detA);
 
@@ -63,11 +63,11 @@ bool closest_intersection(float3 start, float3 d, local float3 *triangle_vertexe
     if (x.x >= 0 && x.y >= 0 && x.z >= 0 && (x.y + x.z) <= 1 && x.x < current_t) {
       float3 position = ((float3) (v0.x, v0.y, v0.z)) + (x.y * e1) + (x.z * e2);
 
-      closest_intersection->position = (float3) (position.x, position.y, position.z);
-      float3 dist_vec = x.x*d;
-      closest_intersection->distance = native_sqrt(dist_vec.x*dist_vec.x + dist_vec.y*dist_vec.y + dist_vec.z*dist_vec.z);
+      closest_intersection->position       = (float3) (position.x, position.y, position.z);
+      float3 dist_vec                      = x.x*d;
+      closest_intersection->distance       = native_sqrt(dist_vec.x*dist_vec.x + dist_vec.y*dist_vec.y + dist_vec.z*dist_vec.z);
       closest_intersection->triangle_index = i;
-      current_t = x.x;
+      current_t                            = x.x;
     }
   }
   if (current_t == MAXFLOAT) return false;
