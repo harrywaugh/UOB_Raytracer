@@ -122,7 +122,7 @@ int main(int argc, char* argv[]) {
       auto CPU_duration = duration_cast<microseconds>(stop - start); 
       cout << "CPU Draw Time: "<< CPU_duration.count() << " micro seconds" <<  endl; 
 
-      cout << "GPU is "<< offload_duration.count()/CPU_duration.count() << "x faster" <<  endl; 
+      cout << "GPU is "<< ((float)offload_duration.count())/((float)CPU_duration.count()) << "x faster" <<  endl; 
 
       SDL_Renderframe(screen);
     }
