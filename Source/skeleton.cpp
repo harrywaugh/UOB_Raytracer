@@ -139,7 +139,7 @@ void offload_rendering(screen* screen, t_ocl ocl)  {
 
   printf("r 0 %f 1 %f 2 %f\n", rot_matrix[0], rot_matrix[1], rot_matrix[2]);
   printf("r 3 %f 4 %f 5 %f\n", rot_matrix[4], rot_matrix[5], rot_matrix[6]);
-  printf("r 6 %f 7 %f 8 %f\n", rot_matrix[8], rot_matrix[9], rot_matrix[10]);
+  printf("r 6 %f 7 %f 8 %f\n\n", rot_matrix[8], rot_matrix[9], rot_matrix[10]);
 
   err = clEnqueueWriteBuffer(ocl.queue, ocl.rotation_matrix_buffer, CL_TRUE, 0,
   sizeof(float) * 12, &rot_matrix, 0, NULL, NULL);
