@@ -111,12 +111,12 @@ int main(int argc, char* argv[]) {
     // If there is an update to the scene, then draw changes. Check if user wants to quit
     if (update())  {
       auto start = high_resolution_clock::now();
-      // draw(screen, ocl);
+      offload_rendering(screen, ocl);
+      
       auto stop = high_resolution_clock::now();
       auto duration = duration_cast<microseconds>(stop - start); 
       cout << "Draw Function: "<< duration.count() << " micro seconds" <<  endl; 
 
-      offload_rendering(screen, ocl);
 
       SDL_Renderframe(screen);
     }
