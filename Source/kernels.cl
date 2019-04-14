@@ -87,14 +87,14 @@ float3 direct_light(const Intersection intersection, global float3 *triangle_ver
   float threshold = 0.001f;
 
   if (closest_intersection(intersection.position + (float3) (r.x * threshold, r.y * threshold, r.z * threshold), r, 
-  																		triangle_vertexes, &obstacle_intersection)) {
+  																		triangle_vertexes, &obstacle_intersection, triangle_n)) {
     if (obstacle_intersection.distance < radius) return (float3)(0.0f, 0.0f, 0.0f);
   }
 
   // Get the normal of the triangle that the light has hit
   float3 n = triangle_vertexes[intersection.triangle_index];
   // Intensity of the colour, based on the distance from the light
-  float3 D = (float3) (light_color * max(dot(r, n) , 0)) / (4 * M_PI * radius * radius);
+  float3 D = (float3) (light_color * max(dot(r, n) , 0.0f)) / (4 * M_PI * radius * radius);
 
   return D;
 }
