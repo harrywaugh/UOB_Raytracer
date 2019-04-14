@@ -168,8 +168,8 @@ void offload_rendering(screen* screen, t_ocl ocl)  {
   err = clEnqueueNDRangeKernel(ocl.queue, ocl.draw , 2, NULL, global_size, work_size, 0, NULL, NULL);
   checkError(err, "enqueueing draw kernel", __LINE__);
 
-  // err = clFinish(ocl.queue);
-  // checkError(err, "Waiting to finish draw kernel", __LINE__);
+  err = clFinish(ocl.queue);
+  checkError(err, "Waiting to finish draw kernel", __LINE__);
 
   err = clEnqueueReadBuffer(ocl.queue, ocl.screen_buffer, CL_TRUE, 0,
   sizeof(cl_uint) * SCREEN_WIDTH * SCREEN_HEIGHT, screen->buffer, 0, NULL, NULL);

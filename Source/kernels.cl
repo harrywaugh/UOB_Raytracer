@@ -19,7 +19,7 @@ inline float det(float3 M[3]) {
 		   M[0].z * (M[1].x * M[2].y - M[1].y * M[2].x);
 }
 
-void PutPixelSDL(global uint *screen_buffer, int x, int y, float3 colour) {
+inline PutPixelSDL(global uint *screen_buffer, int x, int y, float3 colour) {
   // if(x<0 || x>=SCREEN_WIDTH || y<0 || y>=SCREEN_HEIGHT)  {
   //   printf("apa\n");
   //   return;
