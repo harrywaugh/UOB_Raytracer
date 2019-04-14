@@ -75,7 +75,7 @@ bool closest_intersection(float3 start, float3 d, global float3 *triangle_vertex
 }
 
 
-float3 direct_light(const Intersection intersection, global float3 *triangle_vertexes, float3 light_pos, int triangle_n) {
+float3 direct_light(const Intersection intersection, global float3 *triangle_vertexes, global float3 *triangle_normals, float3 light_pos, int triangle_n) {
 
   // Vector from the light to the point of intersection
   float3 r = light_pos - intersection.position;
@@ -84,16 +84,16 @@ float3 direct_light(const Intersection intersection, global float3 *triangle_ver
 
   Intersection obstacle_intersection;
   float threshold = 0.001f;
+  float3 intersect_pos = intersection.position + (float3) (r.x * threshold, r.y * threshold, r.z * threshold);
 
-  if (closest_intersection(intersection.position + (float3) (r.x * threshold, r.y * threshold, r.z * threshold), r, 
-  																		triangle_vertexes, &obstacle_intersection, triangle_n)) {
+  if (closest_intersection(intersect_pos, r, triangle_vertexes, &obstacle_intersection, triangle_n)) {
     if (obstacle_intersection.distance < radius) return (float3)(0.0f, 0.0f, 0.0f);
   }
 
   // Get the normal of the triangle that the light has hit
-  float3 n = triangle_vertexes[intersection.triangle_index];
+  float3 n = triangle_normals[intersection.triangle_index];
   // Intensity of the colour, based on the distance from the light
-  float3 D = (float3) (light_color * max(dot(r, n) , 0.0f)) / (4 * ((float)M_PI) * radius * radius);
+  float3 D = (light_color * max(dot(r, n) , 0.0f)) / (4 * ((float)M_PI) * radius * radius);
 
   return D;
 }
@@ -123,7 +123,7 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
   Intersection intersection;
   if (closest_intersection(camera_pos, d, triangle_vertexes, &intersection, triangle_n)) {
     float3 p = triangle_colors[intersection.triangle_index];
-    float3 final_color = p*(direct_light(intersection, triangle_vertexes, light_pos, triangle_n) + indirect_light);
+    float3 final_color = p*(direct_light(intersection, triangle_vertexes, triangle_normals, light_pos, triangle_n) + indirect_light);
   	PutPixelSDL(screen_buffer, x, y, final_color);
 
   } else {
