@@ -131,9 +131,9 @@ int main(int argc, char* argv[]) {
 void offload_rendering(screen* screen, t_ocl ocl)  {
   cl_int err;
 
-  float rot_matrix[12] = {{cos(yaw),  sin(pitch)*sin(yaw),   sin(yaw)*cos(pitch), 0.0f},
-                          {0.0f,      cos(pitch),           -sin(pitch),          0.0f},            
-                          {-sin(yaw), cos(yaw)*sin(pitch),   cos(pitch)*cos(yaw), 0.0f}};
+  float rot_matrix[12] = {cos(yaw),  sin(pitch)*sin(yaw),   sin(yaw)*cos(pitch), 0.0f,
+                          0.0f,      cos(pitch),           -sin(pitch),          0.0f,            
+                          -sin(yaw), cos(yaw)*sin(pitch),   cos(pitch)*cos(yaw), 0.0f};
 
 
 
