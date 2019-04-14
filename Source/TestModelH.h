@@ -6,6 +6,7 @@
 #include <glm/glm.hpp>
 #include <vector>
 
+
 // Used to describe a triangular surface:
 class Triangle
 {
@@ -32,6 +33,8 @@ public:
 	  normal.z = normal3.z;
 	  normal.w = 1.0;
 	}
+
+
 };
 
 // Loads the Cornell Box. It is scaled to fill the volume:
