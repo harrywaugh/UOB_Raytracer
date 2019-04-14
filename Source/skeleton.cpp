@@ -150,7 +150,8 @@ void offload_rendering(screen* screen, t_ocl ocl)  {
   err = clSetKernelArg(ocl.draw, 5, sizeof(cl_float3), &cl_camera_position);
   checkError(err, "setting draw arg 5", __LINE__);
     err = clSetKernelArg(ocl.draw, 6, sizeof(cl_float3), &light_position);
-  checkError(err, "setting draw arg 5", __LINE__);
+  checkError(err, "setting draw arg 6", __LINE__);
+  printf("light.pos 0 %f 1 %f 2 %f\n", light_position.x, light_position.y, light_position.z);
 
   // Enqueue kernel
   size_t global_size[2] = {SCREEN_WIDTH, SCREEN_HEIGHT};
