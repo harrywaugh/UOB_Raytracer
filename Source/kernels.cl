@@ -70,8 +70,7 @@ bool closest_intersection(float3 start, float3 d, local float3 *triangle_vertexe
       current_t = x.x;
     }
   }
-  if (current_t == MAXFLOAT) return false;
-  return true;
+  return (current_t == MAXFLOAT) ? false : true;
 }
 
 
