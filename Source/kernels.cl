@@ -62,9 +62,9 @@ bool closest_intersection(float3 start, float3 d, local float3 *triangle_vertexe
     float3 position = ((float3) (v0.x, v0.y, v0.z)) + (x.y * e1) + (x.z * e2);
 
     bool mask = (x.x >= 0 && x.y >= 0 && x.z >= 0 && (x.y + x.z) <= 1 && x.x < current_t);
-	closest_intersection       = (mask) ? {(float3) (position.x, position.y, position.z), 
-									        native_sqrt(dist_vec.x*dist_vec.x + dist_vec.y*dist_vec.y + dist_vec.z*dist_vec.z), 
-									        i} : {closest_intersection->position, closest_intersection->distance, closest_intersection->triangle_index};
+	closest_intersection       = (mask) ? (Intersection) {(float3) (position.x, position.y, position.z), 
+									                      native_sqrt(dist_vec.x*dist_vec.x + dist_vec.y*dist_vec.y + dist_vec.z*dist_vec.z), 
+									                      i} : {closest_intersection->position, closest_intersection->distance, closest_intersection->triangle_index};
 	current_t                            = (mask) ? x.x : current_t;
   }
   return (current_t == MAXFLOAT) ? false : true;
