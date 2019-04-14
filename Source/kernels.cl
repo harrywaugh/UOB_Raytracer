@@ -20,10 +20,10 @@ inline float det(float3 M[3]) {
 }
 
 void PutPixelSDL(global uint *screen_buffer, int x, int y, float3 colour) {
-  if(x<0 || x>=SCREEN_WIDTH || y<0 || y>=SCREEN_HEIGHT)  {
-    printf("apa\n");
-    return;
-  }
+  // if(x<0 || x>=SCREEN_WIDTH || y<0 || y>=SCREEN_HEIGHT)  {
+  //   printf("apa\n");
+  //   return;
+  // }
   uint r = (uint) min(max(255*colour.x, 0.f), 255.f);
   uint g = (uint) min(max(255*colour.y, 0.f), 255.f);
   uint b = (uint) min(max(255*colour.z, 0.f), 255.f);
