@@ -32,7 +32,7 @@ void PutPixelSDL(global uint *screen_buffer, int x, int y, float3 colour) {
 }
 
 
-bool closest_intersection(float3 start, float3 d, global float3 *triangle_vertexes, private Intersection* closest_intersection, int triangle_n) {
+bool closest_intersection(float3 start, float3 d, local float3 *triangle_vertexes, private Intersection* closest_intersection, int triangle_n) {
   // Set closest intersection to be the max float value
   float current_t = MAXFLOAT;
   // Make 4D ray into 3D ray
@@ -75,7 +75,7 @@ bool closest_intersection(float3 start, float3 d, global float3 *triangle_vertex
 }
 
 
-float3 direct_light(const Intersection intersection, global float3 *triangle_vertexes, global float3 *triangle_normals, float3 light_pos, int triangle_n) {
+float3 direct_light(const Intersection intersection, local float3 *triangle_vertexes, local float3 *triangle_normals, float3 light_pos, int triangle_n) {
 
   // Vector from the light to the point of intersection
   float3 r = light_pos - intersection.position;
@@ -100,19 +100,18 @@ float3 direct_light(const Intersection intersection, global float3 *triangle_ver
 
 
 kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexes,   global float3 *triangle_normals,
-				 global float3 *triangle_colors, global float3 *rot_matrix,           float3 camera_pos, float3 light_pos, int triangle_n, float focal_length)
+				 global float3 *triangle_colors, global float3 *rot_matrix,           float3 camera_pos, float3 light_pos, 
+				 int triangle_n, float focal_length, local float3 *LOC_triangle_vertexes,  local float3 *LOC_triangle_normals,
+				 local float3 *LOC_triangle_colors)
 {         /* accumulated magnitudes of velocity for each cell */
   const short x = get_global_id(0);
   const short y = get_global_id(1);
 
 
-
-  // if(x==0 && y==0)   {
-  // 	// printf("r 0 %f 1 %f 2 %f\n", rot_matrix[0].x, rot_matrix[0].y, rot_matrix[0].z);
-  // 	// printf("r 3 %f 4 %f 5 %f\n", rot_matrix[1].x, rot_matrix[1].y, rot_matrix[1].z);
-  // 	// printf("r 6 %f 7 %f 8 %f\n", rot_matrix[2].x, rot_matrix[2].y, rot_matrix[2].z);
-  // 	printf("light.pos 0 %f 1 %f 2 %f\n", light_pos.x, light_pos.y, light_pos.z);
-  // }
+  event_t e = async_work_group_copy(LOC_triangle_vertexes, triangle_vertexes, triangle_n*3, 0);
+  e         = async_work_group_copy(LOC_triangle_normals,  triangle_normals,  triangle_n,  0);
+  e         = async_work_group_copy(LOC_triangle_colors,   triangle_colors,   triangle_n,  0);
+  wait_group_events(3, &e);
 
 
   // Declare ray for given position on the screen. Rotate ray by current view angle
@@ -121,9 +120,9 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
 
   // Find intersection point with closest geometry. If no intersection, paint the abyss
   Intersection intersection;
-  if (closest_intersection(camera_pos, d, triangle_vertexes, &intersection, triangle_n)) {
+  if (closest_intersection(camera_pos, d, LOC_triangle_vertexes, &intersection, triangle_n)) {
     float3 p = triangle_colors[intersection.triangle_index];
-    float3 final_color = p*(direct_light(intersection, triangle_vertexes, triangle_normals, light_pos, triangle_n) + indirect_light);
+    float3 final_color = p*(direct_light(intersection, LOC_riangle_vertexes, LOC_triangle_normals, light_pos, triangle_n) + indirect_light);
   	PutPixelSDL(screen_buffer, x, y, final_color);
 
   } else {
