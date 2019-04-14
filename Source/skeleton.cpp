@@ -18,8 +18,8 @@ using glm::length;
 
 SDL_Event event;
 
-#define SCREEN_WIDTH 700
-#define SCREEN_HEIGHT 700
+#define SCREEN_WIDTH 1536
+#define SCREEN_HEIGHT 1536
 #define FULLSCREEN_MODE false
 
 
@@ -29,8 +29,8 @@ struct Intersection {
   int triangle_index;
 };
 
-float focal_length = 500.0;
-vec4  camera_position(0.0, 0.0, -3.0, 1.0);
+float focal_length = 800.0;
+vec4  camera_position(0.0, 0.0, -2.5, 1.0);
 float pitch = 0.0f;
 float yaw = 0.0f;
 
