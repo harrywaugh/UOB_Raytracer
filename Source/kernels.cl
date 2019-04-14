@@ -35,7 +35,7 @@ void PutPixelSDL(global uint *screen_buffer, int x, int y, float3 colour) {
 
 bool closest_intersection(float3 start, float3 d, global float3 *triangle_vertexes, private Intersection* closest_intersection, int triangle_n) {
   // Set closest intersection to be the max float value
-  float current_t = 99999999999999.0f;
+  float current_t = MAXFLOAT;
   // Make 4D ray into 3D ray
   for (uint i = 0; i < triangle_n; i++) {
     // Define two corners of triangle relative to the other corner
@@ -71,7 +71,7 @@ bool closest_intersection(float3 start, float3 d, global float3 *triangle_vertex
       current_t = x.x;
     }
   }
-  if (current_t == 99999999999999.0f) return false;
+  if (current_t == MAXFLOAT) return false;
   return true;
 }
 
@@ -94,7 +94,7 @@ float3 direct_light(const Intersection intersection, global float3 *triangle_ver
   // Get the normal of the triangle that the light has hit
   float3 n = triangle_vertexes[intersection.triangle_index];
   // Intensity of the colour, based on the distance from the light
-  float3 D = (float3) (light_color * max(dot(r, n) , 0.0f)) / (4 * M_PI * radius * radius);
+  float3 D = (float3) (light_color * max(dot(r, n) , 0.0f)) / (4 * ((float)M_PI) * radius * radius);
 
   return D;
 }
