@@ -28,8 +28,8 @@ SDL_Event event;
 #define WORK_SIZE_Y 8       
 
 
-#define SCREEN_WIDTH 1536
-#define SCREEN_HEIGHT 1536
+#define SCREEN_WIDTH 4608
+#define SCREEN_HEIGHT 4608
 #define FULLSCREEN_MODE false
 
 typedef struct
@@ -41,6 +41,7 @@ typedef struct
   cl_program program;
   //Kernels
   cl_kernel draw;
+  cl_kernel average_pixels;
 
   //Memory Buffers
   cl_mem screen_buffer;
@@ -57,9 +58,9 @@ struct Intersection {
   float distance;
   int triangle_index;
 };
-float focal_length = 800.0;
+float focal_length = 3000.0;
 vec4  camera_position(0.0, 0.0, -2.5, 1.0);
-cl_float3  cl_camera_position  = {0.0, 0.0, -3.0};
+cl_float3  cl_camera_position  = {0.0, 0.0, -2.4};
 
 float pitch = 0.0f;
 float yaw = 0.0f;
@@ -92,7 +93,7 @@ int main(int argc, char* argv[]) {
 
 
 
-  screen *screen = InitializeSDL(SCREEN_WIDTH, SCREEN_HEIGHT, FULLSCREEN_MODE);
+  screen *screen = InitializeSDL(SCREEN_WIDTH/3, SCREEN_HEIGHT/3, FULLSCREEN_MODE);
 
   // Load Cornell Box
   LoadTestModel(triangles);
@@ -160,11 +161,16 @@ void offload_rendering(screen* screen, t_ocl ocl)  {
   err = clEnqueueNDRangeKernel(ocl.queue, ocl.draw , 2, NULL, global_size, work_size, 0, NULL, NULL);
   checkError(err, "enqueueing draw kernel", __LINE__);
 
+
+  size_t av_global_size[2] = {SCREEN_WIDTH/3, SCREEN_HEIGHT/3};
+  err = clEnqueueNDRangeKernel(ocl.queue, ocl.average_pixels , 2, NULL, av_global_size, work_size, 0, NULL, NULL);
+  checkError(err, "enqueueing average_pixels kernel", __LINE__);
+
   // err = clFinish(ocl.queue);
   // checkError(err, "Waiting to finish draw kernel", __LINE__);
 
   err = clEnqueueReadBuffer(ocl.queue, ocl.screen_buffer, CL_TRUE, 0,
-  sizeof(cl_uint) * SCREEN_WIDTH * SCREEN_HEIGHT, screen->buffer, 0, NULL, NULL);
+  sizeof(cl_uint) * (SCREEN_WIDTH/3) * (SCREEN_HEIGHT/3), screen->buffer, 0, NULL, NULL);
   checkError(err, "reading screen buffer data", __LINE__);
 }
 
@@ -388,6 +394,8 @@ void opencl_initialise(t_ocl *ocl)  {
     // Create OpenCL kernels
   ocl->draw = clCreateKernel(ocl->program, "draw", &err);
   checkError(err, "creating draw kernel", __LINE__);
+  ocl->average_pixels = clCreateKernel(ocl->program, "average_pixels", &err);
+  checkError(err, "creating average_pixels kernel", __LINE__);
 
   // Allocate OpenCL buffers
   ocl->screen_buffer          = clCreateBuffer(ocl->context, CL_MEM_READ_WRITE,
@@ -409,6 +417,9 @@ void opencl_initialise(t_ocl *ocl)  {
   ocl->color_buffer = clCreateBuffer(ocl->context, CL_MEM_READ_WRITE,
                                 sizeof(cl_float4) * triangles.size() , NULL, &err);
   checkError(err, "creating Color Buffer buffer", __LINE__);
+
+  err = clSetKernelArg(ocl->average_pixels, 0, sizeof(cl_mem), &ocl->screen_buffer);
+  checkError(err, "setting average_pixels arg 0", __LINE__);
 
 
   // Set kernel arguments

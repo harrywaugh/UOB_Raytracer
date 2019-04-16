@@ -2,8 +2,8 @@
 
 constant float3 indirect_light = (float3)(0.5f, 0.5f, 0.5f);
 constant float3 light_color    = (float3) (14.0f, 14.0f, 14.0f);
-#define SCREEN_WIDTH 1536
-#define SCREEN_HEIGHT 1536
+#define SCREEN_WIDTH 4608
+#define SCREEN_HEIGHT 4608
 
 /////READ ONLY BUFFERS
 
@@ -15,20 +15,17 @@ typedef struct  {
 
 inline float det(float3 M[3]) {
 	return M[0].x * (M[1].y * M[2].z - M[1].z * M[2].y) -
-		   M[0].y * (M[1].x * M[2].z - M[1].z * M[2].x) +
-		   M[0].z * (M[1].x * M[2].y - M[1].y * M[2].x);
+		     M[0].y * (M[1].x * M[2].z - M[1].z * M[2].x) +
+		     M[0].z * (M[1].x * M[2].y - M[1].y * M[2].x);
 }
 
-inline PutPixelSDL(global uint *screen_buffer, int x, int y, float3 colour) {
+inline void PutPixelSDL(global uint *screen_buffer, int x, int y, float3 colour) {
   // if(x<0 || x>=SCREEN_WIDTH || y<0 || y>=SCREEN_HEIGHT)  {
   //   printf("apa\n");
   //   return;
   // }
-  uint r = (uint) min(max(255*colour.x, 0.f), 255.f);
-  uint g = (uint) min(max(255*colour.y, 0.f), 255.f);
-  uint b = (uint) min(max(255*colour.z, 0.f), 255.f);
-  // if(x<0 && y==0)  {
-  screen_buffer[y*SCREEN_WIDTH+x] = (128<<24) + (r<<16) + (g<<8) + b;
+  uint3 rgb = convert_uint3(min(max(255*colour, 0.f), 255.f));
+  screen_buffer[y*SCREEN_WIDTH+x] = (128<<24) + (rgb.x<<16) + (rgb.y<<8) + rgb.z;
 }
 
 
@@ -131,7 +128,33 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
   }
 }
 
+uint3 getRGB(uint pixel)  {
+  return (uint3) ((uint)((pixel >> 16) & 255), (uint)((pixel >> 8) & 255), (uint)(pixel & 255));
+}
 
+kernel void average_pixels(global uint *screen_buffer)  {
+  const short x = get_global_id(0);
+  const short y = get_global_id(1);
 
+  const short nx = get_global_size(1);
+  
+  uint3 surrounding_cell_total = (uint3) (0, 0, 0);
+  surrounding_cell_total  += getRGB(screen_buffer[(y*3)*SCREEN_WIDTH+(x*3)]);
+  surrounding_cell_total  += getRGB(screen_buffer[(y*3)*SCREEN_WIDTH+(x*3+1)]);
+  surrounding_cell_total  += getRGB(screen_buffer[(y*3)*SCREEN_WIDTH+(x*3+2)]);
+// 
+  surrounding_cell_total  += getRGB(screen_buffer[(y*3+1)*SCREEN_WIDTH+(x*3)]);
+  surrounding_cell_total  += getRGB(screen_buffer[(y*3+1)*SCREEN_WIDTH+(x*3+1)]);
+  surrounding_cell_total  += getRGB(screen_buffer[(y*3+1)*SCREEN_WIDTH+(x*3+2)]);
+
+  surrounding_cell_total  += getRGB(screen_buffer[(y*3+2)*SCREEN_WIDTH+(x*3)]);
+  surrounding_cell_total  += getRGB(screen_buffer[(y*3+2)*SCREEN_WIDTH+(x*3+1)]);
+  surrounding_cell_total  += getRGB(screen_buffer[(y*3+2)*SCREEN_WIDTH+(x*3+2)]);
+
+  surrounding_cell_total /= 9;
+
+  screen_buffer[y*nx+x] = (128<<24) + (surrounding_cell_total.x<<16) + (surrounding_cell_total.y<<8)
+                                                                      + surrounding_cell_total.z;
+}
 
 
