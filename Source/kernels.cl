@@ -5,9 +5,6 @@ constant float3 light_color    = (float3) (14.0f, 14.0f, 14.0f);
 #define SCREEN_WIDTH 4608
 #define SCREEN_HEIGHT 4608
 
-#define CELLS(x, y, k) (cells[k*(nx*ny) + y*nx + x])
-#define TMP_CELLS(x, y, k) (tmp_cells[k*(nx*ny) + y*nx + x])
-
 /////READ ONLY BUFFERS
 
 typedef struct  {
@@ -18,11 +15,11 @@ typedef struct  {
 
 inline float det(float3 M[3]) {
 	return M[0].x * (M[1].y * M[2].z - M[1].z * M[2].y) -
-		   M[0].y * (M[1].x * M[2].z - M[1].z * M[2].x) +
-		   M[0].z * (M[1].x * M[2].y - M[1].y * M[2].x);
+		     M[0].y * (M[1].x * M[2].z - M[1].z * M[2].x) +
+		     M[0].z * (M[1].x * M[2].y - M[1].y * M[2].x);
 }
 
-inline PutPixelSDL(global uint *screen_buffer, int x, int y, float3 colour) {
+inline void PutPixelSDL(global uint *screen_buffer, int x, int y, float3 colour) {
   // if(x<0 || x>=SCREEN_WIDTH || y<0 || y>=SCREEN_HEIGHT)  {
   //   printf("apa\n");
   //   return;
@@ -159,9 +156,9 @@ kernel void average_pixels(global uint *screen_buffer)  {
 
   surrounding_cell_total /= 9;
 
-  screen_buffer[y*nx+x] = (128<<24) + (surrounding_cell_total.x<<16) + (surrounding_cell_total.y<<8) + surrounding_cell_total.z;
+  screen_buffer[y*nx+x] = (128<<24) + (surrounding_cell_total.x<<16) + (surrounding_cell_total.y<<8)
+                                                                      + surrounding_cell_total.z;
 
-  screen_buffer[y*nx+x] = surrounding_cell_total/9;
 }
 
 
