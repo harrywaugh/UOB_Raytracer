@@ -143,7 +143,7 @@ kernel void average_pixels(global uint *screen_buffer)  {
 
   const short nx = get_global_size(1);
   
-  uint3 surrounding_cell_totalRGB = 0;
+  uint3 surrounding_cell_total = 0;
   surrounding_cell_total  += getRGB(screen_buffer[(y*3)*SCREEN_WIDTH+(x*3)]);
   surrounding_cell_total  += getRGB(screen_buffer[(y*3)*SCREEN_WIDTH+(x*3+1)]);
   surrounding_cell_total  += getRGB(screen_buffer[(y*3)*SCREEN_WIDTH+(x*3+2)]);
