@@ -129,7 +129,7 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
 }
 
 uint3 getRGB(uint pixel)  {
-  return (uint3) ((uint)((pixel >> 16) & 128), (uint)((pixel >> 8) & 128), (uint)(pixel & 128));
+  return (uint3) ((uint)((pixel >> 16) & 255), (uint)((pixel >> 8) & 255), (uint)(pixel & 255));
 }
 
 kernel void average_pixels(global uint *screen_buffer)  {
@@ -154,6 +154,7 @@ kernel void average_pixels(global uint *screen_buffer)  {
 
   if (x == 300 && y == 300)
     printf("screen_buffer %ud\n", screen_buffer[(y*3+1)*SCREEN_WIDTH+(x*3+1)]);
+
 
   if (x == 300 && y == 300)
     printf("x %u y %u z %u\n", surrounding_cell_total.x, surrounding_cell_total.y, surrounding_cell_total.z);
