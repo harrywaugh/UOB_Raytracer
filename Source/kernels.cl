@@ -5,6 +5,9 @@ constant float3 light_color    = (float3) (14.0f, 14.0f, 14.0f);
 #define SCREEN_WIDTH 1536
 #define SCREEN_HEIGHT 1536
 
+#define CELLS(x, y, k) (cells[k*(nx*ny) + y*nx + x])
+#define TMP_CELLS(x, y, k) (tmp_cells[k*(nx*ny) + y*nx + x])
+
 /////READ ONLY BUFFERS
 
 typedef struct  {
@@ -133,5 +136,26 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
 
 
 
+kernel void average_pixels(global uint3 *screen_buffer)  {
+  const short x = get_global_id(0);
+  const short y = get_global_id(1);
+
+  const short nx = get_global_size(1);
+  
+  uint surrounding_cell_total;
+  surrounding_cell_total  += screen_buffer[(y*3)*nx+(x*3)];
+  surrounding_cell_total  += screen_buffer[(y*3)*nx+(x*3+1)];
+  surrounding_cell_total  += screen_buffer[(y*3)*nx+(x*3+2)];
+
+  surrounding_cell_total  += screen_buffer[(y*3+1)*nx+(x*3)];
+  surrounding_cell_total  += screen_buffer[(y*3+1)*nx+(x*3+1)];
+  surrounding_cell_total  += screen_buffer[(y*3+1)*nx+(x*3+2)];
+
+  surrounding_cell_total  += screen_buffer[(y*3+2)*nx+(x*3)];
+  surrounding_cell_total  += screen_buffer[(y*3+2)*nx+(x*3+1)];
+  surrounding_cell_total  += screen_buffer[(y*3+2)*nx+(x*3+2)];
+
+  screen_buffer[y*nx+x] = surrounding_cell_total/9;
+}
 
 
