@@ -78,11 +78,9 @@ bool closest_intersection(float3 start, float3 d, local float3 *triangle_vertexe
   return true;
 }
 
-bool in_shadow(float3 start, float3 d, local float3 *triangle_vertexes, float radius_sq, int triangle_n) {
+bool in_shadow(float3 start, float3 d, local float3 *triangle_vertexes, private Intersection* closest_intersection, int triangle_n) {
   // Set closest intersection to be the max float value
   float current_t = MAXFLOAT;
-  Intersection closest_intersection;
-
   // Make 4D ray into 3D ray
   for (uint i = 0; i < triangle_n; i++) {
     // Define two corners of triangle relative to the other corner
@@ -113,13 +111,13 @@ bool in_shadow(float3 start, float3 d, local float3 *triangle_vertexes, float ra
       float u = detA1/detA;
       float v = detA2/detA; 
 
-      if (u >= 0 && v >= 0 && (u+v) <= 1 && t*t<radius_sq) {
+      if (u >= 0 && v >= 0 && (u+v) <= 1) {
         float3 position = ((float3) (v0.x, v0.y, v0.z)) + (u * e1) + (v * e2);
 
-        closest_intersection.position       = (float3) (position.x, position.y, position.z);
+        closest_intersection->position       = (float3) (position.x, position.y, position.z);
         float3 dist_vec                      = t*d;
-        closest_intersection.distance       = native_sqrt(dist_vec.x*dist_vec.x + dist_vec.y*dist_vec.y + dist_vec.z*dist_vec.z);
-        closest_intersection.triangle_index = i;
+        closest_intersection->distance       = native_sqrt(dist_vec.x*dist_vec.x + dist_vec.y*dist_vec.y + dist_vec.z*dist_vec.z);
+        closest_intersection->triangle_index = i;
         current_t                            = t;
         // return false;
       }
@@ -137,11 +135,12 @@ float3 direct_light(const Intersection intersection, local float3 *triangle_vert
   // Distance of the checked point to the light source
   float radius_sq = r.x*r.x + r.y*r.y + r.z*r.z;
 
+  Intersection obstacle_intersection;
   const float threshold = 0.001f;
   float3 intersect_pos = intersection.position + threshold * (float3) (r.x, r.y, r.z);
 
-  if (in_shadow(intersect_pos, r, triangle_vertexes, radius_sq, triangle_n)) {
-    return (float3)(0.0f, 0.0f, 0.0f);
+  if (in_shadow(intersect_pos, r, triangle_vertexes, &obstacle_intersection, triangle_n)) {
+    if (obstacle_intersection.distance*obstacle_intersection.distance < radius_sq) return (float3)(0.0f, 0.0f, 0.0f);
   }
 
   // Get the normal of the triangle that the light has hit
