@@ -136,7 +136,7 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
 
 
 
-kernel void average_pixels(global uint3 *screen_buffer)  {
+kernel void average_pixels(global uint *screen_buffer)  {
   const short x = get_global_id(0);
   const short y = get_global_id(1);
 
