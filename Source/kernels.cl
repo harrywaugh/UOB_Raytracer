@@ -142,7 +142,7 @@ kernel void average_pixels(global uint *screen_buffer)  {
 
   const short nx = get_global_size(1);
   
-  uint surrounding_cell_total;
+  uint surrounding_cell_total = 0;
   surrounding_cell_total  += screen_buffer[(y*3)*SCREEN_WIDTH+(x*3)];
   surrounding_cell_total  += screen_buffer[(y*3)*SCREEN_WIDTH+(x*3+1)];
   surrounding_cell_total  += screen_buffer[(y*3)*SCREEN_WIDTH+(x*3+2)];
@@ -154,7 +154,7 @@ kernel void average_pixels(global uint *screen_buffer)  {
   surrounding_cell_total  += screen_buffer[(y*3+2)*SCREEN_WIDTH+(x*3)];
   surrounding_cell_total  += screen_buffer[(y*3+2)*SCREEN_WIDTH+(x*3+1)];
   surrounding_cell_total  += screen_buffer[(y*3+2)*SCREEN_WIDTH+(x*3+2)];
-
+  // printf("Averaged pixel Val = %d\n", surrounding_cell_total/9);
   screen_buffer[y*nx+x] = surrounding_cell_total/9;
 }
 
