@@ -131,7 +131,7 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
 }
 
 uint3 getRGB(uint pixel)  {
-  return (uint3) (pixel & (128 >> 16), pixel & (128 >> 8), pixel & (128));
+  return (uint3) ((pixel >> 16) & 128, (pixel >> 8) & 128, pixel & 128);
 }
 
 kernel void average_pixels(global uint *screen_buffer)  {
