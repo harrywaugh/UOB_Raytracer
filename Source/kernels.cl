@@ -143,17 +143,17 @@ kernel void average_pixels(global uint *screen_buffer)  {
   const short nx = get_global_size(1);
   
   uint surrounding_cell_total;
-  surrounding_cell_total  += screen_buffer[(y*3)*nx+(x*3)];
-  surrounding_cell_total  += screen_buffer[(y*3)*nx+(x*3+1)];
-  surrounding_cell_total  += screen_buffer[(y*3)*nx+(x*3+2)];
+  surrounding_cell_total  += screen_buffer[(y*3)*SCREEN_WIDTH+(x*3)];
+  surrounding_cell_total  += screen_buffer[(y*3)*SCREEN_WIDTH+(x*3+1)];
+  surrounding_cell_total  += screen_buffer[(y*3)*SCREEN_WIDTH+(x*3+2)];
 
-  surrounding_cell_total  += screen_buffer[(y*3+1)*nx+(x*3)];
-  surrounding_cell_total  += screen_buffer[(y*3+1)*nx+(x*3+1)];
-  surrounding_cell_total  += screen_buffer[(y*3+1)*nx+(x*3+2)];
+  surrounding_cell_total  += screen_buffer[(y*3+1)*SCREEN_WIDTH+(x*3)];
+  surrounding_cell_total  += screen_buffer[(y*3+1)*SCREEN_WIDTH+(x*3+1)];
+  surrounding_cell_total  += screen_buffer[(y*3+1)*SCREEN_WIDTH+(x*3+2)];
 
-  surrounding_cell_total  += screen_buffer[(y*3+2)*nx+(x*3)];
-  surrounding_cell_total  += screen_buffer[(y*3+2)*nx+(x*3+1)];
-  surrounding_cell_total  += screen_buffer[(y*3+2)*nx+(x*3+2)];
+  surrounding_cell_total  += screen_buffer[(y*3+2)*SCREEN_WIDTH+(x*3)];
+  surrounding_cell_total  += screen_buffer[(y*3+2)*SCREEN_WIDTH+(x*3+1)];
+  surrounding_cell_total  += screen_buffer[(y*3+2)*SCREEN_WIDTH+(x*3+2)];
 
   screen_buffer[y*nx+x] = surrounding_cell_total/9;
 }
