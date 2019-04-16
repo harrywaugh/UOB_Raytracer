@@ -119,7 +119,7 @@ bool in_shadow(float3 start, float3 d, local float3 *triangle_vertexes, private 
         closest_intersection->distance       = native_sqrt(dist_vec.x*dist_vec.x + dist_vec.y*dist_vec.y + dist_vec.z*dist_vec.z);
         closest_intersection->triangle_index = i;
         current_t                            = t;
-        return true
+        return true;
       }
 
     }
