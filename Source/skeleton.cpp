@@ -28,8 +28,8 @@ SDL_Event event;
 #define WORK_SIZE_Y 8       
 
 
-#define SCREEN_WIDTH 1536
-#define SCREEN_HEIGHT 1536
+#define SCREEN_WIDTH 4608
+#define SCREEN_HEIGHT 4608
 #define FULLSCREEN_MODE false
 
 typedef struct
