@@ -162,9 +162,9 @@ void offload_rendering(screen* screen, t_ocl ocl)  {
   checkError(err, "enqueueing draw kernel", __LINE__);
 
 
-  size_t av_global_size[2] = {SCREEN_WIDTH/3, SCREEN_HEIGHT/3};
-  err = clEnqueueNDRangeKernel(ocl.queue, ocl.average_pixels , 2, NULL, av_global_size, work_size, 0, NULL, NULL);
-  checkError(err, "enqueueing average_pixels kernel", __LINE__);
+  // size_t av_global_size[2] = {SCREEN_WIDTH/3, SCREEN_HEIGHT/3};
+  // err = clEnqueueNDRangeKernel(ocl.queue, ocl.average_pixels , 2, NULL, av_global_size, work_size, 0, NULL, NULL);
+  // checkError(err, "enqueueing average_pixels kernel", __LINE__);
 
   // err = clFinish(ocl.queue);
   // checkError(err, "Waiting to finish draw kernel", __LINE__);
