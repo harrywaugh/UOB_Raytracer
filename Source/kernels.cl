@@ -119,13 +119,13 @@ bool in_shadow(float3 start, float3 d, local float3 *triangle_vertexes, private 
         closest_intersection->distance       = native_sqrt(dist_vec.x*dist_vec.x + dist_vec.y*dist_vec.y + dist_vec.z*dist_vec.z);
         closest_intersection->triangle_index = i;
         current_t                            = t;
-        // return false;
+        return true;
       }
 
     }
   }
   if (current_t == MAXFLOAT) return false;
-  return true;
+  return false;
 }
 
 float3 direct_light(const Intersection intersection, local float3 *triangle_vertexes, local float3 *triangle_normals, float3 light_pos, int triangle_n) {
@@ -133,14 +133,14 @@ float3 direct_light(const Intersection intersection, local float3 *triangle_vert
   // Vector from the light to the point of intersection
   float3 r = light_pos - intersection.position;
   // Distance of the checked point to the light source
-  float radius = native_sqrt(r.x*r.x + r.y*r.y + r.z*r.z);;
+  float radius = native_sqrt(r.x*r.x + r.y*r.y + r.z*r.z);
 
   Intersection obstacle_intersection;
   const float threshold = 0.001f;
   float3 intersect_pos = intersection.position + threshold * (float3) (r.x, r.y, r.z);
 
   if (in_shadow(intersect_pos, r, triangle_vertexes, &obstacle_intersection, triangle_n)) {
-    if (obstacle_intersection.distance < radius) return (float3)(0.0f, 0.0f, 0.0f);
+    return (float3)(0.0f, 0.0f, 0.0f);
   }
 
   // Get the normal of the triangle that the light has hit
