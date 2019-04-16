@@ -139,19 +139,19 @@ kernel void average_pixels(global uint *screen_buffer)  {
   const short nx = get_global_size(1);
   
   uint3 surrounding_cell_total = (uint3) (0, 0, 0);
-  // surrounding_cell_total  += getRGB(screen_buffer[(y*3)*SCREEN_WIDTH+(x*3)]);
-  // surrounding_cell_total  += getRGB(screen_buffer[(y*3)*SCREEN_WIDTH+(x*3+1)]);
-  // surrounding_cell_total  += getRGB(screen_buffer[(y*3)*SCREEN_WIDTH+(x*3+2)]);
+  surrounding_cell_total  += getRGB(screen_buffer[(y*3)*SCREEN_WIDTH+(x*3)]);
+  surrounding_cell_total  += getRGB(screen_buffer[(y*3)*SCREEN_WIDTH+(x*3+1)]);
+  surrounding_cell_total  += getRGB(screen_buffer[(y*3)*SCREEN_WIDTH+(x*3+2)]);
 // 
-  // surrounding_cell_total  += getRGB(screen_buffer[(y*3+1)*SCREEN_WIDTH+(x*3)]);
+  surrounding_cell_total  += getRGB(screen_buffer[(y*3+1)*SCREEN_WIDTH+(x*3)]);
   surrounding_cell_total  += getRGB(screen_buffer[(y*3+1)*SCREEN_WIDTH+(x*3+1)]);
-  // surrounding_cell_total  += getRGB(screen_buffer[(y*3+1)*SCREEN_WIDTH+(x*3+2)]);
+  surrounding_cell_total  += getRGB(screen_buffer[(y*3+1)*SCREEN_WIDTH+(x*3+2)]);
 
-  // surrounding_cell_total  += getRGB(screen_buffer[(y*3+2)*SCREEN_WIDTH+(x*3)]);
-  // surrounding_cell_total  += getRGB(screen_buffer[(y*3+2)*SCREEN_WIDTH+(x*3+1)]);
-  // surrounding_cell_total  += getRGB(screen_buffer[(y*3+2)*SCREEN_WIDTH+(x*3+2)]);
+  surrounding_cell_total  += getRGB(screen_buffer[(y*3+2)*SCREEN_WIDTH+(x*3)]);
+  surrounding_cell_total  += getRGB(screen_buffer[(y*3+2)*SCREEN_WIDTH+(x*3+1)]);
+  surrounding_cell_total  += getRGB(screen_buffer[(y*3+2)*SCREEN_WIDTH+(x*3+2)]);
 
-  surrounding_cell_total /= 1;
+  surrounding_cell_total /= 9;
 
   screen_buffer[y*nx+x] = (128<<24) + (surrounding_cell_total.x<<16) + (surrounding_cell_total.y<<8)
                                                                       + surrounding_cell_total.z;
