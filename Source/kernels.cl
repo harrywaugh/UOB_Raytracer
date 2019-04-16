@@ -79,6 +79,8 @@ bool closest_intersection(float3 start, float3 d, local float3 *triangle_vertexe
 }
 
 bool in_shadow(float3 start, float3 d, local float3 *triangle_vertexes, length_sq, int triangle_n) {
+  // Set closest intersection to be the max float value
+  float current_t = MAXFLOAT;
   // Make 4D ray into 3D ray
   for (uint i = 0; i < triangle_n; i++) {
     // Define two corners of triangle relative to the other corner
@@ -100,7 +102,7 @@ bool in_shadow(float3 start, float3 d, local float3 *triangle_vertexes, length_s
     float t = detA0/detA;
 
     // If ray goes through triangle, and is the closest triangle
-    if ( t*t < length_sq && t >= 0 ) {
+    if ( t < current_t && t >= 0 ) {
       const float3 A1[3] = {-d, b,  e2};
       const float3 A2[3] = {-d, e1, b};
 
@@ -110,12 +112,20 @@ bool in_shadow(float3 start, float3 d, local float3 *triangle_vertexes, length_s
       float v = detA2/detA; 
 
       if (u >= 0 && v >= 0 && (u+v) <= 1) {
-        return true;
+        float3 position = ((float3) (v0.x, v0.y, v0.z)) + (u * e1) + (v * e2);
+
+        closest_intersection->position       = (float3) (position.x, position.y, position.z);
+        float3 dist_vec                      = t*d;
+        closest_intersection->distance       = native_sqrt(dist_vec.x*dist_vec.x + dist_vec.y*dist_vec.y + dist_vec.z*dist_vec.z);
+        closest_intersection->triangle_index = i;
+        current_t                            = t;
+        // return false;
       }
 
     }
   }
-  return false;
+  if (current_t == MAXFLOAT) return false;
+  return true;
 }
 
 float3 direct_light(const Intersection intersection, local float3 *triangle_vertexes, local float3 *triangle_normals, float3 light_pos, int triangle_n) {
@@ -126,7 +136,7 @@ float3 direct_light(const Intersection intersection, local float3 *triangle_vert
   float radius_sq = r.x*r.x + r.y*r.y + r.z*r.z;
 
   Intersection obstacle_intersection;
-  const float threshold = 0.01f;
+  const float threshold = 0.001f;
   float3 intersect_pos = intersection.position + threshold * (float3) (r.x, r.y, r.z);
 
   if (in_shadow(intersect_pos, r, triangle_vertexes, radius_sq, triangle_n)) {
