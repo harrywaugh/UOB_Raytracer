@@ -30,7 +30,6 @@ inline PutPixelSDL(global uint *screen_buffer, int x, int y, float3 colour) {
   uint r = (uint) min(max(255*colour.x, 0.f), 255.f);
   uint g = (uint) min(max(255*colour.y, 0.f), 255.f);
   uint b = (uint) min(max(255*colour.z, 0.f), 255.f);
-  // if(x<0 && y==0)  {
   screen_buffer[y*SCREEN_WIDTH+x] = (128<<24) + (r<<16) + (g<<8) + b;
 }
 
@@ -134,7 +133,9 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
   }
 }
 
-
+uint3 getRGB(uint pixel)  {
+  return (uint3) (pixel & (128 << 16), pixel & (128 << 8), pixel & (128));
+}
 
 kernel void average_pixels(global uint *screen_buffer)  {
   const short x = get_global_id(0);
@@ -142,19 +143,24 @@ kernel void average_pixels(global uint *screen_buffer)  {
 
   const short nx = get_global_size(1);
   
-  uint surrounding_cell_total = 0;
-  surrounding_cell_total  += screen_buffer[(y*3)*SCREEN_WIDTH+(x*3)];
-  surrounding_cell_total  += screen_buffer[(y*3)*SCREEN_WIDTH+(x*3+1)];
-  surrounding_cell_total  += screen_buffer[(y*3)*SCREEN_WIDTH+(x*3+2)];
+  uint3 surrounding_cell_totalRGB = 0;
+  surrounding_cell_total  += getRGB(screen_buffer[(y*3)*SCREEN_WIDTH+(x*3)]);
+  surrounding_cell_total  += getRGB(screen_buffer[(y*3)*SCREEN_WIDTH+(x*3+1)]);
+  surrounding_cell_total  += getRGB(screen_buffer[(y*3)*SCREEN_WIDTH+(x*3+2)]);
 
-  surrounding_cell_total  += screen_buffer[(y*3+1)*SCREEN_WIDTH+(x*3)];
-  surrounding_cell_total  += screen_buffer[(y*3+1)*SCREEN_WIDTH+(x*3+1)];
-  surrounding_cell_total  += screen_buffer[(y*3+1)*SCREEN_WIDTH+(x*3+2)];
+  surrounding_cell_total  += getRGB(screen_buffer[(y*3+1)*SCREEN_WIDTH+(x*3)]);
+  surrounding_cell_total  += getRGB(screen_buffer[(y*3+1)*SCREEN_WIDTH+(x*3+1)]);
+  surrounding_cell_total  += getRGB(screen_buffer[(y*3+1)*SCREEN_WIDTH+(x*3+2)]);
 
-  surrounding_cell_total  += screen_buffer[(y*3+2)*SCREEN_WIDTH+(x*3)];
-  surrounding_cell_total  += screen_buffer[(y*3+2)*SCREEN_WIDTH+(x*3+1)];
-  surrounding_cell_total  += screen_buffer[(y*3+2)*SCREEN_WIDTH+(x*3+2)];
+  surrounding_cell_total  += getRGB(screen_buffer[(y*3+2)*SCREEN_WIDTH+(x*3)]);
+  surrounding_cell_total  += getRGB(screen_buffer[(y*3+2)*SCREEN_WIDTH+(x*3+1)]);
+  surrounding_cell_total  += getRGB(screen_buffer[(y*3+2)*SCREEN_WIDTH+(x*3+2)]);
   // printf("Averaged pixel Val = %d\n", surrounding_cell_total/9);
+
+  surrounding_cell_total /= 9;
+
+  screen_buffer[y*nx+x] = (128<<24) + (surrounding_cell_total.x<<16) + (surrounding_cell_total.y<<8) + surrounding_cell_total.z;
+
   screen_buffer[y*nx+x] = surrounding_cell_total/9;
 }
 
