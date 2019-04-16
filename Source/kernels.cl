@@ -152,12 +152,18 @@ kernel void average_pixels(global uint *screen_buffer)  {
   // surrounding_cell_total  += getRGB(screen_buffer[(y*3+2)*SCREEN_WIDTH+(x*3+2)]);
   // printf("Averaged pixel Val = %d\n", surrounding_cell_total/9);
 
+  if (x == 300 && y == 300)
+    printf("screen_buffer %ud\n", screen_buffer[(y*3+1)*SCREEN_WIDTH+(x*3+1)]);
+
   surrounding_cell_total /= 1;
 
   surrounding_cell_total = min(max(surrounding_cell_total, (uint3)0), (uint3)255);
   // screen_buffer[y*nx+x] = screen_buffer[(y*3+1)*SCREEN_WIDTH+(x*3+1)];
   screen_buffer[y*nx+x] = (128<<24) + (surrounding_cell_total.x<<16) + (surrounding_cell_total.y<<8)
                                                                       + surrounding_cell_total.z;
+  if (x == 300 && y == 300)
+    printf("screen_buffer %ud\n", (128<<24) + (surrounding_cell_total.x<<16) + (surrounding_cell_total.y<<8)
+                                                                      + surrounding_cell_total.z);
 
 }
 
