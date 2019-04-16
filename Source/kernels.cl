@@ -81,7 +81,7 @@ bool closest_intersection(float3 start, float3 d, local float3 *triangle_vertexe
 bool in_shadow(float3 start, float3 d, local float3 *triangle_vertexes, float radius_sq, int triangle_n) {
   // Set closest intersection to be the max float value
   float current_t = MAXFLOAT;
-  Intersection *obstacle_intersection;
+  Intersection closest_intersection;
 
   // Make 4D ray into 3D ray
   for (uint i = 0; i < triangle_n; i++) {
@@ -116,10 +116,10 @@ bool in_shadow(float3 start, float3 d, local float3 *triangle_vertexes, float ra
       if (u >= 0 && v >= 0 && (u+v) <= 1 && t*t<radius_sq) {
         float3 position = ((float3) (v0.x, v0.y, v0.z)) + (u * e1) + (v * e2);
 
-        closest_intersection->position       = (float3) (position.x, position.y, position.z);
+        closest_intersection.position       = (float3) (position.x, position.y, position.z);
         float3 dist_vec                      = t*d;
-        closest_intersection->distance       = native_sqrt(dist_vec.x*dist_vec.x + dist_vec.y*dist_vec.y + dist_vec.z*dist_vec.z);
-        closest_intersection->triangle_index = i;
+        closest_intersection.distance       = native_sqrt(dist_vec.x*dist_vec.x + dist_vec.y*dist_vec.y + dist_vec.z*dist_vec.z);
+        closest_intersection.triangle_index = i;
         current_t                            = t;
         // return false;
       }
