@@ -25,7 +25,7 @@ inline void PutPixelSDL(global uint *screen_buffer, int x, int y, float3 colour)
   //   return;
   // }
   uint3 rgb = convert_uint3(min(max(255*colour, 0.f), 255.f));
-  screen_buffer[y*SCREEN_WIDTH+x] = (128<<24) + (rgb.x<<16) + (g.y<<8) + b.z;
+  screen_buffer[y*SCREEN_WIDTH+x] = (128<<24) + (rgb.x<<16) + (rgb.y<<8) + rgb.z;
 }
 
 
