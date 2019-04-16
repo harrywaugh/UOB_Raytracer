@@ -2,8 +2,8 @@
 
 constant float3 indirect_light = (float3)(0.5f, 0.5f, 0.5f);
 constant float3 light_color    = (float3) (14.0f, 14.0f, 14.0f);
-#define SCREEN_WIDTH 1536
-#define SCREEN_HEIGHT 1536
+#define SCREEN_WIDTH 4608
+#define SCREEN_HEIGHT 4608
 
 #define CELLS(x, y, k) (cells[k*(nx*ny) + y*nx + x])
 #define TMP_CELLS(x, y, k) (tmp_cells[k*(nx*ny) + y*nx + x])
