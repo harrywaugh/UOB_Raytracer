@@ -46,21 +46,22 @@ bool closest_intersection(float3 start, float3 d, local float3 *triangle_vertexe
     // Cramers, might be det repeated computation..?
     const float3 A[3]  = {-d, e1, e2};
     const float3 A0[3] = {b,  e1, e2};
-    const float3 A1[3] = {-d, b,  e2};
-    const float3 A2[3] = {-d, e1, b};
+
 
     const float detA  = det(A);
     const float detA0 = det(A0);
-
 
     float t = detA0/detA;
 
     // If ray goes through triangle, and is the closest triangle
     if ( t < current_t && t >= 0 ) {
+      const float3 A1[3] = {-d, b,  e2};
+      const float3 A2[3] = {-d, e1, b};
       const float detA1 = det(A1);
       const float detA2 = det(A2);
       float u = detA1/detA;
       float v = detA2/detA; 
+
       if (u >= 0 && v >= 0 && (u+v) <= 1) {
         float3 position = ((float3) (v0.x, v0.y, v0.z)) + (u * e1) + (v * e2);
 
@@ -77,6 +78,47 @@ bool closest_intersection(float3 start, float3 d, local float3 *triangle_vertexe
   return true;
 }
 
+bool in_shadow(float3 start, float3 d, local float3 *triangle_vertexes, private Intersection* closest_intersection, int triangle_n) {
+  // Set closest intersection to be the max float value
+  // Make 4D ray into 3D ray
+  for (uint i = 0; i < triangle_n; i++) {
+    // Define two corners of triangle relative to the other corner
+    const float3 v0 = triangle_vertexes[i*3];
+    const float3 v1 = triangle_vertexes[i*3+1];
+    const float3 v2 = triangle_vertexes[i*3+2];
+
+    const float3 e1 = (float3) (v1.x-v0.x,    v1.y-v0.y,    v1.z-v0.z);
+    const float3 e2 = (float3) (v2.x-v0.x,    v2.y-v0.y,    v2.z-v0.z);
+    const float3 b  = (float3) (start.x-v0.x, start.y-v0.y, start.z-v0.z);
+
+    // Cramers, might be det repeated computation..?
+    const float3 A[3]  = {-d, e1, e2};
+    const float3 A0[3] = {b,  e1, e2};
+
+    const float detA  = det(A);
+    const float detA0 = det(A0);
+
+    float t = detA0/detA;
+
+    // If ray goes through triangle, and is the closest triangle
+    if ( t >= 0 ) {
+      const float3 A1[3] = {-d, b,  e2};
+      const float3 A2[3] = {-d, e1, b};
+      const float detA1 = det(A1);
+      const float detA2 = det(A2);
+      float u = detA1/detA;
+      float v = detA2/detA; 
+
+      if (u >= 0 && v >= 0 && (u+v) <= 1) {
+        float3 dist_vec                      = t*d;
+        closest_intersection->distance       = native_sqrt(dist_vec.x*dist_vec.x + dist_vec.y*dist_vec.y + dist_vec.z*dist_vec.z);
+        return true;
+      }
+
+    }
+  }
+  return false;
+}
 
 float3 direct_light(const Intersection intersection, local float3 *triangle_vertexes, local float3 *triangle_normals, float3 light_pos, int triangle_n) {
 
@@ -89,7 +131,7 @@ float3 direct_light(const Intersection intersection, local float3 *triangle_vert
   float threshold = 0.001f;
   float3 intersect_pos = intersection.position + (float3) (r.x * threshold, r.y * threshold, r.z * threshold);
 
-  if (closest_intersection(intersect_pos, r, triangle_vertexes, &obstacle_intersection, triangle_n)) {
+  if (in_shadow(intersect_pos, r, triangle_vertexes, &obstacle_intersection, triangle_n)) {
     if (obstacle_intersection.distance < radius) return (float3)(0.0f, 0.0f, 0.0f);
   }
 
