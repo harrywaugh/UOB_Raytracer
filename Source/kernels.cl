@@ -115,7 +115,7 @@ bool in_shadow(float3 start, float3 d, local float3 *triangle_vertexes, float ra
         float3 position = ((float3) (v0.x, v0.y, v0.z)) + (u * e1) + (v * e2);
 
         // closest_intersection->position       = (float3) (position.x, position.y, position.z);
-        // float3 dist_vec                      = t*d;
+        float3 dist_vec                      = t*d;
         intersect_dist       = dist_vec.x*dist_vec.x + dist_vec.y*dist_vec.y + dist_vec.z*dist_vec.z;
         if(intersect_dist < radius_sq)  {
           return true;
