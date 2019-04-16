@@ -78,7 +78,7 @@ bool closest_intersection(float3 start, float3 d, local float3 *triangle_vertexe
   return true;
 }
 
-bool in_shadow(float3 start, float3 d, local float3 *triangle_vertexes, length_sq, int triangle_n) {
+bool in_shadow(float3 start, float3 d, local float3 *triangle_vertexes, private Intersection* closest_intersection, int triangle_n) {
   // Set closest intersection to be the max float value
   float current_t = MAXFLOAT;
   // Make 4D ray into 3D ray
@@ -139,7 +139,7 @@ float3 direct_light(const Intersection intersection, local float3 *triangle_vert
   const float threshold = 0.001f;
   float3 intersect_pos = intersection.position + threshold * (float3) (r.x, r.y, r.z);
 
-  if (in_shadow(intersect_pos, r, triangle_vertexes, radius_sq, triangle_n)) {
+  if (in_shadow(intersect_pos, r, triangle_vertexes, &obstacle_intersection, triangle_n)) {
     return (float3)(0.0f, 0.0f, 0.0f);
   }
 
