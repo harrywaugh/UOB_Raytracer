@@ -60,7 +60,7 @@ struct Intersection {
 };
 float focal_length = 800.0;
 vec4  camera_position(0.0, 0.0, -2.5, 1.0);
-cl_float3  cl_camera_position  = {0.0, 0.0, -2.0};
+cl_float3  cl_camera_position  = {0.0, 0.0, -3.0};
 
 float pitch = 0.0f;
 float yaw = 0.0f;
