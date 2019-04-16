@@ -78,9 +78,11 @@ bool closest_intersection(float3 start, float3 d, local float3 *triangle_vertexe
   return true;
 }
 
-bool in_shadow(float3 start, float3 d, local float3 *triangle_vertexes, private Intersection* closest_intersection, int triangle_n) {
+bool in_shadow(float3 start, float3 d, local float3 *triangle_vertexes, float radius_sq, int triangle_n) {
   // Set closest intersection to be the max float value
   float current_t = MAXFLOAT;
+  Intersection *obstacle_intersection;
+
   // Make 4D ray into 3D ray
   for (uint i = 0; i < triangle_n; i++) {
     // Define two corners of triangle relative to the other corner
@@ -111,7 +113,7 @@ bool in_shadow(float3 start, float3 d, local float3 *triangle_vertexes, private 
       float u = detA1/detA;
       float v = detA2/detA; 
 
-      if (u >= 0 && v >= 0 && (u+v) <= 1) {
+      if (u >= 0 && v >= 0 && (u+v) <= 1 && t*t<radius_sq) {
         float3 position = ((float3) (v0.x, v0.y, v0.z)) + (u * e1) + (v * e2);
 
         closest_intersection->position       = (float3) (position.x, position.y, position.z);
@@ -135,7 +137,6 @@ float3 direct_light(const Intersection intersection, local float3 *triangle_vert
   // Distance of the checked point to the light source
   float radius_sq = r.x*r.x + r.y*r.y + r.z*r.z;
 
-  Intersection obstacle_intersection;
   const float threshold = 0.001f;
   float3 intersect_pos = intersection.position + threshold * (float3) (r.x, r.y, r.z);
 
