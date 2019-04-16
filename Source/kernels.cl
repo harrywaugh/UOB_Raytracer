@@ -24,10 +24,8 @@ inline void PutPixelSDL(global uint *screen_buffer, int x, int y, float3 colour)
   //   printf("apa\n");
   //   return;
   // }
-  uint r = (uint) min(max(255*colour.x, 0.f), 255.f);
-  uint g = (uint) min(max(255*colour.y, 0.f), 255.f);
-  uint b = (uint) min(max(255*colour.z, 0.f), 255.f);
-  screen_buffer[y*SCREEN_WIDTH+x] = (128<<24) + (r<<16) + (g<<8) + b;
+  uint3 rgb = convert_uint3(min(max(255*colour, 0.f), 255.f));
+  screen_buffer[y*SCREEN_WIDTH+x] = (128<<24) + (rgb.x<<16) + (g.y<<8) + b.z;
 }
 
 
@@ -156,12 +154,12 @@ kernel void average_pixels(global uint *screen_buffer)  {
 
   surrounding_cell_total /= 1;
 
-  surrounding_cell_total.x = (uint) min(max(255*surrounding_cell_total.x, 0), 255);
-  surrounding_cell_total.y = (uint) min(max(255*surrounding_cell_total.y, 0), 255);
-  surrounding_cell_total.z = (uint) min(max(255*surrounding_cell_total.z, 0), 255);
-  // screen_buffer[y*nx+x] = screen_buffer[(y*3+1)*SCREEN_WIDTH+(x*3+1)];
-  screen_buffer[y*nx+x] = (128<<24) + (surrounding_cell_total.x<<16) + (surrounding_cell_total.y<<8)
-                                                                      + surrounding_cell_total.z;
+  // surrounding_cell_total.x = (uint) min(max(255*surrounding_cell_total.x, 0), 255);
+  // surrounding_cell_total.y = (uint) min(max(255*surrounding_cell_total.y, 0), 255);
+  // surrounding_cell_total.z = (uint) min(max(255*surrounding_cell_total.z, 0), 255);
+  screen_buffer[y*nx+x] = screen_buffer[(y*3+1)*SCREEN_WIDTH+(x*3+1)];
+  // screen_buffer[y*nx+x] = (128<<24) + (surrounding_cell_total.x<<16) + (surrounding_cell_total.y<<8)
+  //                                                                     + surrounding_cell_total.z;
 
 }
 
