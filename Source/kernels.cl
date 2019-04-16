@@ -120,7 +120,7 @@ bool in_shadow(float3 start, float3 d, local float3 *triangle_vertexes, private 
   return false;
 }
 
-float3 closest_intersection(const Intersection intersection, local float3 *triangle_vertexes, local float3 *triangle_normals, float3 light_pos, int triangle_n) {
+float3 direct_light(const Intersection intersection, local float3 *triangle_vertexes, local float3 *triangle_normals, float3 light_pos, int triangle_n) {
 
   // Vector from the light to the point of intersection
   float3 r = light_pos - intersection.position;
@@ -131,7 +131,7 @@ float3 closest_intersection(const Intersection intersection, local float3 *trian
   float threshold = 0.001f;
   float3 intersect_pos = intersection.position + (float3) (r.x * threshold, r.y * threshold, r.z * threshold);
 
-  if (in_shadow(intersect_pos, r, triangle_vertexes, &obstacle_intersection, triangle_n)) {
+  if (closest_intersection(intersect_pos, r, triangle_vertexes, &obstacle_intersection, triangle_n)) {
     if (obstacle_intersection.distance < radius) return (float3)(0.0f, 0.0f, 0.0f);
   }
 
