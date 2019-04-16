@@ -170,7 +170,7 @@ void offload_rendering(screen* screen, t_ocl ocl)  {
   // checkError(err, "Waiting to finish draw kernel", __LINE__);
 
   err = clEnqueueReadBuffer(ocl.queue, ocl.screen_buffer, CL_TRUE, 0,
-  sizeof(cl_uint) * (SCREEN_WIDTH/3) * (SCREEN_HEIGHT/3), screen->buffer, 0, NULL, NULL);
+  sizeof(cl_uint) * (SCREEN_WIDTH) * (SCREEN_HEIGHT), screen->buffer, 0, NULL, NULL);
   checkError(err, "reading screen buffer data", __LINE__);
 }
 
