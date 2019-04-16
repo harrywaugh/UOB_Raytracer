@@ -126,7 +126,7 @@ float3 direct_light(const Intersection intersection, local float3 *triangle_vert
   float radius_sq = r.x*r.x + r.y*r.y + r.z*r.z;
 
   Intersection obstacle_intersection;
-  const float threshold = 0.00001f;
+  const float threshold = 0.01f;
   float3 intersect_pos = intersection.position + threshold * (float3) (r.x, r.y, r.z);
 
   if (in_shadow(intersect_pos, r, triangle_vertexes, radius_sq, triangle_n)) {
