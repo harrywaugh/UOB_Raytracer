@@ -28,8 +28,8 @@ SDL_Event event;
 #define WORK_SIZE_Y 8       
 
 
-#define SCREEN_WIDTH 1536
-#define SCREEN_HEIGHT 1536
+#define SCREEN_WIDTH 4608
+#define SCREEN_HEIGHT 4608
 #define FULLSCREEN_MODE false
 
 typedef struct
@@ -93,7 +93,7 @@ int main(int argc, char* argv[]) {
 
 
 
-  screen *screen = InitializeSDL(SCREEN_WIDTH, SCREEN_HEIGHT, FULLSCREEN_MODE);
+  screen *screen = InitializeSDL(SCREEN_WIDTH/3, SCREEN_HEIGHT/3, FULLSCREEN_MODE);
 
   // Load Cornell Box
   LoadTestModel(triangles);
@@ -170,7 +170,7 @@ void offload_rendering(screen* screen, t_ocl ocl)  {
   // checkError(err, "Waiting to finish draw kernel", __LINE__);
 
   err = clEnqueueReadBuffer(ocl.queue, ocl.screen_buffer, CL_TRUE, 0,
-  sizeof(cl_uint) * (SCREEN_WIDTH) * (SCREEN_HEIGHT), screen->buffer, 0, NULL, NULL);
+  sizeof(cl_uint) * (SCREEN_WIDTH/3) * (SCREEN_HEIGHT/3), screen->buffer, 0, NULL, NULL);
   checkError(err, "reading screen buffer data", __LINE__);
 }
 

@@ -2,8 +2,8 @@
 
 constant float3 indirect_light = (float3)(0.5f, 0.5f, 0.5f);
 constant float3 light_color    = (float3) (14.0f, 14.0f, 14.0f);
-#define SCREEN_WIDTH 1536
-#define SCREEN_HEIGHT 1536
+#define SCREEN_WIDTH 4608
+#define SCREEN_HEIGHT 4608
 
 /////READ ONLY BUFFERS
 
@@ -155,9 +155,9 @@ kernel void average_pixels(global uint *screen_buffer)  {
   // printf("Averaged pixel Val = %d\n", surrounding_cell_total/9);
 
   surrounding_cell_total /= 1;
-  // screen_buffer[y*nx+x] = screen_buffer[(y*3+1)*SCREEN_WIDTH+(x*3+1)];
-  screen_buffer[y*nx+x] = (128<<24) + (surrounding_cell_total.x<<16) + (surrounding_cell_total.y<<8)
-                                                                      + surrounding_cell_total.z;
+  screen_buffer[y*nx+x] = screen_buffer[(y*3+1)*SCREEN_WIDTH+(x*3+1)];
+  // screen_buffer[y*nx+x] = (128<<24) + (surrounding_cell_total.x<<16) + (surrounding_cell_total.y<<8)
+  //                                                                     + surrounding_cell_total.z;
 
 }
 
