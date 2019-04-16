@@ -23,10 +23,10 @@ using glm::length;
 SDL_Event event;
 
 
-
 #define OCLFILE "Source/kernels.cl"
 #define WORK_SIZE_X 32                 
 #define WORK_SIZE_Y 8       
+
 
 #define SCREEN_WIDTH 1536
 #define SCREEN_HEIGHT 1536
@@ -259,7 +259,9 @@ void draw(screen* screen, t_ocl ocl) {
         // colour returned by direct_light()
         // Get colour of the triangle the light has hit
         vec3 p = triangles.at(intersection.triangle_index).color;
+
         vec3 final_color = p*(direct_light(intersection) + indirect_light);
+
         PutPixelSDL(screen, x, y, final_color);
       } else {
         // Otherwise draw black
