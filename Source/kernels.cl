@@ -162,8 +162,8 @@ kernel void average_pixels(global uint *screen_buffer)  {
   screen_buffer[y*nx+x] = (128<<24) + (surrounding_cell_total.x<<16) + (surrounding_cell_total.y<<8)
                                                                       + surrounding_cell_total.z;
   if (x == 300 && y == 300)
-    printf("screen_buffer %ud\n", (uint)(128<<24) + (uint)(surrounding_cell_total.x<<16) + (uint)(surrounding_cell_total.y<<8)
-                                                                      + (uint)surrounding_cell_total.z);
+    printf("screen_buffer %ud\n", (uint)((128<<24) + (uint)(surrounding_cell_total.x<<16) + (uint)(surrounding_cell_total.y<<8)
+                                                                      + (uint)surrounding_cell_total.z));
 
 }
 
