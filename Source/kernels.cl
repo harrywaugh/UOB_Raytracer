@@ -110,7 +110,7 @@ bool in_shadow(float3 start, float3 d, local float3 *triangle_vertexes, length_s
       float v = detA2/detA; 
 
       if (u >= 0 && v >= 0 && (u+v) <= 1) {
-        return true
+        return true;
       }
 
     }
