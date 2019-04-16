@@ -133,7 +133,7 @@ float3 direct_light(const Intersection intersection, local float3 *triangle_vert
   // Vector from the light to the point of intersection
   float3 r = light_pos - intersection.position;
   // Distance of the checked point to the light source
-  float radius_sq = native_sqrt(r.x*r.x + r.y*r.y + r.z*r.z);
+  float radius_sq = r.x*r.x + r.y*r.y + r.z*r.z;
 
   Intersection obstacle_intersection;
   const float threshold = 0.001f;
