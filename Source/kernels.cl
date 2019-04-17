@@ -129,55 +129,55 @@ float3 direct_light(const Intersection intersection, local float3 *triangle_vert
 
   float3 total_colour = (float3) 0.0f;
 
-  const float threshold = 0.001f;
+  // const float threshold = 0.001f;
 
 
-  for (float i = -0.3f; i < 0.3; i+=0.02)  {
+  // for (float i = -0.3f; i < 0.3; i+=0.02)  {
 
-    float3 dir = light_pos - intersection.position + i*intersect_normal;
-    float radius_sq = dir.x*dir.x + dir.y*dir.y + dir.z*dir.z;
+  //   float3 dir = light_pos - intersection.position + i*intersect_normal;
+  //   float radius_sq = dir.x*dir.x + dir.y*dir.y + dir.z*dir.z;
     
 
-    float3 start = intersection.position + i*intersect_normal + threshold * (float3) (dir.x, dir.y, dir.z)  ;
+  //   float3 start = intersection.position + i*intersect_normal + threshold * (float3) (dir.x, dir.y, dir.z)  ;
 
-    if (in_shadow(start, dir, triangle_vertexes, radius_sq, triangle_n)) {
-      total_colour -= (float3)(0.02f, 0.02f, 0.02f);
-    }
-  }
-
-
-  float3 dir = light_pos - intersection.position;
-  float radius_sq = dir.x*dir.x + dir.y*dir.y + dir.z*dir.z;
-
-
-  // Get the normal of the triangle that the light has hit
-  float3 n = triangle_normals[intersection.triangle_index];
-  // Intensity of the colour, based on the distance from the light
-  float3 D = (light_color * max(dot(dir, n) , 0.0f)) / (4 * ((float)M_PI) * radius_sq);
-
-  return D + total_colour;
-
-
-  //  float3 r = light_pos - intersection.position;
-
-  // // Vector from the light to the point of intersection
-  // // Distance of the checked point to the light source
-  // float radius_sq = r.x*r.x + r.y*r.y + r.z*r.z;
-
-  // const float threshold = 0.001f;
-  // float3 intersect_pos = intersection.position + threshold * (float3) (r.x, r.y, r.z);
-
-
-  // if (in_shadow(intersect_pos, r, triangle_vertexes, radius_sq, triangle_n)) {
-  //   total_colour -= (float3)(0.3f, 0.3f, 0.3f);
+  //   if (in_shadow(start, dir, triangle_vertexes, radius_sq, triangle_n)) {
+  //     total_colour -= (float3)(0.02f, 0.02f, 0.02f);
+  //   }
   // }
+
+
+  // float3 dir = light_pos - intersection.position;
+  // float radius_sq = dir.x*dir.x + dir.y*dir.y + dir.z*dir.z;
+
 
   // // Get the normal of the triangle that the light has hit
   // float3 n = triangle_normals[intersection.triangle_index];
   // // Intensity of the colour, based on the distance from the light
-  // float3 D = (light_color * max(dot(r, n) , 0.0f)) / (4 * ((float)M_PI) * radius_sq);
+  // float3 D = (light_color * max(dot(dir, n) , 0.0f)) / (4 * ((float)M_PI) * radius_sq);
 
   // return D + total_colour;
+
+
+   float3 r = light_pos - intersection.position;
+
+  // Vector from the light to the point of intersection
+  // Distance of the checked point to the light source
+  float radius_sq = r.x*r.x + r.y*r.y + r.z*r.z;
+
+  const float threshold = 0.001f;
+  float3 intersect_pos = intersection.position + threshold * (float3) (r.x, r.y, r.z);
+
+
+  if (in_shadow(intersect_pos, r, triangle_vertexes, radius_sq, triangle_n)) {
+    total_colour -= (float3)(0.3f, 0.3f, 0.3f);
+  }
+
+  // Get the normal of the triangle that the light has hit
+  float3 n = triangle_normals[intersection.triangle_index];
+  // Intensity of the colour, based on the distance from the light
+  float3 D = (light_color * max(dot(r, n) , 0.0f)) / (4 * ((float)M_PI) * radius_sq);
+
+  return D + total_colour;
 }
 
 
