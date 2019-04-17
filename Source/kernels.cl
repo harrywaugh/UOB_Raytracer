@@ -128,7 +128,7 @@ float direct_light(const Intersection intersection, local float3 *triangle_verte
                     float3 light_pos, int triangle_n, float3 intersect_normal) {
 
   //Declare colour for point to be 0
-  float3 total_colour = (float3) 0.0f;
+  float total_colour = (float) 0.0f;
 
   //Get vector from intersection point to light position, and its magnitude
   float3 dir = light_pos - intersection.position;
