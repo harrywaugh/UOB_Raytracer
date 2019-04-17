@@ -1,9 +1,9 @@
 #pragma OPENCL EXTENSION cl_khr_fp64 : enable
 
-constant float3 indirect_light = (float3)(0.5f, 0.5f, 0.5f);
-constant float3 light_color    = (float3) (14.0f, 14.0f, 14.0f);
-#define SCREEN_WIDTH 4608
-#define SCREEN_HEIGHT 4608
+constant float3 indirect_light = (float3)(0.25f, 0.25f, 0.25f);
+constant float3 light_color    = (float3) (7.0f, 7.0f, 7.0f);
+#define SCREEN_WIDTH 1536.0f
+#define SCREEN_HEIGHT 1536.0f
 
 /////READ ONLY BUFFERS
 
@@ -25,9 +25,12 @@ inline void PutPixelSDL(global uint *screen_buffer, int x, int y, float3 colour)
   //   return;
   // }
   uint3 rgb = convert_uint3(min(max(255*colour, 0.f), 255.f));
-  screen_buffer[y*SCREEN_WIDTH+x] = (128<<24) + (rgb.x<<16) + (rgb.y<<8) + rgb.z;
+  screen_buffer[y*(short)SCREEN_WIDTH+x] = (128<<24) + (rgb.x<<16) + (rgb.y<<8) + rgb.z;
 }
-
+inline float rnd(float seed, float range) {
+  // return seed;
+  return fmod(19.0f*seed, range)-range/2.0f;
+}
 
 bool closest_intersection(float3 start, float3 d, local float3 *triangle_vertexes, private Intersection* closest_intersection, int triangle_n) {
   // Set closest intersection to be the max float value
@@ -46,54 +49,117 @@ bool closest_intersection(float3 start, float3 d, local float3 *triangle_vertexe
     // Cramers, might be det repeated computation..?
     const float3 A[3]  = {-d, e1, e2};
     const float3 A0[3] = {b,  e1, e2};
-    const float3 A1[3] = {-d, b,  e2};
-    const float3 A2[3] = {-d, e1, b};
 
     const float detA  = det(A);
     const float detA0 = det(A0);
-    const float detA1 = det(A1);
-    const float detA2 = det(A2); 
 
-    float3 x = (float3) (detA0/detA, detA1/detA, detA2/detA);
+    float t = detA0/detA;
 
     // If ray goes through triangle, and is the closest triangle
-    if (x.x >= 0 && x.y >= 0 && x.z >= 0 && (x.y + x.z) <= 1 && x.x < current_t) {
-      float3 position = ((float3) (v0.x, v0.y, v0.z)) + (x.y * e1) + (x.z * e2);
+    if ( t < current_t && t >= 0 ) {
+      const float3 A1[3] = {-d, b,  e2};
+      const float3 A2[3] = {-d, e1, b};
 
-      closest_intersection->position       = (float3) (position.x, position.y, position.z);
-      float3 dist_vec                      = x.x*d;
-      closest_intersection->distance       = native_sqrt(dist_vec.x*dist_vec.x + dist_vec.y*dist_vec.y + dist_vec.z*dist_vec.z);
-      closest_intersection->triangle_index = i;
-      current_t                            = x.x;
+      const float detA1 = det(A1);
+      const float detA2 = det(A2);
+      float u = detA1/detA;
+      float v = detA2/detA; 
+
+      if (u >= 0 && v >= 0 && (u+v) <= 1) {
+        float3 position = ((float3) (v0.x, v0.y, v0.z)) + (u * e1) + (v * e2);
+
+        closest_intersection->position       = (float3) (position.x, position.y, position.z);
+        float3 dist_vec                      = t*d;
+        closest_intersection->distance       = native_sqrt(dist_vec.x*dist_vec.x + dist_vec.y*dist_vec.y + dist_vec.z*dist_vec.z);
+        closest_intersection->triangle_index = i;
+        current_t                            = t;
+      }
+
     }
   }
   if (current_t == MAXFLOAT) return false;
   return true;
 }
 
+bool in_shadow(float3 start, float3 d, local float3 *triangle_vertexes, float radius_sq, int triangle_n) {
+  // Make 4D ray into 3D ray
+  for (uint i = 0; i < triangle_n; i++) {
+    // Define two corners of triangle relative to the other corner
+    const float3 v0 = triangle_vertexes[i*3];
+    const float3 v1 = triangle_vertexes[i*3+1];
+    const float3 v2 = triangle_vertexes[i*3+2];
 
-float3 direct_light(const Intersection intersection, local float3 *triangle_vertexes, local float3 *triangle_normals, float3 light_pos, int triangle_n) {
+    const float3 e1 = (float3) (v1.x-v0.x,    v1.y-v0.y,    v1.z-v0.z);
+    const float3 e2 = (float3) (v2.x-v0.x,    v2.y-v0.y,    v2.z-v0.z);
+    const float3 b  = (float3) (start.x-v0.x, start.y-v0.y, start.z-v0.z);
 
-  // Vector from the light to the point of intersection
-  float3 r = light_pos - intersection.position;
-  // Distance of the checked point to the light source
-  float radius = native_sqrt(r.x*r.x + r.y*r.y + r.z*r.z);;
+    // Cramers, might be det repeated computation..?
+    const float3 A[3]  = {-d, e1, e2};
+    const float3 A0[3] = {b,  e1, e2};
 
-  Intersection obstacle_intersection;
-  float threshold = 0.001f;
-  float3 intersect_pos = intersection.position + (float3) (r.x * threshold, r.y * threshold, r.z * threshold);
+    const float detA  = det(A);
+    const float detA0 = det(A0);
 
-  if (closest_intersection(intersect_pos, r, triangle_vertexes, &obstacle_intersection, triangle_n)) {
-    if (obstacle_intersection.distance < radius) return (float3)(0.0f, 0.0f, 0.0f);
+    float t = detA0/detA;
+
+    // If ray goes through triangle, and is the closest triangle
+    if (t >= 0 ) {
+      const float3 A1[3] = {-d, b,  e2};
+      const float3 A2[3] = {-d, e1, b};
+
+      const float detA1 = det(A1);
+      const float detA2 = det(A2);
+      float u = detA1/detA;
+      float v = detA2/detA; 
+      float3 dist_vec            = t*d;
+      float intersect_dist       = dist_vec.x*dist_vec.x + dist_vec.y*dist_vec.y + dist_vec.z*dist_vec.z;
+
+
+      if (u >= 0 && v >= 0 && (u+v) <= 1 && intersect_dist < radius_sq) {
+        return true;
+      }
+
+    }
+  }
+  return false;
+}
+
+float3 direct_light(const Intersection intersection, local float3 *triangle_vertexes, local float3 *triangle_normals, 
+                    float3 light_pos, int triangle_n, float3 intersect_normal, uint global_id) {
+
+  //Declare colour for point to be 0
+  float3 total_colour = (float3) 0.0f;
+
+  //Get vector from intersection point to light position, and its magnitude
+  float3 dir = light_pos - intersection.position;
+  float radius_sq = dir.x*dir.x + dir.y*dir.y + dir.z*dir.z;
+
+  //Declare threshold to get intersection position that is not going to intersect with own triangle
+  const float bias = 0.00001f;
+  float3 start = intersection.position + bias*dir;
+
+  const short light_sources = 12;
+  short light_count = light_sources;
+
+  // Check parallel ghost surfaces for soft triangles
+  for (int i = 0; i < light_sources; i++)  {
+    const float light_spread = 0.05f;
+    float3 ghost_dir = dir + (float3) (rnd(i*(global_id), light_spread), rnd(i*(global_id)*5.0f, light_spread), rnd(i*(global_id)*7.0f, light_spread));
+    float ghost_radius_sq = ghost_dir.x*ghost_dir.x + ghost_dir.y*ghost_dir.y + ghost_dir.z*ghost_dir.z;
+    
+    if (in_shadow(start, ghost_dir, triangle_vertexes, ghost_radius_sq, triangle_n)) {
+      light_count--;
+    }
   }
 
-  // Get the normal of the triangle that the light has hit
-  float3 n = triangle_normals[intersection.triangle_index];
-  // Intensity of the colour, based on the distance from the light
-  float3 D = (light_color * max(dot(r, n) , 0.0f)) / (4 * ((float)M_PI) * radius * radius);
+  
+  total_colour += (light_color * max(dot(dir, intersect_normal), 0.0f)) / (4 * ((float)M_PI) * radius_sq);
 
-  return D;
+  
+  return total_colour*(((float)light_count)/((float)light_sources));
 }
+
+
 
 
 kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexes,   global float3 *triangle_normals,
@@ -103,58 +169,68 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
 {         /* accumulated magnitudes of velocity for each cell */
   const short x = get_global_id(0);
   const short y = get_global_id(1);
-
+  const short global_id = x*SCREEN_WIDTH+y;
 
   event_t e = async_work_group_copy(LOC_triangle_vertexes, triangle_vertexes, triangle_n*3, 0);
-  e         = async_work_group_copy(LOC_triangle_normals,  triangle_normals,  triangle_n,  0);
-  e         = async_work_group_copy(LOC_triangle_colors,   triangle_colors,   triangle_n,  0);
+  e         = async_work_group_copy(LOC_triangle_normals,  triangle_normals,  triangle_n,   0);
+  e         = async_work_group_copy(LOC_triangle_colors,   triangle_colors,   triangle_n,   0);
   wait_group_events(3, &e);
 
+  const char rays_x = 2;
+  const char rays_y = 2;
 
-  // Declare ray for given position on the screen. Rotate ray by current view angle
-  float3 d = (float3) (x - SCREEN_WIDTH/2.0, y - SCREEN_HEIGHT/2.0, focal_length);
-  d        = (float3) (dot(rot_matrix[0], d), dot(rot_matrix[1], d), dot(rot_matrix[2], d));
 
-  // Find intersection point with closest geometry. If no intersection, paint the abyss
-  Intersection intersection;
-  if (closest_intersection(camera_pos, d, LOC_triangle_vertexes, &intersection, triangle_n)) {
-    const float3 p = LOC_triangle_colors[intersection.triangle_index];
-    const float3 final_color = p*(direct_light(intersection, LOC_triangle_vertexes, LOC_triangle_normals, light_pos, triangle_n) + indirect_light);
-  	PutPixelSDL(screen_buffer, x, y, final_color);
+  float3 final_color_total = (float3) (0.0f);
 
-  } else {
-    // Otherwise draw black
-  	PutPixelSDL(screen_buffer, x, y, (float3) (0.0f, 0.0f, 0.0f));
+  // const float rndx = rnd(global_id, 1.0f);
+  // const float rndy = rnd(global_id, 1.0f);
+
+  const float rndx = 0.0f;
+  const float rndy = 0.0f;
+
+  for (float dy = y*rays_y; dy < (y+1)*rays_y; dy+=1)  {
+
+    for (float dx = x*rays_y; dx < (x+1)*rays_x; dx+=1)  {
+    // Declare ray for given position on the screen. Rotate ray by current view angle
+        float3 d = (float3) (dx - (SCREEN_WIDTH*rays_x)/2.0f + rndx, dy - (SCREEN_HEIGHT*rays_y)/2.0f + rndy, focal_length);
+        d        = (float3) (dot(rot_matrix[0], d), dot(rot_matrix[1], d), dot(rot_matrix[2], d));
+
+        // Find intersection point with closest geometry. If no intersection, paint the abyss
+        Intersection intersect;
+        if (closest_intersection(camera_pos, d, LOC_triangle_vertexes, &intersect, triangle_n)) {
+          const float3 p = LOC_triangle_colors[intersect.triangle_index];
+          const float3 final_color = p*(indirect_light + direct_light(intersect, LOC_triangle_vertexes, LOC_triangle_normals, 
+                                                                      light_pos, triangle_n, LOC_triangle_normals[intersect.triangle_index], global_id));
+          final_color_total += final_color;
+        }
+    }
   }
-}
+  PutPixelSDL(screen_buffer, (short)x, (short)y, final_color_total/(rays_x*rays_y));
+}  
 
-uint3 getRGB(uint pixel)  {
-  return (uint3) ((uint)((pixel >> 16) & 255), (uint)((pixel >> 8) & 255), (uint)(pixel & 255));
-}
 
-kernel void average_pixels(global uint *screen_buffer)  {
-  const short x = get_global_id(0);
-  const short y = get_global_id(1);
+// uint3 getRGB(uint pixel)  {
+//   return (uint3) ((uint)((pixel >> 16) & 255), (uint)((pixel >> 8) & 255), (uint)(pixel & 255));
+// }
 
-  const short nx = get_global_size(1);
+// kernel void average_pixels(global uint *screen_buffer)  {
+//   const short x = get_global_id(0);
+//   const short y = get_global_id(1);
+
+//   const short nx = get_global_size(1);
   
-  uint3 surrounding_cell_total = (uint3) (0, 0, 0);
-  surrounding_cell_total  += getRGB(screen_buffer[(y*3)*SCREEN_WIDTH+(x*3)]);
-  surrounding_cell_total  += getRGB(screen_buffer[(y*3)*SCREEN_WIDTH+(x*3+1)]);
-  surrounding_cell_total  += getRGB(screen_buffer[(y*3)*SCREEN_WIDTH+(x*3+2)]);
-// 
-  surrounding_cell_total  += getRGB(screen_buffer[(y*3+1)*SCREEN_WIDTH+(x*3)]);
-  surrounding_cell_total  += getRGB(screen_buffer[(y*3+1)*SCREEN_WIDTH+(x*3+1)]);
-  surrounding_cell_total  += getRGB(screen_buffer[(y*3+1)*SCREEN_WIDTH+(x*3+2)]);
+//   uint3 surrounding_cell_total = (uint3) (0, 0, 0);
+//   surrounding_cell_total  += getRGB(screen_buffer[(y*2)*SCREEN_WIDTH+(x*2)]);
+//   surrounding_cell_total  += getRGB(screen_buffer[(y*2)*SCREEN_WIDTH+(x*2+1)]);
+// // 
+//   surrounding_cell_total  += getRGB(screen_buffer[(y*2+1)*SCREEN_WIDTH+(x*2)]);
+//   surrounding_cell_total  += getRGB(screen_buffer[(y*2+1)*SCREEN_WIDTH+(x*2+1)]);
 
-  surrounding_cell_total  += getRGB(screen_buffer[(y*3+2)*SCREEN_WIDTH+(x*3)]);
-  surrounding_cell_total  += getRGB(screen_buffer[(y*3+2)*SCREEN_WIDTH+(x*3+1)]);
-  surrounding_cell_total  += getRGB(screen_buffer[(y*3+2)*SCREEN_WIDTH+(x*3+2)]);
 
-  surrounding_cell_total /= 9;
+//   surrounding_cell_total /= 4;
 
-  screen_buffer[y*nx+x] = (128<<24) + (surrounding_cell_total.x<<16) + (surrounding_cell_total.y<<8)
-                                                                      + surrounding_cell_total.z;
-}
+//   screen_buffer[y*nx+x] = (128<<24) + (surrounding_cell_total.x<<16) + (surrounding_cell_total.y<<8)
+//                                                                       + surrounding_cell_total.z;
+// }
 
 

@@ -24,12 +24,12 @@ SDL_Event event;
 
 
 #define OCLFILE "Source/kernels.cl"
-#define WORK_SIZE_X 32                 
-#define WORK_SIZE_Y 8       
+#define WORK_SIZE_X 64                 
+#define WORK_SIZE_Y 4       
 
 
-#define SCREEN_WIDTH 4608
-#define SCREEN_HEIGHT 4608
+#define SCREEN_WIDTH 1536
+#define SCREEN_HEIGHT 1536
 #define FULLSCREEN_MODE false
 
 typedef struct
@@ -41,7 +41,6 @@ typedef struct
   cl_program program;
   //Kernels
   cl_kernel draw;
-  cl_kernel average_pixels;
 
   //Memory Buffers
   cl_mem screen_buffer;
@@ -66,7 +65,7 @@ float pitch = 0.0f;
 float yaw = 0.0f;
 vec4 light_position(0, -0.5, -0.7, 1.0);
 vec3 light_color = 14.f * vec3(1, 1, 1);
-vec3 indirect_light = 0.5f * vec3(1, 1, 1);
+vec3 indirect_light = 0.25f * vec3(1, 1, 1);
 bool quit = false;
 vector<Triangle> triangles;
 
@@ -93,7 +92,7 @@ int main(int argc, char* argv[]) {
 
 
 
-  screen *screen = InitializeSDL(SCREEN_WIDTH/3, SCREEN_HEIGHT/3, FULLSCREEN_MODE);
+  screen *screen = InitializeSDL(SCREEN_WIDTH, SCREEN_HEIGHT, FULLSCREEN_MODE);
 
   // Load Cornell Box
   LoadTestModel(triangles);
@@ -162,15 +161,11 @@ void offload_rendering(screen* screen, t_ocl ocl)  {
   checkError(err, "enqueueing draw kernel", __LINE__);
 
 
-  size_t av_global_size[2] = {SCREEN_WIDTH/3, SCREEN_HEIGHT/3};
-  err = clEnqueueNDRangeKernel(ocl.queue, ocl.average_pixels , 2, NULL, av_global_size, work_size, 0, NULL, NULL);
-  checkError(err, "enqueueing average_pixels kernel", __LINE__);
-
   // err = clFinish(ocl.queue);
   // checkError(err, "Waiting to finish draw kernel", __LINE__);
 
   err = clEnqueueReadBuffer(ocl.queue, ocl.screen_buffer, CL_TRUE, 0,
-  sizeof(cl_uint) * (SCREEN_WIDTH/3) * (SCREEN_HEIGHT/3), screen->buffer, 0, NULL, NULL);
+  sizeof(cl_uint) * (SCREEN_WIDTH) * (SCREEN_HEIGHT), screen->buffer, 0, NULL, NULL);
   checkError(err, "reading screen buffer data", __LINE__);
 }
 
@@ -394,32 +389,28 @@ void opencl_initialise(t_ocl *ocl)  {
     // Create OpenCL kernels
   ocl->draw = clCreateKernel(ocl->program, "draw", &err);
   checkError(err, "creating draw kernel", __LINE__);
-  ocl->average_pixels = clCreateKernel(ocl->program, "average_pixels", &err);
-  checkError(err, "creating average_pixels kernel", __LINE__);
 
   // Allocate OpenCL buffers
   ocl->screen_buffer          = clCreateBuffer(ocl->context, CL_MEM_READ_WRITE,
                                 sizeof(cl_uint)  * SCREEN_WIDTH * SCREEN_HEIGHT, NULL, &err);
   checkError(err, "creating screen buffer", __LINE__);
 
-  ocl->triangles_buffer       = clCreateBuffer(ocl->context, CL_MEM_READ_WRITE,
+  ocl->triangles_buffer       = clCreateBuffer(ocl->context, CL_MEM_READ_ONLY,
                                 (sizeof(cl_float4) * triangles.size()*3), NULL, &err);
   checkError(err, "creating Triangle buffer", __LINE__);
 
-  ocl->rotation_matrix_buffer = clCreateBuffer(ocl->context, CL_MEM_READ_WRITE,
+  ocl->rotation_matrix_buffer = clCreateBuffer(ocl->context, CL_MEM_READ_ONLY,
                                 sizeof(cl_float) * 12 , NULL, &err);
   checkError(err, "creating Rot Mat Buffer buffer", __LINE__);
   
-  ocl->normal_buffer = clCreateBuffer(ocl->context, CL_MEM_READ_WRITE,
+  ocl->normal_buffer = clCreateBuffer(ocl->context, CL_MEM_READ_ONLY,
                                 sizeof(cl_float4) * triangles.size() , NULL, &err);
   checkError(err, "creating Normal Buffer buffer", __LINE__);
   
-  ocl->color_buffer = clCreateBuffer(ocl->context, CL_MEM_READ_WRITE,
+  ocl->color_buffer = clCreateBuffer(ocl->context, CL_MEM_READ_ONLY,
                                 sizeof(cl_float4) * triangles.size() , NULL, &err);
   checkError(err, "creating Color Buffer buffer", __LINE__);
 
-  err = clSetKernelArg(ocl->average_pixels, 0, sizeof(cl_mem), &ocl->screen_buffer);
-  checkError(err, "setting average_pixels arg 0", __LINE__);
 
 
   // Set kernel arguments
@@ -444,6 +435,7 @@ void opencl_initialise(t_ocl *ocl)  {
   checkError(err, "setting draw arg 10", __LINE__);
   err = clSetKernelArg(ocl->draw, 11, sizeof(cl_float4)*triangles.size(), NULL);     //Work Item's Local tot_speeds 
   checkError(err, "setting draw arg 11", __LINE__);
+
 
   cl_float4 *triangle_vertexes = (cl_float4 *)malloc(sizeof(cl_float4)*triangles.size()*3);
   cl_float4 *triangle_normals  = (cl_float4 *)malloc(sizeof(cl_float4)*triangles.size());
