@@ -27,7 +27,10 @@ inline void PutPixelSDL(global uint *screen_buffer, int x, int y, float3 colour)
   uint3 rgb = convert_uint3(min(max(255*colour, 0.f), 255.f));
   screen_buffer[y*(short)SCREEN_WIDTH+x] = (128<<24) + (rgb.x<<16) + (rgb.y<<8) + rgb.z;
 }
-
+inline float rnd(float seed) {
+  // return seed;
+  return fmod(7*seed, 1.0f);
+}
 
 bool closest_intersection(float3 start, float3 d, local float3 *triangle_vertexes, private Intersection* closest_intersection, int triangle_n) {
   // Set closest intersection to be the max float value
@@ -121,33 +124,36 @@ bool in_shadow(float3 start, float3 d, local float3 *triangle_vertexes, float ra
   return false;
 }
 
-float3 direct_light(const Intersection intersection, local float3 *triangle_vertexes, local float3 *triangle_normals, float3 light_pos, int triangle_n) {
-
-  // Vector from the light to the point of intersection
-  float3 r = light_pos - intersection.position;
-  // Distance of the checked point to the light source
+float3 direct_light(const Intersection intersection, local float3 *triangle_vertexes, local float3 *triangle_normals, 
+                    float3 light_pos, int triangle_n, float3 intersect_normal) {
   float radius_sq = r.x*r.x + r.y*r.y + r.z*r.z;
 
-  const float threshold = 0.001f;
-  float3 intersect_pos = intersection.position + threshold * (float3) (r.x, r.y, r.z);
+  float3 total_colour;
 
-  if (in_shadow(intersect_pos, r, triangle_vertexes, radius_sq, triangle_n)) {
-    return (float3)(0.0f, 0.0f, 0.0f);
+  const float threshold = 0.001f;
+
+
+  for (float i = 0.0f; i < 0.5; i+=0.1)  {
+    float3 intersect_pos = light_pos - intersection.position + i*intersect_normal + threshold * (float3) (r.x, r.y, r.z);
+    if (in_shadow(intersect_pos, r, triangle_vertexes, radius_sq, triangle_n)) {
+      total_colour -= (float3)(0.1f, 0.1f, 0.1f);
+    }
   }
+
+
+
+
 
   // Get the normal of the triangle that the light has hit
   float3 n = triangle_normals[intersection.triangle_index];
   // Intensity of the colour, based on the distance from the light
   float3 D = (light_color * max(dot(r, n) , 0.0f)) / (4 * ((float)M_PI) * radius_sq);
 
-  return D;
+  return D + total_colour;
 }
 
 
-inline float rnd(float seed, float range) {
-  // return seed;
-  return fmod(7*seed, range);
-}
+
 
 kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexes,   global float3 *triangle_normals,
 				 global float3 *triangle_colors, global float3 *rot_matrix,           float3 camera_pos, float3 light_pos, 
@@ -169,25 +175,25 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
 
   float3 final_color_total = (float3) (0.0f);
 
+  // const float rndx = rnd(x/y);
+  // const float rndy = rnd(y/x);
 
-
-  // const float rndx = 0.0f;
-  // const float rndy = 0.0f;
+  const float rndx = 0.0f;
+  const float rndy = 0.0f;
 
   for (float dy = y*rays_y; dy < (y+1)*rays_y; dy+=1)  {
 
     for (float dx = x*rays_y; dx < (x+1)*rays_x; dx+=1)  {
-       const float rndx = rnd(dx/dy, (float)rays_x);
-       const float rndy = rnd(dy/dx, (float)rays_y);
     // Declare ray for given position on the screen. Rotate ray by current view angle
-        float3 d = (float3) (x*rays_x - (SCREEN_WIDTH*rays_x)/2.0f + rndx, y*rays_y - (SCREEN_HEIGHT*rays_y)/2.0f + rndy, focal_length);
+        float3 d = (float3) (dx - (SCREEN_WIDTH*rays_x)/2.0f + rndx, dy - (SCREEN_HEIGHT*rays_y)/2.0f + rndy, focal_length);
         d        = (float3) (dot(rot_matrix[0], d), dot(rot_matrix[1], d), dot(rot_matrix[2], d));
 
         // Find intersection point with closest geometry. If no intersection, paint the abyss
-        Intersection intersection;
-        if (closest_intersection(camera_pos, d, LOC_triangle_vertexes, &intersection, triangle_n)) {
-          const float3 p = LOC_triangle_colors[intersection.triangle_index];
-          const float3 final_color = p*(direct_light(intersection, LOC_triangle_vertexes, LOC_triangle_normals, light_pos, triangle_n) + indirect_light);
+        Intersection intersect;
+        if (closest_intersection(camera_pos, d, LOC_triangle_vertexes, &intersect, triangle_n)) {
+          const float3 p = LOC_triangle_colors[intersect.triangle_index];
+          const float3 final_color = p*(indirect_light + direct_light(intersect, LOC_triangle_vertexes, LOC_triangle_normals, 
+                                                                      light_pos, triangle_n, LOC_triangle_normals[intersect.triangle_index]));
           final_color_total += final_color;
         }
     }
