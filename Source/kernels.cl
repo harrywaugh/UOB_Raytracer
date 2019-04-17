@@ -146,13 +146,13 @@ float3 direct_light(const Intersection intersection, local float3 *triangle_vert
   }
 
 
-
+  float3 dir = light_pos - intersection.position;
 
 
   // Get the normal of the triangle that the light has hit
   float3 n = triangle_normals[intersection.triangle_index];
   // Intensity of the colour, based on the distance from the light
-  float3 D = (light_color * max(dot(r, n) , 0.0f)) / (4 * ((float)M_PI) * radius_sq);
+  float3 D = (light_color * max(dot(dir, n) , 0.0f)) / (4 * ((float)M_PI) * radius_sq);
 
   return D + total_colour;
 }
