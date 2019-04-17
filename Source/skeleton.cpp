@@ -445,7 +445,7 @@ void opencl_initialise(t_ocl *ocl)  {
   checkError(err, "setting draw arg 10", __LINE__);
   err = clSetKernelArg(ocl->draw, 11, sizeof(cl_float4)*triangles.size(), NULL);     //Work Item's Local tot_speeds 
   checkError(err, "setting draw arg 11", __LINE__);
-
+  
 
   cl_float4 *triangle_vertexes = (cl_float4 *)malloc(sizeof(cl_float4)*triangles.size()*3);
   cl_float4 *triangle_normals  = (cl_float4 *)malloc(sizeof(cl_float4)*triangles.size());
