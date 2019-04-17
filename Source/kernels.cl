@@ -138,7 +138,7 @@ float3 direct_light(const Intersection intersection, local float3 *triangle_vert
   const float bias = 0.00001f;
   float3 start = intersection.position + bias*dir;
 
-  const short light_sources = 20;
+  const short light_sources = 12;
   short light_count = light_sources;
 
   // Check parallel ghost surfaces for soft triangles
