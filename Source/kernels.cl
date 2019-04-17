@@ -182,11 +182,11 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
 
   float3 final_color_total = (float3) (0.0f);
 
-  // const float rndx = rnd(x/y);
-  // const float rndy = rnd(y/x);
+  const float rndx = rnd(global_id, 1.0f);
+  const float rndy = rnd(global_id, 1.0f);
 
-  const float rndx = 0.0f;
-  const float rndy = 0.0f;
+  // const float rndx = 0.0f;
+  // const float rndy = 0.0f;
 
   for (float dy = y*rays_y; dy < (y+1)*rays_y; dy+=1)  {
 
