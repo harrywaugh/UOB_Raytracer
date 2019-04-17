@@ -27,9 +27,9 @@ inline void PutPixelSDL(global uint *screen_buffer, int x, int y, float3 colour)
   uint3 rgb = convert_uint3(min(max(255*colour, 0.f), 255.f));
   screen_buffer[y*(short)SCREEN_WIDTH+x] = (128<<24) + (rgb.x<<16) + (rgb.y<<8) + rgb.z;
 }
-inline float rnd(float seed) {
+inline float3 rnd(float3 seed, float3 range) {
   // return seed;
-  return fmod(7*seed, 1.0f);
+  return fmod(7*seed, range)-range/2.0f;
 }
 
 bool closest_intersection(float3 start, float3 d, local float3 *triangle_vertexes, private Intersection* closest_intersection, int triangle_n) {
@@ -142,16 +142,12 @@ float3 direct_light(const Intersection intersection, local float3 *triangle_vert
   const float3 soft_shadow_color_step = (float3)(0.55f/soft_shadows);
 
   // Check parallel ghost surfaces for soft triangles
-  for (float i = -soft_shadows; i < soft_shadows; i+=1)  {
-    const float norm_step = i*0.0025f;
+  for (float i = 0; i < soft_shadows; i+=1)  {
 
-    float3 ghost_dir = dir + norm_step*intersect_normal;
+    float3 ghost_dir = dir + rnd(intersection.position, 0.05);
     float ghost_radius_sq = ghost_dir.x*ghost_dir.x + ghost_dir.y*ghost_dir.y + ghost_dir.z*ghost_dir.z;
     
-
-    float3 ghost_start = start + norm_step*intersect_normal;
-
-    if (in_shadow(ghost_start, ghost_dir, triangle_vertexes, ghost_radius_sq, triangle_n)) {
+    if (in_shadow(start, ghost_dir, triangle_vertexes, ghost_radius_sq, triangle_n)) {
       total_colour -= soft_shadow_color_step;
     }
   }
