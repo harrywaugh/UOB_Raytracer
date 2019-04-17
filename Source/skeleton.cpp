@@ -28,8 +28,8 @@ SDL_Event event;
 #define WORK_SIZE_Y 4       
 
 
-#define SCREEN_WIDTH 3072
-#define SCREEN_HEIGHT 3072
+#define SCREEN_WIDTH 1536
+#define SCREEN_HEIGHT 1536
 #define FULLSCREEN_MODE false
 
 typedef struct
@@ -93,7 +93,7 @@ int main(int argc, char* argv[]) {
 
 
 
-  screen *screen = InitializeSDL(SCREEN_WIDTH/2, SCREEN_HEIGHT/2, FULLSCREEN_MODE);
+  screen *screen = InitializeSDL(SCREEN_WIDTH, SCREEN_HEIGHT, FULLSCREEN_MODE);
 
   // Load Cornell Box
   LoadTestModel(triangles);
@@ -162,15 +162,15 @@ void offload_rendering(screen* screen, t_ocl ocl)  {
   checkError(err, "enqueueing draw kernel", __LINE__);
 
 
-  size_t av_global_size[2] = {SCREEN_WIDTH/2, SCREEN_HEIGHT/2};
-  err = clEnqueueNDRangeKernel(ocl.queue, ocl.average_pixels , 2, NULL, av_global_size, work_size, 0, NULL, NULL);
-  checkError(err, "enqueueing average_pixels kernel", __LINE__);
+  // size_t av_global_size[2] = {SCREEN_WIDTH/2, SCREEN_HEIGHT/2};
+  // err = clEnqueueNDRangeKernel(ocl.queue, ocl.average_pixels , 2, NULL, av_global_size, work_size, 0, NULL, NULL);
+  // checkError(err, "enqueueing average_pixels kernel", __LINE__);
 
   // err = clFinish(ocl.queue);
   // checkError(err, "Waiting to finish draw kernel", __LINE__);
 
   err = clEnqueueReadBuffer(ocl.queue, ocl.screen_buffer, CL_TRUE, 0,
-  sizeof(cl_uint) * (SCREEN_WIDTH/2) * (SCREEN_HEIGHT/2), screen->buffer, 0, NULL, NULL);
+  sizeof(cl_uint) * (SCREEN_WIDTH) * (SCREEN_HEIGHT), screen->buffer, 0, NULL, NULL);
   checkError(err, "reading screen buffer data", __LINE__);
 }
 

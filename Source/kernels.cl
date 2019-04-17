@@ -2,8 +2,8 @@
 
 constant float3 indirect_light = (float3)(0.5f, 0.5f, 0.5f);
 constant float3 light_color    = (float3) (14.0f, 14.0f, 14.0f);
-#define SCREEN_WIDTH 3072
-#define SCREEN_HEIGHT 3072
+#define SCREEN_WIDTH 1536
+#define SCREEN_HEIGHT 1536
 
 /////READ ONLY BUFFERS
 
@@ -159,23 +159,27 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
   // e         = async_work_group_copy(LOC_rot_matrix,        rot_matrix,        3,            0);
   wait_group_events(3, &e);
 
+  const short xs[4] = {(x*2), (x*2+1), (x*2), (x*2+1)};
+  const short ys[4] = {(y*2), (y*2+1), (y*2), (y*2+1)};
 
+  const float3 final_color_total = (float3) (0.0f);
+
+  for (int i = 0; i < 4; i++)  {
   // Declare ray for given position on the screen. Rotate ray by current view angle
-  float3 d = (float3) (x - SCREEN_WIDTH/2.0, y - SCREEN_HEIGHT/2.0, focal_length);
-  d        = (float3) (dot(rot_matrix[0], d), dot(rot_matrix[1], d), dot(rot_matrix[2], d));
+      float3 d = (float3) (xs[i] - SCREEN_WIDTH/2.0, ys[i] - SCREEN_HEIGHT/2.0, focal_length);
+      d        = (float3) (dot(rot_matrix[0], d), dot(rot_matrix[1], d), dot(rot_matrix[2], d));
 
-  // Find intersection point with closest geometry. If no intersection, paint the abyss
-  Intersection intersection;
-  if (closest_intersection(camera_pos, d, LOC_triangle_vertexes, &intersection, triangle_n)) {
-    const float3 p = LOC_triangle_colors[intersection.triangle_index];
-    const float3 final_color = p*(direct_light(intersection, LOC_triangle_vertexes, LOC_triangle_normals, light_pos, triangle_n) + indirect_light);
-  	PutPixelSDL(screen_buffer, x, y, final_color);
-
-  } else {
-    // Otherwise draw black
-  	PutPixelSDL(screen_buffer, x, y, (float3) (0.0f, 0.0f, 0.0f));
+      // Find intersection point with closest geometry. If no intersection, paint the abyss
+      Intersection intersection;
+      if (closest_intersection(camera_pos, d, LOC_triangle_vertexes, &intersection, triangle_n)) {
+        const float3 p = LOC_triangle_colors[intersection.triangle_index];
+        const float3 final_color = p*(direct_light(intersection, LOC_triangle_vertexes, LOC_triangle_normals, light_pos, triangle_n) + indirect_light);
+        final_color_total += final_color;
+      }
   }
-}
+  PutPixelSDL(screen_buffer, x, y, final_color/4);
+}  
+
 
 uint3 getRGB(uint pixel)  {
   return (uint3) ((uint)((pixel >> 16) & 255), (uint)((pixel >> 8) & 255), (uint)(pixel & 255));
