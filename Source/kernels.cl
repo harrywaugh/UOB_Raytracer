@@ -159,8 +159,8 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
   // e         = async_work_group_copy(LOC_rot_matrix,        rot_matrix,        3,            0);
   wait_group_events(3, &e);
 
-  const char rays_x = 4;
-  const char rays_y = 4;
+  const char rays_x = 3;
+  const char rays_y = 3;
 
 
   float3 final_color_total = (float3) (0.0f);
