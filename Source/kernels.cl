@@ -2,8 +2,8 @@
 
 constant float3 indirect_light = (float3)(0.5f, 0.5f, 0.5f);
 constant float3 light_color    = (float3) (14.0f, 14.0f, 14.0f);
-#define SCREEN_WIDTH 1536
-#define SCREEN_HEIGHT 1536
+#define SCREEN_WIDTH 1536.0f
+#define SCREEN_HEIGHT 1536.0f
 
 /////READ ONLY BUFFERS
 
@@ -144,6 +144,11 @@ float3 direct_light(const Intersection intersection, local float3 *triangle_vert
 }
 
 
+inline float rnd(float seed) {
+  // return seed;
+  return fmod(seed, 1.0);
+}
+
 kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexes,   global float3 *triangle_normals,
 				 global float3 *triangle_colors, global float3 *rot_matrix,           float3 camera_pos, float3 light_pos, 
 				 int triangle_n, float focal_length, local float3 *LOC_triangle_vertexes,  local float3 *LOC_triangle_normals,
@@ -164,11 +169,11 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
 
   float3 final_color_total = (float3) (0.0f);
 
-  for (int dy = y*rays_y; dy < (y+1)*rays_y; dy++)  {
+  for (float dy = y*rays_y; dy < (y+1)*rays_y; dy++)  {
 
-    for (int dx = x*rays_y; dx < (x+1)*rays_x; dx++)  {
+    for (float dx = x*rays_y; dx < (x+1)*rays_x; dx++)  {
     // Declare ray for given position on the screen. Rotate ray by current view angle
-        float3 d = (float3) (dx - (SCREEN_WIDTH*rays_x)/2.0, dy - (SCREEN_HEIGHT*rays_y)/2.0, focal_length);
+        float3 d = (float3) (dx - (SCREEN_WIDTH*rays_x)/2.0f + rnd(dy/dx), dy - (SCREEN_HEIGHT*rays_y)/2.0f + rnd(dx/dy), focal_length);
         d        = (float3) (dot(rot_matrix[0], d), dot(rot_matrix[1], d), dot(rot_matrix[2], d));
 
         // Find intersection point with closest geometry. If no intersection, paint the abyss
