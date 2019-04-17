@@ -125,7 +125,7 @@ bool in_shadow(float3 start, float3 d, local float3 *triangle_vertexes, float ra
 }
 
 float3 direct_light(const Intersection intersection, local float3 *triangle_vertexes, local float3 *triangle_normals, 
-                    float3 light_pos, int triangle_n, float3 intersect_normal, int global_id) {
+                    float3 light_pos, int triangle_n, float3 intersect_normal, uint global_id) {
 
   //Declare colour for point to be 0
   float3 total_colour = (float3) 0.0f;
@@ -143,7 +143,7 @@ float3 direct_light(const Intersection intersection, local float3 *triangle_vert
 
   // Check parallel ghost surfaces for soft triangles
   for (int i = 0; i < light_sources; i++)  {
-    const float light_spread = 0.05f;
+    const float light_spread = 0.07f;
     float3 ghost_dir = dir + (float3) (rnd(i*(global_id<<4), light_spread), rnd(i*(global_id<<4)/5.0f, light_spread), rnd(i*(global_id<<4)/7.0f, light_spread));
     float ghost_radius_sq = ghost_dir.x*ghost_dir.x + ghost_dir.y*ghost_dir.y + ghost_dir.z*ghost_dir.z;
     
