@@ -127,12 +127,20 @@ bool in_shadow(float3 start, float3 d, local float3 *triangle_vertexes, float ra
 float3 direct_light(const Intersection intersection, local float3 *triangle_vertexes, local float3 *triangle_normals, 
                     float3 light_pos, int triangle_n, float3 intersect_normal) {
 
+  //Declare colour for point to be 0
   float3 total_colour = (float3) 0.0f;
 
-  // const float threshold = 0.001f;
+  //Get vector from intersection point to light position, and its magnitude
+  float3 r = light_pos - intersection.position;
+  float radius_sq = r.x*r.x + r.y*r.y + r.z*r.z;
+
+  //Declare threshold to get intersection position that is not going to intersect with own triangle
+  const float threshold = 0.001f;
+  float3 intersect_pos = intersection.position + threshold*(float3) (r.x, r.y, r.z);
 
 
-  // for (float i = -0.3f; i < 0.3; i+=0.02)  {
+
+  // for (float i = 0f; i < 0.3; i+=0.02)  {
 
   //   float3 dir = light_pos - intersection.position + i*intersect_normal;
   //   float radius_sq = dir.x*dir.x + dir.y*dir.y + dir.z*dir.z;
@@ -158,14 +166,8 @@ float3 direct_light(const Intersection intersection, local float3 *triangle_vert
   // return D + total_colour;
 
 
-   float3 r = light_pos - intersection.position;
 
-  // Vector from the light to the point of intersection
-  // Distance of the checked point to the light source
-  float radius_sq = r.x*r.x + r.y*r.y + r.z*r.z;
 
-  const float threshold = 0.001f;
-  float3 intersect_pos = intersection.position + threshold * (float3) (r.x, r.y, r.z);
 
 
   if (in_shadow(intersect_pos, r, triangle_vertexes, radius_sq, triangle_n)) {
