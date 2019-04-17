@@ -1,7 +1,7 @@
 #pragma OPENCL EXTENSION cl_khr_fp64 : enable
 
 constant float3 indirect_light = (float3)(0.25f, 0.25f, 0.25f);
-constant float3 light_color    = (float3) (9.0f, 9.0f, 9.0f);
+constant float3 light_color    = (float3) (7.0f, 7.0f, 7.0f);
 #define SCREEN_WIDTH 1536.0f
 #define SCREEN_HEIGHT 1536.0f
 
@@ -138,7 +138,7 @@ float3 direct_light(const Intersection intersection, local float3 *triangle_vert
   const float threshold = 0.01f;
   float3 start = intersection.position + threshold*dir;
 
-  const short light_sources = 5;
+  const short light_sources = 7;
   short light_count = light_sources;
 
   // Check parallel ghost surfaces for soft triangles
