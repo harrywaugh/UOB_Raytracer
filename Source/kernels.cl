@@ -165,9 +165,9 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
 
   float3 final_color_total = (float3) (0.0f);
 
-  for (int dy = y; dy < y+aliasing_rays_y; dy++)  {
+  for (int dy = y*aliasing_rays_y; dy < (y+1)+aliasing_rays_y; dy++)  {
 
-    for (int dx = x; dx < x+aliasing_rays_x; dx++)  {
+    for (int dx = x*aliasing_rays_y; dx < (x+1)+aliasing_rays_x; dx++)  {
     // Declare ray for given position on the screen. Rotate ray by current view angle
         float3 d = (float3) (dx - SCREEN_WIDTH/2.0, dy - SCREEN_HEIGHT/2.0, focal_length);
         d        = (float3) (dot(rot_matrix[0], d), dot(rot_matrix[1], d), dot(rot_matrix[2], d));
