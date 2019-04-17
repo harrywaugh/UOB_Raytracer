@@ -157,7 +157,7 @@ float3 direct_light(const Intersection intersection, local float3 *triangle_vert
   }
   float3 D = (float3) (0.f);
 
-  if (!in_shadow(ghost_start, ghost_dir, triangle_vertexes, ghost_radius_sq, triangle_n)) {
+  if (!in_shadow(start, dir, triangle_vertexes, radius_sq, triangle_n)) {
       total_colour += (light_color * max(dot(dir, intersect_normal) , 0.0f)) / (4 * ((float)M_PI) * radius_sq);
   }
 
