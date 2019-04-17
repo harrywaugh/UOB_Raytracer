@@ -1,6 +1,6 @@
 #pragma OPENCL EXTENSION cl_khr_fp64 : enable
 
-constant float3 indirect_light = (float3)(0.5f, 0.5f, 0.5f);
+constant float indirect_light =  0.5f;
 constant float3 light_color    = (float3) (14.0f, 14.0f, 14.0f);
 #define SCREEN_WIDTH 1536.0f
 #define SCREEN_HEIGHT 1536.0f
@@ -124,7 +124,7 @@ bool in_shadow(float3 start, float3 d, local float3 *triangle_vertexes, float ra
   return false;
 }
 
-float3 direct_light(const Intersection intersection, local float3 *triangle_vertexes, local float3 *triangle_normals, 
+float direct_light(const Intersection intersection, local float3 *triangle_vertexes, local float3 *triangle_normals, 
                     float3 light_pos, int triangle_n, float3 intersect_normal) {
 
   //Declare colour for point to be 0
@@ -139,7 +139,7 @@ float3 direct_light(const Intersection intersection, local float3 *triangle_vert
   float3 start = intersection.position + threshold*(float3) (dir.x, dir.y, dir.z);
 
   const float soft_shadows = 10.0f;
-  const float3 soft_shadow_color_step = (float3)(0.55f/soft_shadows);
+  const float soft_shadow_color_step = (float)(0.55f/soft_shadows);
 
   // Check parallel ghost surfaces for soft triangles
   for (float i = -soft_shadows; i < soft_shadows; i+=1)  {
@@ -156,7 +156,7 @@ float3 direct_light(const Intersection intersection, local float3 *triangle_vert
     }
   }
   
-  total_colour += (light_color * max(dot(dir, intersect_normal), 0.0f)) / (4 * ((float)M_PI) * radius_sq);
+  total_colour += (max(dot(dir, intersect_normal), 0.0f)) / (4 * ((float)M_PI) * radius_sq);
 
   
   return total_colour;
