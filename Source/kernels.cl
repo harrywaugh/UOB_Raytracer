@@ -159,25 +159,29 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
   // e         = async_work_group_copy(LOC_rot_matrix,        rot_matrix,        3,            0);
   wait_group_events(3, &e);
 
-  const short xs[4] = {(x*2), (x*2+1), (x*2), (x*2+1)};
-  const short ys[4] = {(y*2), (y*2+1), (y*2), (y*2+1)};
+  const char aliasing_rays_x = 4;
+  const char aliasing_rays_y = 4;
+
 
   float3 final_color_total = (float3) (0.0f);
 
-  for (int i = 0; i < 4; i++)  {
-  // Declare ray for given position on the screen. Rotate ray by current view angle
-      float3 d = (float3) (xs[i] - SCREEN_WIDTH/2.0, ys[i] - SCREEN_HEIGHT/2.0, focal_length);
-      d        = (float3) (dot(rot_matrix[0], d), dot(rot_matrix[1], d), dot(rot_matrix[2], d));
+  for (int dy = y; dy < y+aliasing_rays_y; dy++)  {
 
-      // Find intersection point with closest geometry. If no intersection, paint the abyss
-      Intersection intersection;
-      if (closest_intersection(camera_pos, d, LOC_triangle_vertexes, &intersection, triangle_n)) {
-        const float3 p = LOC_triangle_colors[intersection.triangle_index];
-        const float3 final_color = p*(direct_light(intersection, LOC_triangle_vertexes, LOC_triangle_normals, light_pos, triangle_n) + indirect_light);
-        final_color_total += final_color;
-      }
+    for (int dx = x; dx < x+aliasing_rays_x; dx++)  {
+    // Declare ray for given position on the screen. Rotate ray by current view angle
+        float3 d = (float3) (dx - SCREEN_WIDTH/2.0, dy - SCREEN_HEIGHT/2.0, focal_length);
+        d        = (float3) (dot(rot_matrix[0], d), dot(rot_matrix[1], d), dot(rot_matrix[2], d));
+
+        // Find intersection point with closest geometry. If no intersection, paint the abyss
+        Intersection intersection;
+        if (closest_intersection(camera_pos, d, LOC_triangle_vertexes, &intersection, triangle_n)) {
+          const float3 p = LOC_triangle_colors[intersection.triangle_index];
+          const float3 final_color = p*(direct_light(intersection, LOC_triangle_vertexes, LOC_triangle_normals, light_pos, triangle_n) + indirect_light);
+          final_color_total += final_color;
+        }
+    }
   }
-  PutPixelSDL(screen_buffer, x, y, final_color_total/4);
+  PutPixelSDL(screen_buffer, x, y, final_color_total/(aliasing_rays_x*aliasing_rays_y));
 }  
 
 
