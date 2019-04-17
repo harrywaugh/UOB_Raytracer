@@ -65,7 +65,7 @@ float pitch = 0.0f;
 float yaw = 0.0f;
 vec4 light_position(0, -0.5, -0.7, 1.0);
 vec3 light_color = 14.f * vec3(1, 1, 1);
-vec3 indirect_light = 0.5f * vec3(1, 1, 1);
+vec3 indirect_light = 0.25f * vec3(1, 1, 1);
 bool quit = false;
 vector<Triangle> triangles;
 
