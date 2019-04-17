@@ -134,10 +134,13 @@ float3 direct_light(const Intersection intersection, local float3 *triangle_vert
 
 
   for (float i = 0.0f; i < 0.5; i+=0.1)  {
-    float3 point_to_check = intersection.position + threshold * (float3) (r.x, r.y, r.z) + i*intersect_normal ;
 
-    float3 dir = light_pos - point_to_check;
-    if (in_shadow(point_to_check, dir, triangle_vertexes, radius_sq, triangle_n)) {
+    float3 dir = light_pos - intersection.position + i*intersect_normal;
+
+
+    float3 start = intersection.position + i*intersect_normal + threshold * (float3) (dir.x, dir.y, dir.z)  ;
+
+    if (in_shadow(start, dir, triangle_vertexes, radius_sq, triangle_n)) {
       total_colour -= (float3)(0.1f, 0.1f, 0.1f);
     }
   }
