@@ -151,7 +151,7 @@ float3 direct_light(const Intersection intersection, local float3 *triangle_vert
 
     float3 ghost_start = start + i*intersect_normal;
 
-    if (in_shadow(start, dir, triangle_vertexes, radius_sq, triangle_n)) {
+    if (in_shadow(ghost_start, ghost_dir, triangle_vertexes, ghost_radius_sq, triangle_n)) {
       total_colour -= soft_shadow_color_step;
     }
   }
