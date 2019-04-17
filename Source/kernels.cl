@@ -132,7 +132,7 @@ float3 direct_light(const Intersection intersection, local float3 *triangle_vert
   const float threshold = 0.001f;
 
 
-  for (float i = 0.0f; i < 0.3; i+=0.1)  {
+  for (float i = 0.0f; i < 0.3; i+=0.02)  {
 
     float3 dir = light_pos - intersection.position + i*intersect_normal;
     float radius_sq = dir.x*dir.x + dir.y*dir.y + dir.z*dir.z;
