@@ -125,7 +125,7 @@ bool in_shadow(float3 start, float3 d, local float3 *triangle_vertexes, float ra
 }
 
 float3 direct_light(const Intersection intersection, local float3 *triangle_vertexes, local float3 *triangle_normals, 
-                    float3 light_pos, int triangle_n, float3 intersect_normal) {
+                    float3 light_pos, int triangle_n, float3 intersect_normal, int global_id) {
 
   //Declare colour for point to be 0
   float3 total_colour = (float3) 0.0f;
@@ -144,7 +144,7 @@ float3 direct_light(const Intersection intersection, local float3 *triangle_vert
   // Check parallel ghost surfaces for soft triangles
   for (int i = 0; i < light_sources; i++)  {
     const float light_spread = 0.05f;
-    float3 ghost_dir = dir + (float3) (rnd(i*radius_sq, light_spread), rnd(i*radius_sq/5.0f, light_spread), rnd(i*radius_sq/7.0f, light_spread));
+    float3 ghost_dir = dir + (float3) (rnd(i*(global_id<<4), light_spread), rnd(i*(global_id<<4)/5.0f, light_spread), rnd(i*(global_id<<4)/7.0f, light_spread));
     float ghost_radius_sq = ghost_dir.x*ghost_dir.x + ghost_dir.y*ghost_dir.y + ghost_dir.z*ghost_dir.z;
     
     if (in_shadow(start, ghost_dir, triangle_vertexes, ghost_radius_sq, triangle_n)) {
@@ -169,7 +169,7 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
 {         /* accumulated magnitudes of velocity for each cell */
   const short x = get_global_id(0);
   const short y = get_global_id(1);
-
+  const short global_id = x*SCREEN_WIDTH+y;
 
   event_t e = async_work_group_copy(LOC_triangle_vertexes, triangle_vertexes, triangle_n*3, 0);
   e         = async_work_group_copy(LOC_triangle_normals,  triangle_normals,  triangle_n,   0);
@@ -200,7 +200,7 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
         if (closest_intersection(camera_pos, d, LOC_triangle_vertexes, &intersect, triangle_n)) {
           const float3 p = LOC_triangle_colors[intersect.triangle_index];
           const float3 final_color = p*(indirect_light + direct_light(intersect, LOC_triangle_vertexes, LOC_triangle_normals, 
-                                                                      light_pos, triangle_n, LOC_triangle_normals[intersect.triangle_index]));
+                                                                      light_pos, triangle_n, LOC_triangle_normals[intersect.triangle_index], global_id));
           final_color_total += final_color;
         }
     }
