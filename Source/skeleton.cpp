@@ -402,19 +402,19 @@ void opencl_initialise(t_ocl *ocl)  {
                                 sizeof(cl_uint)  * SCREEN_WIDTH * SCREEN_HEIGHT, NULL, &err);
   checkError(err, "creating screen buffer", __LINE__);
 
-  ocl->triangles_buffer       = clCreateBuffer(ocl->context, CL_MEM_READ,
+  ocl->triangles_buffer       = clCreateBuffer(ocl->context, CL_MEM_READ_ONLY,
                                 (sizeof(cl_float4) * triangles.size()*3), NULL, &err);
   checkError(err, "creating Triangle buffer", __LINE__);
 
-  ocl->rotation_matrix_buffer = clCreateBuffer(ocl->context, CL_MEM_READ,
+  ocl->rotation_matrix_buffer = clCreateBuffer(ocl->context, CL_MEM_READ_ONLY,
                                 sizeof(cl_float) * 12 , NULL, &err);
   checkError(err, "creating Rot Mat Buffer buffer", __LINE__);
   
-  ocl->normal_buffer = clCreateBuffer(ocl->context, CL_MEM_READ,
+  ocl->normal_buffer = clCreateBuffer(ocl->context, CL_MEM_READ_ONLY,
                                 sizeof(cl_float4) * triangles.size() , NULL, &err);
   checkError(err, "creating Normal Buffer buffer", __LINE__);
   
-  ocl->color_buffer = clCreateBuffer(ocl->context, CL_MEM_READ,
+  ocl->color_buffer = clCreateBuffer(ocl->context, CL_MEM_READ_ONLY,
                                 sizeof(cl_float4) * triangles.size() , NULL, &err);
   checkError(err, "creating Color Buffer buffer", __LINE__);
 
