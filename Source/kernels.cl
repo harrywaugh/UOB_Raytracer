@@ -135,15 +135,15 @@ float3 direct_light(const Intersection intersection, local float3 *triangle_vert
   float radius_sq = dir.x*dir.x + dir.y*dir.y + dir.z*dir.z;
 
   //Declare threshold to get intersection position that is not going to intersect with own triangle
-  const float bias = 0.0001f;
+  const float bias = 0.00001f;
   float3 start = intersection.position + bias*dir;
 
-  const short light_sources = 200;
+  const short light_sources = 20;
   short light_count = light_sources;
 
   // Check parallel ghost surfaces for soft triangles
   for (int i = 0; i < light_sources; i++)  {
-    const float light_spread = 0.2f;
+    const float light_spread = 0.05f;
     float3 ghost_dir = dir + (float3) (rnd(i*(global_id), light_spread), rnd(i*(global_id)*5.0f, light_spread), rnd(i*(global_id)*7.0f, light_spread));
     float ghost_radius_sq = ghost_dir.x*ghost_dir.x + ghost_dir.y*ghost_dir.y + ghost_dir.z*ghost_dir.z;
     
