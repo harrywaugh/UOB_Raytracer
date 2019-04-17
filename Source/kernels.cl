@@ -142,7 +142,7 @@ float3 direct_light(const Intersection intersection, local float3 *triangle_vert
   const float3 soft_shadow_color_step = (float3)(0.8f/soft_shadows);
 
   // Check parallel ghost surfaces for soft triangles
-  for (float i = 0; i < soft_shadows; i+=1)  {
+  for (float i = 1; i < soft_shadows; i+=1)  {
     const float norm_step = i*0.005f;
 
     float3 ghost_dir = dir + norm_step*intersect_normal;
@@ -155,11 +155,14 @@ float3 direct_light(const Intersection intersection, local float3 *triangle_vert
       total_colour -= soft_shadow_color_step;
     }
   }
+  float3 D = (float3) (0.f);
 
-  // Intensity of the colour, based on the distance from the light
-  float3 D = (light_color * max(dot(dir, intersect_normal) , 0.0f)) / (4 * ((float)M_PI) * radius_sq);
+  if (!in_shadow(ghost_start, ghost_dir, triangle_vertexes, ghost_radius_sq, triangle_n)) {
+      total_colour += (light_color * max(dot(dir, intersect_normal) , 0.0f)) / (4 * ((float)M_PI) * radius_sq);
+  }
 
-  return D + total_colour;
+  
+  return total_colour;
 }
 
 
