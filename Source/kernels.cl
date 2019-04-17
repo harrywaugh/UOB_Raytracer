@@ -126,7 +126,6 @@ bool in_shadow(float3 start, float3 d, local float3 *triangle_vertexes, float ra
 
 float3 direct_light(const Intersection intersection, local float3 *triangle_vertexes, local float3 *triangle_normals, 
                     float3 light_pos, int triangle_n, float3 intersect_normal) {
-  float radius_sq = r.x*r.x + r.y*r.y + r.z*r.z;
 
   float3 total_colour;
 
@@ -136,7 +135,8 @@ float3 direct_light(const Intersection intersection, local float3 *triangle_vert
   for (float i = 0.0f; i < 0.5; i+=0.1)  {
 
     float3 dir = light_pos - intersection.position + i*intersect_normal;
-
+    float radius_sq = dir.x*dir.x + dir.y*dir.y + dir.z*dir.z;
+    
 
     float3 start = intersection.position + i*intersect_normal + threshold * (float3) (dir.x, dir.y, dir.z)  ;
 
@@ -147,6 +147,7 @@ float3 direct_light(const Intersection intersection, local float3 *triangle_vert
 
 
   float3 dir = light_pos - intersection.position;
+  float radius_sq = dir.x*dir.x + dir.y*dir.y + dir.z*dir.z;
 
 
   // Get the normal of the triangle that the light has hit
