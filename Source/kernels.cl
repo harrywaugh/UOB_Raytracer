@@ -1,6 +1,6 @@
 #pragma OPENCL EXTENSION cl_khr_fp64 : enable
 
-constant float indirect_light =  0.5f;
+constant float3 indirect_light = (float3)(0.5f, 0.5f, 0.5f);
 constant float3 light_color    = (float3) (14.0f, 14.0f, 14.0f);
 #define SCREEN_WIDTH 1536.0f
 #define SCREEN_HEIGHT 1536.0f
@@ -124,11 +124,11 @@ bool in_shadow(float3 start, float3 d, local float3 *triangle_vertexes, float ra
   return false;
 }
 
-float direct_light(const Intersection intersection, local float3 *triangle_vertexes, local float3 *triangle_normals, 
+float3 direct_light(const Intersection intersection, local float3 *triangle_vertexes, local float3 *triangle_normals, 
                     float3 light_pos, int triangle_n, float3 intersect_normal) {
 
   //Declare colour for point to be 0
-  float total_colour = (float) 0.0f;
+  float3 total_colour = (float3) 0.0f;
 
   //Get vector from intersection point to light position, and its magnitude
   float3 dir = light_pos - intersection.position;
@@ -139,11 +139,11 @@ float direct_light(const Intersection intersection, local float3 *triangle_verte
   float3 start = intersection.position + threshold*(float3) (dir.x, dir.y, dir.z);
 
   const float soft_shadows = 10.0f;
-  const float soft_shadow_color_step = (float)(0.55f/soft_shadows);
+  const float3 soft_shadow_color_step = (float3)(0.55f/soft_shadows);
 
   // Check parallel ghost surfaces for soft triangles
   for (float i = -soft_shadows; i < soft_shadows; i+=1)  {
-    const float norm_step = i*0.002f;
+    const float norm_step = i*0.0025f;
 
     float3 ghost_dir = dir + norm_step*intersect_normal;
     float ghost_radius_sq = ghost_dir.x*ghost_dir.x + ghost_dir.y*ghost_dir.y + ghost_dir.z*ghost_dir.z;
@@ -156,7 +156,7 @@ float direct_light(const Intersection intersection, local float3 *triangle_verte
     }
   }
   
-  total_colour += (max(dot(dir, intersect_normal), 0.0f)) / (4 * ((float)M_PI) * radius_sq);
+  total_colour += (light_color * max(dot(dir, intersect_normal), 0.0f)) / (4 * ((float)M_PI) * radius_sq);
 
   
   return total_colour;
