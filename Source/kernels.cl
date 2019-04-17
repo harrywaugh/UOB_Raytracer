@@ -29,7 +29,7 @@ inline void PutPixelSDL(global uint *screen_buffer, int x, int y, float3 colour)
 }
 inline float rnd(uint seed, float range) {
   uint t = seed ^ (seed << 11);  
-  float result = ((float)(randoms.y ^ (randoms.y >> 19) ^ (t ^ (t >> 8))))/seed;
+  float result = ((float)(seed ^ (seed >> 19) ^ (t ^ (t >> 8))))/seed;
   return fmod(result, range)-range/2.0f;
 }
 
