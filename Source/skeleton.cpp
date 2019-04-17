@@ -24,7 +24,7 @@ SDL_Event event;
 
 
 #define OCLFILE "Source/kernels.cl"
-#define WORK_SIZE_X 64                 
+#define WORK_SIZE_X 32                 
 #define WORK_SIZE_Y 4       
 
 
