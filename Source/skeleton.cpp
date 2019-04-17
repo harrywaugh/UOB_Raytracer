@@ -41,7 +41,6 @@ typedef struct
   cl_program program;
   //Kernels
   cl_kernel draw;
-  cl_kernel average_pixels;
 
   //Memory Buffers
   cl_mem screen_buffer;
@@ -161,10 +160,6 @@ void offload_rendering(screen* screen, t_ocl ocl)  {
   err = clEnqueueNDRangeKernel(ocl.queue, ocl.draw , 2, NULL, global_size, work_size, 0, NULL, NULL);
   checkError(err, "enqueueing draw kernel", __LINE__);
 
-
-  // size_t av_global_size[2] = {SCREEN_WIDTH/2, SCREEN_HEIGHT/2};
-  // err = clEnqueueNDRangeKernel(ocl.queue, ocl.average_pixels , 2, NULL, av_global_size, work_size, 0, NULL, NULL);
-  // checkError(err, "enqueueing average_pixels kernel", __LINE__);
 
   // err = clFinish(ocl.queue);
   // checkError(err, "Waiting to finish draw kernel", __LINE__);
@@ -394,8 +389,6 @@ void opencl_initialise(t_ocl *ocl)  {
     // Create OpenCL kernels
   ocl->draw = clCreateKernel(ocl->program, "draw", &err);
   checkError(err, "creating draw kernel", __LINE__);
-  ocl->average_pixels = clCreateKernel(ocl->program, "average_pixels", &err);
-  checkError(err, "creating average_pixels kernel", __LINE__);
 
   // Allocate OpenCL buffers
   ocl->screen_buffer          = clCreateBuffer(ocl->context, CL_MEM_READ_WRITE,
@@ -418,9 +411,6 @@ void opencl_initialise(t_ocl *ocl)  {
                                 sizeof(cl_float4) * triangles.size() , NULL, &err);
   checkError(err, "creating Color Buffer buffer", __LINE__);
 
-
-  err = clSetKernelArg(ocl->average_pixels, 0, sizeof(cl_mem), &ocl->screen_buffer);
-  checkError(err, "setting average_pixels arg 0", __LINE__);
 
 
   // Set kernel arguments
@@ -445,7 +435,7 @@ void opencl_initialise(t_ocl *ocl)  {
   checkError(err, "setting draw arg 10", __LINE__);
   err = clSetKernelArg(ocl->draw, 11, sizeof(cl_float4)*triangles.size(), NULL);     //Work Item's Local tot_speeds 
   checkError(err, "setting draw arg 11", __LINE__);
-  
+
 
   cl_float4 *triangle_vertexes = (cl_float4 *)malloc(sizeof(cl_float4)*triangles.size()*3);
   cl_float4 *triangle_normals  = (cl_float4 *)malloc(sizeof(cl_float4)*triangles.size());

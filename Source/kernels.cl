@@ -184,28 +184,28 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
 }  
 
 
-uint3 getRGB(uint pixel)  {
-  return (uint3) ((uint)((pixel >> 16) & 255), (uint)((pixel >> 8) & 255), (uint)(pixel & 255));
-}
+// uint3 getRGB(uint pixel)  {
+//   return (uint3) ((uint)((pixel >> 16) & 255), (uint)((pixel >> 8) & 255), (uint)(pixel & 255));
+// }
 
-kernel void average_pixels(global uint *screen_buffer)  {
-  const short x = get_global_id(0);
-  const short y = get_global_id(1);
+// kernel void average_pixels(global uint *screen_buffer)  {
+//   const short x = get_global_id(0);
+//   const short y = get_global_id(1);
 
-  const short nx = get_global_size(1);
+//   const short nx = get_global_size(1);
   
-  uint3 surrounding_cell_total = (uint3) (0, 0, 0);
-  surrounding_cell_total  += getRGB(screen_buffer[(y*2)*SCREEN_WIDTH+(x*2)]);
-  surrounding_cell_total  += getRGB(screen_buffer[(y*2)*SCREEN_WIDTH+(x*2+1)]);
-// 
-  surrounding_cell_total  += getRGB(screen_buffer[(y*2+1)*SCREEN_WIDTH+(x*2)]);
-  surrounding_cell_total  += getRGB(screen_buffer[(y*2+1)*SCREEN_WIDTH+(x*2+1)]);
+//   uint3 surrounding_cell_total = (uint3) (0, 0, 0);
+//   surrounding_cell_total  += getRGB(screen_buffer[(y*2)*SCREEN_WIDTH+(x*2)]);
+//   surrounding_cell_total  += getRGB(screen_buffer[(y*2)*SCREEN_WIDTH+(x*2+1)]);
+// // 
+//   surrounding_cell_total  += getRGB(screen_buffer[(y*2+1)*SCREEN_WIDTH+(x*2)]);
+//   surrounding_cell_total  += getRGB(screen_buffer[(y*2+1)*SCREEN_WIDTH+(x*2+1)]);
 
 
-  surrounding_cell_total /= 4;
+//   surrounding_cell_total /= 4;
 
-  screen_buffer[y*nx+x] = (128<<24) + (surrounding_cell_total.x<<16) + (surrounding_cell_total.y<<8)
-                                                                      + surrounding_cell_total.z;
-}
+//   screen_buffer[y*nx+x] = (128<<24) + (surrounding_cell_total.x<<16) + (surrounding_cell_total.y<<8)
+//                                                                       + surrounding_cell_total.z;
+// }
 
 
