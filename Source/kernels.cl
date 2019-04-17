@@ -1,7 +1,7 @@
 #pragma OPENCL EXTENSION cl_khr_fp64 : enable
 
-constant float3 indirect_light = (float3)(0.25f, 0.25f, 0.25f);
-constant float3 light_color    = (float3) (7.0f, 7.0f, 7.0f);
+constant float3 indirect_light = (float3)(0.1f, 0.1f, 0.1f);
+constant float3 light_color    = (float3) (20.0f, 20.0f, 20.0f);
 #define SCREEN_WIDTH 1536.0f
 #define SCREEN_HEIGHT 1536.0f
 
