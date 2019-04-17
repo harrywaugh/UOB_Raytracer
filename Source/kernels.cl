@@ -27,9 +27,10 @@ inline void PutPixelSDL(global uint *screen_buffer, int x, int y, float3 colour)
   uint3 rgb = convert_uint3(min(max(255*colour, 0.f), 255.f));
   screen_buffer[y*(short)SCREEN_WIDTH+x] = (128<<24) + (rgb.x<<16) + (rgb.y<<8) + rgb.z;
 }
-inline float rnd(float seed, float range) {
-  // return seed;
-  return fmod(19.0f*seed, range)-range/2.0f;
+inline float rnd(uint seed, float range) {
+  uint t = seed ^ (seed << 11);  
+  float result = ((float)(randoms.y ^ (randoms.y >> 19) ^ (t ^ (t >> 8))))/seed;
+  return fmod(result, range)-range/2.0f;
 }
 
 bool closest_intersection(float3 start, float3 d, local float3 *triangle_vertexes, private Intersection* closest_intersection, int triangle_n) {
@@ -145,7 +146,7 @@ float3 direct_light(const Intersection intersection, local float3 *triangle_vert
   for (int i = 0; i < light_sources; i++)  {
     const float light_spread = 0.1f;
     float3 ghost_dir = dir + 
-    (float3) (rnd(i*intersection.position.x, light_spread), rnd(i*intersection.position.y, light_spread), rnd(i*intersection.position.z, light_spread));
+      (float3) (rnd(i*radius_sq, light_spread), rnd(i*radius_sq/2, light_spread), rnd(i*radius_sq/3, light_spread));
     float ghost_radius_sq = ghost_dir.x*ghost_dir.x + ghost_dir.y*ghost_dir.y + ghost_dir.z*ghost_dir.z;
     
     if (in_shadow(start, ghost_dir, triangle_vertexes, ghost_radius_sq, triangle_n)) {
