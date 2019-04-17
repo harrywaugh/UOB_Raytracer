@@ -29,7 +29,7 @@ inline void PutPixelSDL(global uint *screen_buffer, int x, int y, float3 colour)
 }
 inline float rnd(float seed, float range) {
   // return seed;
-  return fmod(7.0f*seed, range)-range/2.0f;
+  return fmod(19.0f*seed, range)-range/2.0f;
 }
 
 bool closest_intersection(float3 start, float3 d, local float3 *triangle_vertexes, private Intersection* closest_intersection, int triangle_n) {
@@ -144,7 +144,7 @@ float3 direct_light(const Intersection intersection, local float3 *triangle_vert
   // Check parallel ghost surfaces for soft triangles
   for (int i = 0; i < light_sources; i++)  {
 
-    float3 ghost_dir = dir + (float3) (rnd(intersection.position, 0.05), 0.0f, rnd(intersection.position, 0.05));
+    float3 ghost_dir = dir + (float3) (rnd(intersection.position.x, 0.05), 0.0f, rnd(intersection.position.z, 0.05));
     float ghost_radius_sq = ghost_dir.x*ghost_dir.x + ghost_dir.y*ghost_dir.y + ghost_dir.z*ghost_dir.z;
     
     if (in_shadow(start, ghost_dir, triangle_vertexes, ghost_radius_sq, triangle_n)) {
