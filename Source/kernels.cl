@@ -146,7 +146,7 @@ float3 direct_light(const Intersection intersection, local float3 *triangle_vert
 
 inline float rnd(float seed) {
   // return seed;
-  return fmod(seed, 1.0);
+  return fmod(seed, 1.0f);
 }
 
 kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexes,   global float3 *triangle_normals,
