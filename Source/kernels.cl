@@ -162,7 +162,7 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
   const short xs[4] = {(x*2), (x*2+1), (x*2), (x*2+1)};
   const short ys[4] = {(y*2), (y*2+1), (y*2), (y*2+1)};
 
-  const float3 final_color_total = (float3) (0.0f);
+  float3 final_color_total = (float3) (0.0f);
 
   for (int i = 0; i < 4; i++)  {
   // Declare ray for given position on the screen. Rotate ray by current view angle
