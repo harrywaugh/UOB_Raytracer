@@ -157,7 +157,7 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
   e         = async_work_group_copy(LOC_triangle_normals,  triangle_normals,  triangle_n,   0);
   e         = async_work_group_copy(LOC_triangle_colors,   triangle_colors,   triangle_n,   0);
   // e         = async_work_group_copy(LOC_rot_matrix,        rot_matrix,        3,            0);
-  wait_group_events(4, &e);
+  wait_group_events(3, &e);
 
 
   // Declare ray for given position on the screen. Rotate ray by current view angle
