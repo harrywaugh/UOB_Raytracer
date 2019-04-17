@@ -156,13 +156,13 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
   event_t e = async_work_group_copy(LOC_triangle_vertexes, triangle_vertexes, triangle_n*3, 0);
   e         = async_work_group_copy(LOC_triangle_normals,  triangle_normals,  triangle_n,   0);
   e         = async_work_group_copy(LOC_triangle_colors,   triangle_colors,   triangle_n,   0);
-  e         = async_work_group_copy(LOC_rot_matrix,        rot_matrix,        3,            0);
+  // e         = async_work_group_copy(LOC_rot_matrix,        rot_matrix,        3,            0);
   wait_group_events(4, &e);
 
 
   // Declare ray for given position on the screen. Rotate ray by current view angle
   float3 d = (float3) (x - SCREEN_WIDTH/2.0, y - SCREEN_HEIGHT/2.0, focal_length);
-  d        = (float3) (dot(LOC_rot_matrix[0], d), dot(LOC_rot_matrix[1], d), dot(LOC_rot_matrix[2], d));
+  d        = (float3) (dot(rot_matrix[0], d), dot(rot_matrix[1], d), dot(rot_matrix[2], d));
 
   // Find intersection point with closest geometry. If no intersection, paint the abyss
   Intersection intersection;
