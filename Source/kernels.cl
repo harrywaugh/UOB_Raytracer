@@ -146,7 +146,7 @@ float3 direct_light(const Intersection intersection, local float3 *triangle_vert
 
 inline float rnd(float seed) {
   // return seed;
-  return fmod(seed, 1.0f);
+  return fmod(7*seed, 1.0f);
 }
 
 kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexes,   global float3 *triangle_normals,
@@ -163,17 +163,23 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
   e         = async_work_group_copy(LOC_triangle_colors,   triangle_colors,   triangle_n,   0);
   wait_group_events(3, &e);
 
-  const char rays_x = 3;
-  const char rays_y = 3;
+  const char rays_x = 2;
+  const char rays_y = 2;
 
 
   float3 final_color_total = (float3) (0.0f);
+
+  // const float rndx = rnd(dy/dx);
+  // const float rndy = rnd(dx/dy);
+
+  const float rndx = 0.0f;
+  const float rndy = 0.0f;
 
   for (float dy = y*rays_y; dy < (y+1)*rays_y; dy+=1)  {
 
     for (float dx = x*rays_y; dx < (x+1)*rays_x; dx+=1)  {
     // Declare ray for given position on the screen. Rotate ray by current view angle
-        float3 d = (float3) (dx - (SCREEN_WIDTH*rays_x)/2.0f + rnd(dy/dx), dy - (SCREEN_HEIGHT*rays_y)/2.0f + rnd(dx/dy), focal_length);
+        float3 d = (float3) (dx - (SCREEN_WIDTH*rays_x)/2.0f + rndx, dy - (SCREEN_HEIGHT*rays_y)/2.0f + rndy, focal_length);
         d        = (float3) (dot(rot_matrix[0], d), dot(rot_matrix[1], d), dot(rot_matrix[2], d));
 
         // Find intersection point with closest geometry. If no intersection, paint the abyss
