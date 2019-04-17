@@ -180,7 +180,7 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
        const float rndx = rnd(x/y, (float)rays_x);
        const float rndy = rnd(y/x, (float)rays_y);
     // Declare ray for given position on the screen. Rotate ray by current view angle
-        float3 d = (float3) (x - (SCREEN_WIDTH*rays_x)/2.0f + rndx, y - (SCREEN_HEIGHT*rays_y)/2.0f + rndy, focal_length);
+        float3 d = (float3) (x*rays_x - (SCREEN_WIDTH*rays_x)/2.0f + rndx, y*rays_y - (SCREEN_HEIGHT*rays_y)/2.0f + rndy, focal_length);
         d        = (float3) (dot(rot_matrix[0], d), dot(rot_matrix[1], d), dot(rot_matrix[2], d));
 
         // Find intersection point with closest geometry. If no intersection, paint the abyss
