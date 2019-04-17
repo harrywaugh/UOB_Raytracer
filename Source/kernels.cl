@@ -185,7 +185,7 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
         }
     }
   }
-  PutPixelSDL(screen_buffer, x, y, final_color_total/(rays_x*rays_y));
+  PutPixelSDL(screen_buffer, (short)x, (short)y, final_color_total/(rays_x*rays_y));
 }  
 
 
