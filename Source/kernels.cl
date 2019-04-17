@@ -139,10 +139,10 @@ float3 direct_light(const Intersection intersection, local float3 *triangle_vert
   float3 start = intersection.position + threshold*dir;
 
   const float soft_shadows = 10.0f;
-  const float3 soft_shadow_color_step = (float3)(0.7f/soft_shadows);
+  const float3 soft_shadow_color_step = (float3)(0.9f/soft_shadows);
 
   // Check parallel ghost surfaces for soft triangles
-  for (float i = 0; i < soft_shadows; i+=1)  {
+  for (int i = 0; i < soft_shadows; i++)  {
 
     float3 ghost_dir = dir + rnd(intersection.position, 0.05)+threshold*dir;
     float ghost_radius_sq = ghost_dir.x*ghost_dir.x + ghost_dir.y*ghost_dir.y + ghost_dir.z*ghost_dir.z;
