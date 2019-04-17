@@ -135,8 +135,8 @@ float3 direct_light(const Intersection intersection, local float3 *triangle_vert
   float radius_sq = dir.x*dir.x + dir.y*dir.y + dir.z*dir.z;
 
   //Declare threshold to get intersection position that is not going to intersect with own triangle
-  const float threshold = 0.01f;
-  float3 start = intersection.position + threshold*dir;
+  const float bias = 0.0001f;
+  float3 start = intersection.position + bias*dir;
 
   const short light_sources = 200;
   short light_count = light_sources;
