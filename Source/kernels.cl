@@ -147,21 +147,22 @@ float3 direct_light(const Intersection intersection, local float3 *triangle_vert
 kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexes,   global float3 *triangle_normals,
 				 global float3 *triangle_colors, global float3 *rot_matrix,           float3 camera_pos, float3 light_pos, 
 				 int triangle_n, float focal_length, local float3 *LOC_triangle_vertexes,  local float3 *LOC_triangle_normals,
-				 local float3 *LOC_triangle_colors)
+				 local float3 *LOC_triangle_colors, local float3 *LOC_rot_matrix)
 {         /* accumulated magnitudes of velocity for each cell */
   const short x = get_global_id(0);
   const short y = get_global_id(1);
 
 
   event_t e = async_work_group_copy(LOC_triangle_vertexes, triangle_vertexes, triangle_n*3, 0);
-  e         = async_work_group_copy(LOC_triangle_normals,  triangle_normals,  triangle_n,  0);
-  e         = async_work_group_copy(LOC_triangle_colors,   triangle_colors,   triangle_n,  0);
-  wait_group_events(3, &e);
+  e         = async_work_group_copy(LOC_triangle_normals,  triangle_normals,  triangle_n,   0);
+  e         = async_work_group_copy(LOC_triangle_colors,   triangle_colors,   triangle_n,   0);
+  e         = async_work_group_copy(LOC_rot_matrix,        rot_matrix,        3,            0);
+  wait_group_events(4, &e);
 
 
   // Declare ray for given position on the screen. Rotate ray by current view angle
   float3 d = (float3) (x - SCREEN_WIDTH/2.0, y - SCREEN_HEIGHT/2.0, focal_length);
-  d        = (float3) (dot(rot_matrix[0], d), dot(rot_matrix[1], d), dot(rot_matrix[2], d));
+  d        = (float3) (dot(LOC_rot_matrix[0], d), dot(LOC_rot_matrix[1], d), dot(LOC_rot_matrix[2], d));
 
   // Find intersection point with closest geometry. If no intersection, paint the abyss
   Intersection intersection;

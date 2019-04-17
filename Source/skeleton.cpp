@@ -402,21 +402,22 @@ void opencl_initialise(t_ocl *ocl)  {
                                 sizeof(cl_uint)  * SCREEN_WIDTH * SCREEN_HEIGHT, NULL, &err);
   checkError(err, "creating screen buffer", __LINE__);
 
-  ocl->triangles_buffer       = clCreateBuffer(ocl->context, CL_MEM_READ_WRITE,
+  ocl->triangles_buffer       = clCreateBuffer(ocl->context, CL_MEM_READ,
                                 (sizeof(cl_float4) * triangles.size()*3), NULL, &err);
   checkError(err, "creating Triangle buffer", __LINE__);
 
-  ocl->rotation_matrix_buffer = clCreateBuffer(ocl->context, CL_MEM_READ_WRITE,
+  ocl->rotation_matrix_buffer = clCreateBuffer(ocl->context, CL_MEM_READ,
                                 sizeof(cl_float) * 12 , NULL, &err);
   checkError(err, "creating Rot Mat Buffer buffer", __LINE__);
   
-  ocl->normal_buffer = clCreateBuffer(ocl->context, CL_MEM_READ_WRITE,
+  ocl->normal_buffer = clCreateBuffer(ocl->context, CL_MEM_READ,
                                 sizeof(cl_float4) * triangles.size() , NULL, &err);
   checkError(err, "creating Normal Buffer buffer", __LINE__);
   
-  ocl->color_buffer = clCreateBuffer(ocl->context, CL_MEM_READ_WRITE,
+  ocl->color_buffer = clCreateBuffer(ocl->context, CL_MEM_READ,
                                 sizeof(cl_float4) * triangles.size() , NULL, &err);
   checkError(err, "creating Color Buffer buffer", __LINE__);
+
 
   err = clSetKernelArg(ocl->average_pixels, 0, sizeof(cl_mem), &ocl->screen_buffer);
   checkError(err, "setting average_pixels arg 0", __LINE__);
@@ -444,6 +445,8 @@ void opencl_initialise(t_ocl *ocl)  {
   checkError(err, "setting draw arg 10", __LINE__);
   err = clSetKernelArg(ocl->draw, 11, sizeof(cl_float4)*triangles.size(), NULL);     //Work Item's Local tot_speeds 
   checkError(err, "setting draw arg 11", __LINE__);
+  err = clSetKernelArg(ocl->draw, 12, sizeof(cl_float4)*3, NULL);     //Work Item's Local tot_speeds 
+  checkError(err, "setting draw arg 12", __LINE__);
 
   cl_float4 *triangle_vertexes = (cl_float4 *)malloc(sizeof(cl_float4)*triangles.size()*3);
   cl_float4 *triangle_normals  = (cl_float4 *)malloc(sizeof(cl_float4)*triangles.size());
