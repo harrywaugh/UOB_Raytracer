@@ -25,11 +25,11 @@ SDL_Event event;
 
 #define OCLFILE "Source/kernels.cl"
 #define WORK_SIZE_X 64                 
-#define WORK_SIZE_Y 4       
+#define WORK_SIZE_Y 8       
 
 
-#define SCREEN_WIDTH 1536
-#define SCREEN_HEIGHT 1536
+#define SCREEN_WIDTH 1024
+#define SCREEN_HEIGHT 1024
 #define FULLSCREEN_MODE false
 
 typedef struct
@@ -57,9 +57,9 @@ struct Intersection {
   float distance;
   int triangle_index;
 };
-float focal_length = 3000.0;
+float focal_length = 2400.0;
 vec4  camera_position(0.0, 0.0, -2.5, 1.0);
-cl_float3  cl_camera_position  = {0.0, 0.0, -2.4};
+cl_float3  cl_camera_position  = {0.0, 0.0, -3.2};
 
 float pitch = 0.0f;
 float yaw = 0.0f;
@@ -113,6 +113,7 @@ int main(int argc, char* argv[]) {
       auto stop = high_resolution_clock::now();
       auto offload_duration = duration_cast<microseconds>(stop - start); 
       cout << "\nOffloaded GPU Rendertime: "<< offload_duration.count() << " micro seconds" <<  endl; 
+      cout << "Frame Rate: "<< 1000000.0f/((float)offload_duration.count()) << "FPS" <<  endl; 
 
       // start = high_resolution_clock::now();
       // draw(screen, ocl);
@@ -311,10 +312,10 @@ bool update() {
           light_position.x += 0.2;
           break;
         case SDLK_i:
-          focal_length += 10;
+          focal_length += 150;
           break;
         case SDLK_o:
-          focal_length -= 10;
+          focal_length -= 150;
           break;
         case SDLK_ESCAPE:
           quit = true;
@@ -460,8 +461,6 @@ void opencl_initialise(t_ocl *ocl)  {
   err = clEnqueueWriteBuffer(ocl->queue, ocl->color_buffer, CL_TRUE, 0,
   sizeof(cl_float4) * triangles.size(), triangle_colors, 0, NULL, NULL);
   checkError(err, "writing triangle buffer data", __LINE__);
-
-
 }
   
 void checkError(cl_int err, const char *op, const int line)
