@@ -137,10 +137,10 @@ float3 direct_light(const Intersection intersection, local float3 *triangle_vert
   const float bias = 0.00001f;
   float3 start = intersection.position + bias*dir;
 
-  const short light_sources = 10;
+  const short light_sources = 20;
   short light_count = light_sources;
 
-  const float light_spread = 0.0321f;
+  const float light_spread = 0.023f;
 
   // Check parallel ghost surfaces for soft triangles
   for (int i = 0; i < light_sources; i++)  {
@@ -149,9 +149,6 @@ float3 direct_light(const Intersection intersection, local float3 *triangle_vert
     float ghost_radius_sq = ghost_dir.x*ghost_dir.x + ghost_dir.y*ghost_dir.y + ghost_dir.z*ghost_dir.z;
 
     if (!in_shadow(start, ghost_dir, triangle_vertexes, ghost_radius_sq, triangle_n)) {
-      if (global_id == 1048500)  {
-        printf("Reached\n");
-      }
       total_colour += (light_color * max(dot(dir, intersect_normal), 0.0f)) / (light_sources * 4 * ((float)M_PI) * radius_sq);
     }
   }
@@ -173,10 +170,6 @@ float3 secondary_light(float3 start, float3 dir, local float3 *triangle_vertexes
       
       light_accumulator = indirect_light+direct_light(intersect, triangle_vertexes, triangle_normals, light_pos, triangle_n, triangle_normals[intersect.triangle_index], global_id);
       light_accumulator *= triangle_colors[intersect.triangle_index];
-      // if (global_id == 1048500)  {
-      //   printf("2nd bounce pos (%f %f %f)\n", triangle_normals[intersect.triangle_index].x, triangle_normals[intersect.triangle_index].y, triangle_normals[intersect.triangle_index].z);
-      //   printf("2nd bounce light (%f %f %f)\n\n", light_accumulator.x, light_accumulator.y, light_accumulator.z);
-      // }
       start = intersect.position;
       dir    = reflect_ray(dir, triangle_normals[intersect.triangle_index]);
     } 
@@ -228,7 +221,7 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
               //   printf("first bounce color (%f %f %f)\n", direct.x, direct.y, direct.z);
               //   printf("g_id %d\n", global_id);
               // }
-            light      = secondary_light(intersect.position, outgoing_dir, LOC_triangle_vertexes, LOC_triangle_normals, LOC_triangle_colors, triangle_n, light_pos, global_id, 1);
+            light      = 0.8f*secondary_light(intersect.position, outgoing_dir, LOC_triangle_vertexes, LOC_triangle_normals, LOC_triangle_colors, triangle_n, light_pos, global_id, 1);
             final_color_total += light; //Add indirect back!
 
           }  else {

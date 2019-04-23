@@ -9,6 +9,7 @@
 #include <math.h>
 #include <CL/opencl.h>
 #include <chrono> 
+#include "Loader.cpp"
 
 using namespace std;
 using namespace std::chrono; 
@@ -58,7 +59,7 @@ struct Intersection {
   int triangle_index;
 };
 float focal_length = 2400.0;
-vec4  camera_position(0.0, 0.0, -2.5, 1.0);
+vec4  camera_position(0.0, 0.0, -3.2, 1.0);
 cl_float3  cl_camera_position  = {0.0, 0.0, -3.2};
 
 float pitch = 0.0f;
@@ -96,8 +97,10 @@ int main(int argc, char* argv[]) {
 
   // Load Cornell Box
   LoadTestModel(triangles);
+  vector<Triangle> bunny = load_obj("Source/bunny_200.obj");
+  triangles.insert(triangles.end(), bunny.begin(), bunny.end());
   printf("Triangles Length size %lu\n",  triangles.size());
-
+  
   opencl_initialise(&ocl);
 
   // Draw initial scene
@@ -148,7 +151,7 @@ void offload_rendering(screen* screen, t_ocl ocl)  {
   //Set Camera Position and Rotation Matrix Arguments
   err = clSetKernelArg(ocl.draw, 4, sizeof(cl_mem), &ocl.rotation_matrix_buffer);
   checkError(err, "setting draw arg 4", __LINE__);
-  err = clSetKernelArg(ocl.draw, 5, sizeof(cl_float3), &cl_camera_position);
+  err = clSetKernelArg(ocl.draw, 5, sizeof(cl_float3), &camera_position);
   checkError(err, "setting draw arg 5", __LINE__);
   err = clSetKernelArg(ocl.draw, 6, sizeof(cl_float3), &light_position);
   checkError(err, "setting draw arg 6", __LINE__);
@@ -312,10 +315,16 @@ bool update() {
           light_position.x += 0.2;
           break;
         case SDLK_i:
-          focal_length += 150;
+          camera_position.z += 0.1;
           break;
         case SDLK_o:
-          focal_length -= 150;
+          camera_position.z -= 0.1;
+          break;
+        case SDLK_j:
+          camera_position.x += 0.1;
+          break;
+        case SDLK_k:
+          camera_position.x -= 0.1;
           break;
         case SDLK_ESCAPE:
           quit = true;
