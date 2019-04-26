@@ -2,7 +2,7 @@
 
 constant float3 indirect_light = (float3)(0.35f, 0.35f, 0.35f);
 constant float3 light_color    = (float3) (15.0f, 15.0f, 15.0f);
-constant float3 bias           = (float3) (0.00001f, 0.00001f, 0.00001f);
+constant float3 bias           = (float3) (0.000001f, 0.000001f, 0.000001f);
 #define SCREEN_WIDTH 1024.0f
 #define SCREEN_HEIGHT 1024.0f
 
@@ -28,10 +28,17 @@ inline void PutPixelSDL(global uint *screen_buffer, int x, int y, float3 colour)
   uint3 rgb = convert_uint3(min(max(255*colour, 0.f), 255.f));
   screen_buffer[y*(short)SCREEN_WIDTH+x] = (rgb.x<<16) + (rgb.y<<8) + rgb.z;
 }
-inline float rnd(uint seed, float range) { // XORSHIFT Alg.
+
+inline float random(uint seed, float range) { // XORSHIFT Alg.
   seed ^= seed << 13;
   seed ^= seed >> 17;
   seed ^= seed << 5;  
+  seed ^= seed << 13;
+  seed ^= seed >> 17;
+  seed ^= seed << 5; 
+  seed ^= seed << 13;
+  seed ^= seed >> 17;
+  seed ^= seed << 5; 
   const float fl_seed = range*((float)seed)/((float)UINT_MAX);
   return fl_seed - range/2.f;
 }
@@ -49,15 +56,14 @@ bool closest_intersection(float3 start, float3 dir, local float3 *triangle_verte
       const float3 e2 = triangle_vertexes[i*3+2] - v0;
       const float3 b  = start - v0;
 
-      // Cramers, might be det repeated computation..?
       const float3 A[3]  = {-dir, e1, e2};
       const float3 A0[3] = {b,  e1, e2};
 
       const float detA_recip  = native_recip(det(A));
-      const float t = det(A0)*detA_recip;
+      const float t           = det(A0)*detA_recip;
 
       // If ray goes through triangle, and is the closest triangle
-      if ( t >= 0 && t < current_t  ) {
+      if (  t < current_t  ) {
         const float3 A1[3] = {-dir, b,  e2};
         const float3 A2[3] = {-dir, e1, b};
         const float u = det(A1)*detA_recip;
@@ -117,7 +123,7 @@ bool in_shadow(float3 start, float3 dir, local float3 *triangle_vertexes, local 
 float3 direct_light(const Intersection intersection, local float3 *triangle_vertexes, local float3 *triangle_normals, float3 light_pos, int triangle_n, const float3 intersect_normal, const int global_id) {
 
   //Declare colour for point to be 0
-  float3 total_colour = (float3) 0.0f;
+  float3 total_light = (float3) 0.0f;
 
   //Get vector from intersection point to light position, and its magnitude
   float3 dir = light_pos - intersection.position;
@@ -126,22 +132,22 @@ float3 direct_light(const Intersection intersection, local float3 *triangle_vert
   //Declare threshold to get intersection position that is not going to intersect with own triangle
   float3 start = intersection.position + bias*dir;
 
-  const short light_sources = 20;
+  const short light_sources = 10;
   short light_count = light_sources;
 
-  const float light_spread = 0.01f;
+  const float light_spread = 0.05f;
 
   // Check parallel ghost surfaces for soft triangles
   for (int i = 0; i < light_sources; i++)  {
-    float3 ghost_dir = dir + (float3) (rnd(i*(global_id), light_spread), rnd(i*(global_id), light_spread), rnd(i*(global_id), light_spread));
+    float3 ghost_dir = dir + (float3) (random(i*(global_id), light_spread), random(i*(global_id)*91.0f, light_spread), random(i*(global_id)*19.0f, light_spread));
     float ghost_radius_sq = ghost_dir.x*ghost_dir.x + ghost_dir.y*ghost_dir.y + ghost_dir.z*ghost_dir.z;
 
     if (!in_shadow(start, ghost_dir, triangle_vertexes, triangle_normals, ghost_radius_sq, triangle_n)) {
-      total_colour += (light_color * max(dot(dir, intersect_normal), 0.0f)) / (light_sources * 4 * ((float)M_PI) * radius_sq);
+      total_light += (light_color * max(dot(dir, intersect_normal), 0.0f)) / ( 4 * ((float)M_PI) * radius_sq);
     }
   }
 
-  return total_colour;
+  return total_light/light_sources;
 }
 
 inline float3 reflect_ray(float3 ray, float3 normal)  {
@@ -152,9 +158,8 @@ float3 secondary_light(float3 start, float3 dir, local float3 *triangle_vertexes
   
   Intersection intersect;
   float3 light_accumulator = (float3) 0.f;
-
   if (closest_intersection(start + bias*dir, dir, triangle_vertexes, triangle_normals, &intersect, triangle_n)) {
-    light_accumulator = direct_light(intersect, triangle_vertexes, triangle_normals, light_pos, triangle_n, triangle_normals[intersect.triangle_index], global_id);
+    light_accumulator = indirect_light+direct_light(intersect, triangle_vertexes, triangle_normals, light_pos, triangle_n, triangle_normals[intersect.triangle_index], global_id);
     light_accumulator *= triangle_colors[intersect.triangle_index];
   }
   return light_accumulator;
@@ -186,19 +191,16 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
         float3 dir = (float3) (dx - (SCREEN_WIDTH*rays_x)/2., dy - (SCREEN_HEIGHT*rays_y)/2., focal_length);
         dir        = (float3) (dot(rot_matrix[0], dir), dot(rot_matrix[1], dir), dot(rot_matrix[2], dir));
         
-
-
         // Find intersection point with closest geometry. If no intersection, paint the abyss
         Intersection intersect;
         if (closest_intersection(camera_pos, dir, LOC_triangle_vertexes, LOC_triangle_normals, &intersect, triangle_n)) {
-          const float3 p = LOC_triangle_colors[intersect.triangle_index];
-          if (p.x == -1.0f)  {
+          const float3 color = LOC_triangle_colors[intersect.triangle_index];
+          if (color.x == -1.0f)  {
             const float3 outgoing_dir    = reflect_ray(dir, LOC_triangle_normals[intersect.triangle_index]);
             final_color_total += 0.8f*secondary_light(intersect.position, outgoing_dir, LOC_triangle_vertexes, LOC_triangle_normals, LOC_triangle_colors, triangle_n, light_pos, global_id);
-
           }  else {
             const float3 light = direct_light(intersect, LOC_triangle_vertexes, LOC_triangle_normals, light_pos, triangle_n, LOC_triangle_normals[intersect.triangle_index], global_id);        
-            final_color_total += p*(indirect_light+light); //Add indirect back!
+            final_color_total += color*(indirect_light+light); //Add indirect back!
             
           }
         }

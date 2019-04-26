@@ -97,8 +97,8 @@ int main(int argc, char* argv[]) {
 
   // Load Cornell Box
   LoadTestModel(triangles);
-  vector<Triangle> bunny = load_obj("Source/bunny_200.obj");
-  triangles.insert(triangles.end(), bunny.begin(), bunny.end());
+  // vector<Triangle> bunny = load_obj("Source/bunny_200.obj");
+  // triangles.insert(triangles.end(), bunny.begin(), bunny.end());
   printf("Triangles Length size %lu\n",  triangles.size());
   
   opencl_initialise(&ocl);
@@ -110,7 +110,8 @@ int main(int argc, char* argv[]) {
   // While user hasn't quit
   while (!quit) {
     // If there is an update to the scene, then draw changes. Check if user wants to quit
-    if (update())  {
+    if (true)  {
+      update();
       auto start = high_resolution_clock::now();
       offload_rendering(screen, ocl);
       auto stop = high_resolution_clock::now();
