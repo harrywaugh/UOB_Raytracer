@@ -54,7 +54,7 @@ void LoadTestModel( std::vector<Triangle>& triangles )
     vec4 dark_green(  0.0f, 0.25f, 0.0f , 0.5f);
 	vec4 cyan(   0.15f, 0.75f, 0.75f , 0.5f);
 	vec4 blue(   0.15f, 0.15f, 0.75f , 0.5f);
-	vec4 mirror( 0.0f, 0.0f, 0.0f, 1.0f);
+	vec4 mirror( 0.0f, 0.0f, 0.0f, 0.0f);
 	vec4 purple( 0.75f, 0.15f, 0.75f , 0.5f);
     vec4 dark_purple(  0.25f, 0.0f, 0.25f , 0.5f);
 	vec4 white(  0.75f, 0.75f, 0.75f , 0.5f);

@@ -238,7 +238,7 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
         Intersection intersect;
         if (closest_intersection(camera_pos, dir, LOC_triangle_vertexes, LOC_triangle_normals, &intersect, triangle_n)) {
           const float4 color = LOC_triangle_colors[intersect.triangle_index];
-          if (color.w == 1.0f)  {
+          if (color.w == 0.0f)  {
             const float3 outgoing_dir = reflect_ray(dir, LOC_triangle_normals[intersect.triangle_index]);
             // printf("dir (%f, %f, %f) outgoing_dir (%f, %f, %f) normal (%f, %f, %f)\n", dir.x, dir.y, dir.z, outgoing_dir.x, outgoing_dir.y, outgoing_dir.z, LOC_triangle_normals[intersect.triangle_index].x, LOC_triangle_normals[intersect.triangle_index].y, LOC_triangle_normals[intersect.triangle_index].z);
 
