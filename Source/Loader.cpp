@@ -10,16 +10,19 @@ using glm::mat4;
 
 vector<Triangle> load_obj(string filename) {
 
-    // Defines colors:
-  vec3 red(    0.75f, 0.15f, 0.15f );
-  vec3 yellow( 0.75f, 0.75f, 0.15f );
-  vec3 green(  0.15f, 0.75f, 0.15f );
-  vec3 cyan(   0.15f, 0.75f, 0.75f );
-  vec3 blue(   0.15f, 0.15f, 0.75f );
-  vec3 mirror( -1.0f, -1.0f, -1.0f);
-  vec3 purple( 0.75f, 0.15f, 0.75f );
-  vec3 white(  0.75f, 0.75f, 0.75f );
-  vec3 grey(  0.3f, 0.3f, 0.3f );
+  // Defines colors:
+  vec4 red(    0.75f, 0.15f, 0.15f , 0.5f);
+  vec4 yellow( 0.75f, 0.75f, 0.15f , 0.5f);
+  vec4 dark_yellow( 0.3f, 0.3f, 0.0f , 0.5f);
+  vec4 green(  0.15f, 0.75f, 0.15f , 0.5f);
+    vec4 dark_green(  0.0f, 0.25f, 0.0f , 0.5f);
+  vec4 cyan(   0.15f, 0.75f, 0.75f , 0.5f);
+  vec4 blue(   0.15f, 0.15f, 0.75f , 0.5f);
+  vec4 mirror( 0.0f, 0.0f, 0.0f, 1.0f);
+  vec4 purple( 0.75f, 0.15f, 0.75f , 0.5f);
+    vec4 dark_purple(  0.25f, 0.0f, 0.25f , 0.5f);
+  vec4 white(  0.75f, 0.75f, 0.75f , 0.5f);
+  vec4 grey(  0.25f, 0.25f, 0.25f , 0.5f);
 
   ifstream source(filename);
   vector<vec4> vertices;

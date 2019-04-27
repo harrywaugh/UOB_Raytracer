@@ -457,7 +457,7 @@ void opencl_initialise(t_ocl *ocl)  {
     triangle_vertexes[i*3+1]  = {triangles[i].v1.x,     triangles[i].v1.y,     triangles[i].v1.z,     0.0f};
     triangle_vertexes[i*3+2]  = {triangles[i].v2.x,     triangles[i].v2.y,     triangles[i].v2.z,     0.0f};
     triangle_normals[i]       = {triangles[i].normal.x, triangles[i].normal.y, triangles[i].normal.z, 0.0f};
-    triangle_colors[i]        = {triangles[i].color.x,  triangles[i].color.y,  triangles[i].color.z,  0.0f};
+    triangle_colors[i]        = {triangles[i].color.x,  triangles[i].color.y,  triangles[i].color.z,  triangles[i].color.w};
   }
 
   err = clEnqueueWriteBuffer(ocl->queue, ocl->triangles_buffer, CL_TRUE, 0,

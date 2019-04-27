@@ -15,9 +15,9 @@ public:
 	glm::vec4 v1;
 	glm::vec4 v2;
 	glm::vec4 normal;
-	glm::vec3 color;
+	glm::vec4 color;
 
-	Triangle( glm::vec4 v0, glm::vec4 v1, glm::vec4 v2, glm::vec3 color )
+	Triangle( glm::vec4 v0, glm::vec4 v1, glm::vec4 v2, glm::vec4 color )
 		: v0(v0), v1(v1), v2(v2), color(color)
 	{
 		ComputeNormal();
@@ -47,17 +47,17 @@ void LoadTestModel( std::vector<Triangle>& triangles )
 	using glm::vec4;
 
 	// Defines colors:
-	vec3 red(    0.75f, 0.15f, 0.15f );
-	vec3 yellow( 0.75f, 0.75f, 0.15f );
-	vec3 dark_yellow( 0.3f, 0.3f, 0.0f );
-	vec3 green(  0.15f, 0.75f, 0.15f );
-    vec3 dark_green(  0.0f, 0.25f, 0.0f );
-	vec3 cyan(   0.15f, 0.75f, 0.75f );
-	vec3 blue(   0.15f, 0.15f, 0.75f );
-	vec3 mirror( -1.0f, -1.0f, -1.0f);
-	vec3 purple( 0.75f, 0.15f, 0.75f );
-    vec3 dark_purple(  0.25f, 0.0f, 0.25f );
-	vec3 white(  0.75f, 0.75f, 0.75f );
+	vec4 red(    0.75f, 0.15f, 0.15f , 0.5f);
+	vec4 yellow( 0.75f, 0.75f, 0.15f , 0.5f);
+	vec4 dark_yellow( 0.3f, 0.3f, 0.0f , 0.5f);
+	vec4 green(  0.15f, 0.75f, 0.15f , 0.5f);
+    vec4 dark_green(  0.0f, 0.25f, 0.0f , 0.5f);
+	vec4 cyan(   0.15f, 0.75f, 0.75f , 0.5f);
+	vec4 blue(   0.15f, 0.15f, 0.75f , 0.5f);
+	vec4 mirror( 0.0f, 0.0f, 0.0f, 1.0f);
+	vec4 purple( 0.75f, 0.15f, 0.75f , 0.5f);
+    vec4 dark_purple(  0.25f, 0.0f, 0.25f , 0.5f);
+	vec4 white(  0.75f, 0.75f, 0.75f , 0.5f);
 
 	triangles.clear();
 	triangles.reserve( 5*2*3 );
