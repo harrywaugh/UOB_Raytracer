@@ -25,8 +25,8 @@ SDL_Event event;
 
 
 #define OCLFILE "Source/kernels.cl"
-#define WORK_SIZE_X 64                 
-#define WORK_SIZE_Y 8       
+#define WORK_SIZE_X 128                 
+#define WORK_SIZE_Y 4       
 
 
 #define SCREEN_WIDTH 1024
