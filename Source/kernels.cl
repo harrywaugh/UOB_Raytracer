@@ -1,11 +1,11 @@
 #pragma OPENCL EXTENSION cl_khr_fp64 : enable
 
-constant float3 indirect_light = (float3)(0.35f, 0.35f, 0.35f);
-constant float3 light_color    = (float3) (15.0f, 15.0f, 15.0f);
+constant float3 indirect_light = (float3)(0.5f, 0.5f, 0.5f);
+constant float3 light_color    = (float3) (1000.0f, 1000.0f, 1000.0f);
 constant float3 bias           = (float3) (0.00001f, 0.00001f, 0.00001f);
 constant char rays_x = 3;
 constant char rays_y = 3;
-constant char aa_rays = 9;
+#define aa_rays 9
 
 #define SCREEN_WIDTH 1024.0f
 #define SCREEN_HEIGHT 1024.0f
@@ -61,43 +61,43 @@ inline float3 crush(uint3 vector, float range) { // XORSHIFT Alg.
   return fl_seed - range/2.f;
 }
 
-bool closest_intersection(Ray *ray, local float3 *triangle_vertexes, local float3 *triangle_normals, int triangle_n) {
+void closest_intersection(Ray *rays, local float3 *triangle_vertexes, local float3 *triangle_normals, int triangle_n) {
   // Set closest intersection to be the max float value
-  float current_t = MAXFLOAT;
+  float current_t[aa_rays] = {MAXFLOAT};
   // Make 4D ray into 3D ray
   for (uint i = 0; i < triangle_n; i++) {
     // Define two corners of triangle relative to the other corner
       const float3 v0 = triangle_vertexes[i*3];
-
       const float3 e1 = triangle_vertexes[i*3+1] - v0;
       const float3 e2 = triangle_vertexes[i*3+2] - v0;
-      const float3 b  = ray->start - v0;
 
-      const float3 A[3]  = {-ray->direction, e1, e2};
-      const float3 A0[3] = {b,  e1, e2};
+      for (int r = 0; r < aa_rays; r++)  {
+        const float3 b  = rays[r].start - v0;
 
-      const float detA_recip  = native_recip(det(A));
-      const float t           = det(A0)*detA_recip;
+        const float3 A[3]  = {-rays[r].direction, e1, e2};
+        const float3 A0[3] = {b,  e1, e2};
 
-      // If ray goes through triangle, and is the closest triangle
-      if (  t < current_t  ) {
-        const float3 A1[3] = {-ray->direction, b,  e2};
-        const float3 A2[3] = {-ray->direction, e1, b};
-        const float u = det(A1)*detA_recip;
-        const float v = det(A2)*detA_recip; 
+        const float detA_recip  = native_recip(det(A));
+        const float t           = det(A0)*detA_recip;
 
-        if (u >= 0 && v >= 0 && (u+v) <= 1) {
-          // float3 dist_vec                      = t*dir;
-          // closest_intersection->distance       = native_sqrt(dist_vec.x*dist_vec.x + dist_vec.y*dist_vec.y + dist_vec.z*dist_vec.z);
-          ray->intersect          =  v0 + (u * e1) + (v * e2);
-          ray->intersect_triangle = i;
-          current_t                            = t;
-        }
+        // If ray goes through triangle, and is the closest triangle
+        if (  t < current_t[r]  ) {
+          const float3 A1[3] = {-rays[r].direction, b,  e2};
+          const float3 A2[3] = {-rays[r].direction, e1, b};
+          const float u = det(A1)*detA_recip;
+          const float v = det(A2)*detA_recip; 
 
+          if (u >= 0 && v >= 0 && (u+v) <= 1) {
+            // float3 dist_vec                      = t*dir;
+            // closest_intersection->distance       = native_sqrt(dist_vec.x*dist_vec.x + dist_vec.y*dist_vec.y + dist_vec.z*dist_vec.z);
+            rays[r].intersect          = v0 + (u * e1) + (v * e2);
+            rays[r].intersect_triangle = i;
+            current_t[r]               = t;
+          }
       }
+    }
   }
-  if (current_t == MAXFLOAT) return false;
-  return true;
+
 }
 
 // bool closest_intersection2(float3 start, float3 dir, local float3 *triangle_vertexes, local float3 *triangle_normals, private Intersection* closest_intersection, int triangle_n) {
@@ -255,27 +255,33 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
 
 
 
-  Ray rays[9];
+  Ray rays[aa_rays];
   const float3 r0 = rot_matrix[0];
   const float3 r1 = rot_matrix[1];
   const float3 r2 = rot_matrix[2];
 
   for (char dy = 0; dy < rays_y; dy++)  {
     for (char dx = 0; dx < rays_x; dx++)  {
-      rays[r].start = camera_pos;
+      rays[dy*rays_y + dx].start = camera_pos;
 
       rays[dy*rays_y + dx].direction = base_dir + (float3) (dx, dy, 0.0f);
       rays[dy*rays_y + dx].direction = (float3) (dot(r0, rays[dy*rays_y + dx].direction), 
                                                  dot(r1, rays[dy*rays_y + dx].direction), 
                                                  dot(r2, rays[dy*rays_y + dx].direction));
+      rays[dy*rays_y + dx].intersect_triangle = -1;
     }
   }
 
   wait_group_events(3, &e);
-  for (char r = 0; r < rays_y*rays_x; dy++)  {
+
+  closest_intersection(&rays, LOC_triangle_vertexes, LOC_triangle_normals, triangle_n);
+
+
+
+  for (char r = 0; r < aa_rays; r++)  {
     // Find intersection point with closest geometry. If no intersection, paint the abyss
-    if (closest_intersection(&rays[r], LOC_triangle_vertexes, LOC_triangle_normals, triangle_n)) {
-      const float4 color = LOC_triangle_colors[rays[r].intersect_triangle];
+    if (rays[r].intersect_triangle != -1) {
+      const float4 color       = LOC_triangle_colors[rays[r].intersect_triangle];
       const float3 first_light = direct_light(rays[r], LOC_triangle_vertexes, LOC_triangle_normals, light_pos, triangle_n, LOC_triangle_normals[rays[r].intersect_triangle], global_id);
 
       // const float diffusity = color.w; // Diffuse = 1, mirror = 0        
@@ -285,7 +291,7 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
       final_color_total += color.xyz*(indirect_light+first_light); //Add indirect back! 
     }
   }
-  PutPixelSDL(screen_buffer, (short)x, (short)y, final_color_total/(rays_x*rays_y));
+  PutPixelSDL(screen_buffer, (short)x, (short)y, final_color_total/aa_rays);
 }
 
 
