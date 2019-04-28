@@ -145,6 +145,7 @@ void offload_rendering(screen* screen, t_ocl ocl)  {
                           -sin(yaw), cos(yaw)*sin(pitch),   cos(pitch)*cos(yaw), 0.0f};
 
 
+
   err = clEnqueueWriteBuffer(ocl.queue, ocl.rotation_matrix_buffer, CL_TRUE, 0,
   sizeof(float) * 12, &rot_matrix, 0, NULL, NULL);
   checkError(err, "writing rotation matrix data", __LINE__);
