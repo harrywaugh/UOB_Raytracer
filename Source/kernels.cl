@@ -3,6 +3,10 @@
 constant float3 indirect_light = (float3)(0.35f, 0.35f, 0.35f);
 constant float3 light_color    = (float3) (15.0f, 15.0f, 15.0f);
 constant float3 bias           = (float3) (0.00001f, 0.00001f, 0.00001f);
+constant char rays_x = 3;
+constant char rays_y = 3;
+constant char aa_rays = 9;
+
 #define SCREEN_WIDTH 1024.0f
 #define SCREEN_HEIGHT 1024.0f
 
@@ -180,7 +184,7 @@ float3 direct_light(const Ray ray, local float3 *triangle_vertexes, local float3
   const float light_spread = 0.05f;
   float3 total_light = (float3) 0.0f;
   uint3 rand_vec = random((uint3) (global_id, global_id*91.0f, global_id*19.0f));
-  
+
 
   //Get vector from intersection point to light position, and its magnitude
   Ray shadow_ray;
@@ -192,11 +196,9 @@ float3 direct_light(const Ray ray, local float3 *triangle_vertexes, local float3
   // Check parallel ghost surfaces for soft triangles
   for (int i = 0; i < light_sources; i++)  {
     rand_vec = random(rand_vec);
-    float3 ghost_dir = shadow_ray.direction + crush(rand_vec, light_spread);
-    float ghost_radius_sq = ghost_dir.x*ghost_dir.x + ghost_dir.y*ghost_dir.y + ghost_dir.z*ghost_dir.z;
 
-    if (!in_shadow(shadow_ray.start, ghost_dir, triangle_vertexes, triangle_normals, radius_sq, triangle_n)) {
-      total_light += (light_color * max(dot(ghost_dir, intersect_normal), 0.0f)) / ( 4.0f * ((float)M_PI) * radius_sq);
+    if (!in_shadow(shadow_ray.start, shadow_ray.direction + crush(rand_vec, light_spread), triangle_vertexes, triangle_normals, radius_sq, triangle_n)) {
+      total_light += (light_color * max(dot(shadow_ray.direction , intersect_normal), 0.0f)) / ( 4.0f * ((float)M_PI) * radius_sq);
       // total_light += (light_color * max(dot(dir, intersect_normal+5*rand_vec), 0.0f)) / ( 4 * ((float)M_PI) * radius_sq);
     }
   }
@@ -240,38 +242,46 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
 				 int triangle_n, float focal_length, local float3 *LOC_triangle_vertexes,  local float3 *LOC_triangle_normals,
 				 local float4 *LOC_triangle_colors)
 {         /* accumulated magnitudes of velocity for each cell */
-  const int x = get_global_id(0);
-  const int y = get_global_id(1);
-  const int global_id = y*SCREEN_WIDTH+x;
-
   event_t e = async_work_group_copy(LOC_triangle_vertexes, triangle_vertexes, triangle_n*3, 0);
   e         = async_work_group_copy(LOC_triangle_normals,  triangle_normals,  triangle_n,   0);
   e         = async_work_group_copy(LOC_triangle_colors,   triangle_colors,   triangle_n,   0);
-  wait_group_events(3, &e);
 
-  const char rays_x = 3;
-  const char rays_y = 3;
+  const int x = get_global_id(0);
+  const int y = get_global_id(1);
+  const int global_id = y*SCREEN_WIDTH+x;
+  float3 final_color_total = (float3) (0.0f);
 
   const float3 base_dir = (float3) (x*rays_x - (SCREEN_WIDTH*rays_x)/2.0f, y*rays_y - (SCREEN_HEIGHT*rays_y)/2.0f, focal_length);
 
-  Ray ray;
-  ray.start = camera_pos;
 
 
+  Ray rays[9];
+  const float3 r0 = rot_matrix[0];
+  const float3 r1 = rot_matrix[1];
+  const float3 r2 = rot_matrix[2];
 
-  float3 final_color_total = (float3) (0.0f);
+  for (char dy = 0; dy < rays_y; dy++)  {
+    for (char dx = 0; dx < rays_x; dx++)  {
+      rays[dy*rays_y + dx].start = camera_pos;
 
+      rays[dy*rays_y + dx].direction = base_dir + (float3) (dx, dy, 0.0f);
+      rays[dy*rays_y + dx].direction = (float3) (dot(r0, rays[dy*rays_y + dx].direction), 
+                                                 dot(r1, rays[dy*rays_y + dx].direction), 
+                                                 dot(r2, rays[dy*rays_y + dx].direction));
+    }
+  }
+
+
+  wait_group_events(3, &e);
   for (char dy = 0; dy < rays_y; dy++)  {
 
     for (char dx = 0; dx < rays_x; dx++)  {
-    // Declare ray for given position on the screen. Rotate ray by current view angle
-        ray.direction = base_dir + (float3) (dx, dy, 0.0f);
-        ray.direction = (float3) (dot(rot_matrix[0], ray.direction), dot(rot_matrix[1], ray.direction), dot(rot_matrix[2], ray.direction));
         // Find intersection point with closest geometry. If no intersection, paint the abyss
-        if (closest_intersection(&ray, LOC_triangle_vertexes, LOC_triangle_normals, triangle_n)) {
-          const float4 color = LOC_triangle_colors[ray.intersect_triangle];
-          // const float diffusity = color.w; // Diffuse = 1, mirror = 0
-          const float3 first_light = direct_light(ray, LOC_triangle_vertexes, LOC_triangle_normals, light_pos, triangle_n, LOC_triangle_normals[ray.intersect_triangle], global_id);        
+        if (closest_intersection(&rays[dy*rays_y + dx], LOC_triangle_vertexes, LOC_triangle_normals, triangle_n)) {
+          const float4 color = LOC_triangle_colors[rays[dy*rays_y + dx].intersect_triangle];
+          const float3 first_light = direct_light(rays[dy*rays_y + dx], LOC_triangle_vertexes, LOC_triangle_normals, light_pos, triangle_n, LOC_triangle_normals[rays[dy*rays_y + dx].intersect_triangle], global_id);
+
+          // const float diffusity = color.w; // Diffuse = 1, mirror = 0        
           // const float3 outgoing_dir = reflect_ray(dir, LOC_triangle_normals[intersect.triangle_index]);
           // const float3 second_light = secondary_light(intersect.position, outgoing_dir, LOC_triangle_vertexes, LOC_triangle_normals, LOC_triangle_colors, triangle_n, light_pos, global_id, 1, diffusity);
 
