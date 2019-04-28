@@ -262,7 +262,7 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
 
   for (char dy = 0; dy < rays_y; dy++)  {
     for (char dx = 0; dx < rays_x; dx++)  {
-      rays[dy*rays_y + dx].start = camera_pos;
+      rays[r].start = camera_pos;
 
       rays[dy*rays_y + dx].direction = base_dir + (float3) (dx, dy, 0.0f);
       rays[dy*rays_y + dx].direction = (float3) (dot(r0, rays[dy*rays_y + dx].direction), 
@@ -271,22 +271,18 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
     }
   }
 
-
   wait_group_events(3, &e);
-  for (char dy = 0; dy < rays_y; dy++)  {
+  for (char r = 0; r < rays_y*rays_x; dy++)  {
+    // Find intersection point with closest geometry. If no intersection, paint the abyss
+    if (closest_intersection(&rays[r], LOC_triangle_vertexes, LOC_triangle_normals, triangle_n)) {
+      const float4 color = LOC_triangle_colors[rays[r].intersect_triangle];
+      const float3 first_light = direct_light(rays[r], LOC_triangle_vertexes, LOC_triangle_normals, light_pos, triangle_n, LOC_triangle_normals[rays[r].intersect_triangle], global_id);
 
-    for (char dx = 0; dx < rays_x; dx++)  {
-        // Find intersection point with closest geometry. If no intersection, paint the abyss
-        if (closest_intersection(&rays[dy*rays_y + dx], LOC_triangle_vertexes, LOC_triangle_normals, triangle_n)) {
-          const float4 color = LOC_triangle_colors[rays[dy*rays_y + dx].intersect_triangle];
-          const float3 first_light = direct_light(rays[dy*rays_y + dx], LOC_triangle_vertexes, LOC_triangle_normals, light_pos, triangle_n, LOC_triangle_normals[rays[dy*rays_y + dx].intersect_triangle], global_id);
+      // const float diffusity = color.w; // Diffuse = 1, mirror = 0        
+      // const float3 outgoing_dir = reflect_ray(dir, LOC_triangle_normals[intersect.triangle_index]);
+      // const float3 second_light = secondary_light(intersect.position, outgoing_dir, LOC_triangle_vertexes, LOC_triangle_normals, LOC_triangle_colors, triangle_n, light_pos, global_id, 1, diffusity);
 
-          // const float diffusity = color.w; // Diffuse = 1, mirror = 0        
-          // const float3 outgoing_dir = reflect_ray(dir, LOC_triangle_normals[intersect.triangle_index]);
-          // const float3 second_light = secondary_light(intersect.position, outgoing_dir, LOC_triangle_vertexes, LOC_triangle_normals, LOC_triangle_colors, triangle_n, light_pos, global_id, 1, diffusity);
-
-          final_color_total += color.xyz*(indirect_light+first_light); //Add indirect back! 
-        }
+      final_color_total += color.xyz*(indirect_light+first_light); //Add indirect back! 
     }
   }
   PutPixelSDL(screen_buffer, (short)x, (short)y, final_color_total/(rays_x*rays_y));
