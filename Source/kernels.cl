@@ -179,6 +179,8 @@ float3 direct_light(const Ray ray, local float3 *triangle_vertexes, local float3
   const short light_sources = 10;
   const float light_spread = 0.05f;
   float3 total_light = (float3) 0.0f;
+  uint3 rand_vec = random((uint3) (global_id, global_id*91.0f, global_id*19.0f));
+  
 
   //Get vector from intersection point to light position, and its magnitude
   Ray shadow_ray;
@@ -186,7 +188,6 @@ float3 direct_light(const Ray ray, local float3 *triangle_vertexes, local float3
   shadow_ray.start     = ray.intersect + bias*shadow_ray.direction;
   const float radius_sq = shadow_ray.direction.x*shadow_ray.direction.x + shadow_ray.direction.y*shadow_ray.direction.y + shadow_ray.direction.z*shadow_ray.direction.z;
 
-  uint3 rand_vec = random((uint3) (global_id, global_id*91.0f, global_id*19.0f));
 
   // Check parallel ghost surfaces for soft triangles
   for (int i = 0; i < light_sources; i++)  {
@@ -194,8 +195,8 @@ float3 direct_light(const Ray ray, local float3 *triangle_vertexes, local float3
     float3 ghost_dir = shadow_ray.direction + crush(rand_vec, light_spread);
     float ghost_radius_sq = ghost_dir.x*ghost_dir.x + ghost_dir.y*ghost_dir.y + ghost_dir.z*ghost_dir.z;
 
-    if (!in_shadow(shadow_ray.start, ghost_dir, triangle_vertexes, triangle_normals, ghost_radius_sq, triangle_n)) {
-      total_light += (light_color * max(dot(ghost_dir, intersect_normal), 0.0f)) / ( 4 * ((float)M_PI) * ghost_radius_sq);
+    if (!in_shadow(shadow_ray.start, ghost_dir, triangle_vertexes, triangle_normals, radius_sq, triangle_n)) {
+      total_light += (light_color * max(dot(ghost_dir, intersect_normal), 0.0f)) / ( 4.0f * ((float)M_PI) * radius_sq);
       // total_light += (light_color * max(dot(dir, intersect_normal+5*rand_vec), 0.0f)) / ( 4 * ((float)M_PI) * radius_sq);
     }
   }
