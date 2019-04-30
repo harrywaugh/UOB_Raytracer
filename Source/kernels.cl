@@ -1,7 +1,7 @@
 #pragma OPENCL EXTENSION cl_khr_fp64 : enable
 
-constant float3 indirect_light = (float3)(0.35f, 0.35f, 0.35f);
-constant float3 light_color    = (float3) (15.0f, 15.0f, 15.0f);
+constant float3 indirect_light = (float3)(0.25f, 0.25f, 0.25f);
+constant float3 light_color    = (float3) (16.0f, 16.0f, 16.0f);
 constant float3 bias           = (float3) (0.000001f, 0.000001f, 0.000001f);
 constant char rays_x = 3;
 constant char rays_y = 3;
@@ -89,7 +89,6 @@ inline Ray refract_ray(Ray ray)  {
   if(c2 < 0.0f)  {
     return reflect_ray(ray);
   }  
-
   refracted_ray.intersect_triangle = -1;
   refracted_ray.intersect_color = (float4) (1.0f, 0.0f, 0.0f, 1.0f);
   refracted_ray.direction = (n*ray.direction + (n*c1-c2)*(-normal));
@@ -105,7 +104,7 @@ void batch_ray_intersections(Ray *rays, local float3 *triangle_vertexes, local f
   // Set closest intersection to be the max float value
   // Make 4D ray into 3D ray
 
-  for (uint r = 1; r < aa_rays-1; r+=2)  {
+  for (uint r = 0; r < aa_rays; r++)  {
     float current_t = MAXFLOAT;
     
 
@@ -256,7 +255,7 @@ float3 direct_light(const Ray ray, local float3 *triangle_vertexes, local float4
 
     int mask = (!in_shadow(shadow_ray.start, shadow_ray.direction + crush(rand_vec, light_spread), triangle_vertexes, triangle_colors, radius_sq, triangle_n));
     total_light += mask*(light_color * max(dot(shadow_ray.direction , intersect_normal), 0.0f)) / ( 4.0f * ((float)M_PI) * radius_sq);
-    // total_light += (light_color * max(dot(dir, intersect_normal+5*rand_vec), 0.0f)) / ( 4 * ((float)M_PI) * radius_sq);
+    // total_light += mask*(light_color * max(dot(shadow_ray.direction , intersect_normal+5*crush(rand_vec, 2*light_spread)), 0.0f)) / ( 4.0f * ((float)M_PI) * radius_sq);
   }
 
   return total_light/light_sources;
@@ -320,7 +319,6 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
       rays[dy*rays_y + dx].intersect = (float3) 0.0f;
       rays[dy*rays_y + dx].medium = AIR;
       rays[dy*rays_y + dx].direction = normalize(rays[dy*rays_y + dx].direction);
-
     }
   }
 
@@ -328,10 +326,9 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
 
   batch_ray_intersections(&rays, LOC_triangle_vertexes, LOC_triangle_normals, LOC_triangle_colors, triangle_n);
 
-  for (char r = 1; r < aa_rays-1; r+=2)  {
+  for (char r = 0; r < aa_rays; r++)  {
     // Find intersection point with closest geometry. If no intersection, paint the abyss
     if (rays[r].intersect_triangle != -1) {
-      // const float diffusity = color.w; // Diffuse = 1, mirror = 0        
       float3 second_light = (float3) 0.0f;
       if(rays[r].intersect_color.w <= 0.0f)  { // Mirror or glass
 
@@ -342,7 +339,7 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
       }
     }
   }
-  color_pixel(screen_buffer, (short)x, (short)y, final_color_total/4.0f);
+  color_pixel(screen_buffer, (short)x, (short)y, final_color_total/aa_rays);
 }
 
 
