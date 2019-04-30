@@ -110,8 +110,8 @@ int main(int argc, char* argv[]) {
   // While user hasn't quit
   while (!quit) {
     // If there is an update to the scene, then draw changes. Check if user wants to quit
-    if (true)  {
-      update();
+    if (update())  {
+      // update();
       auto start = high_resolution_clock::now();
       offload_rendering(screen, ocl);
       auto stop = high_resolution_clock::now();

@@ -55,6 +55,7 @@ void LoadTestModel( std::vector<Triangle>& triangles )
 	vec4 cyan(   0.15f, 0.75f, 0.75f , 1.0f);
 	vec4 blue(   0.15f, 0.15f, 0.75f , 1.0f);
 	vec4 mirror( 0.0f, 0.0f, 0.0f, 0.0f);
+	vec4 glass( 0.f, 0.f, 0.f, -1.0f);
 	vec4 purple( 0.75f, 0.15f, 0.75f , 1.0f);
     vec4 dark_purple(  0.25f, 0.0f, 0.25f , 1.0f);
 	vec4 white(  0.75f, 0.75f, 0.75f , 1.0f);
@@ -111,24 +112,24 @@ void LoadTestModel( std::vector<Triangle>& triangles )
 	H = vec4( 82,165,225,1);
 
 	// Front
-	triangles.push_back( Triangle(E,B,A,red) );
-	triangles.push_back( Triangle(E,F,B,red) );
+	triangles.push_back( Triangle(E,B,A,glass) );
+	triangles.push_back( Triangle(E,F,B,glass) );
 
 	// Front
-	triangles.push_back( Triangle(F,D,B,red) );
-	triangles.push_back( Triangle(F,H,D,red) );
+	triangles.push_back( Triangle(F,D,B,glass) );
+	triangles.push_back( Triangle(F,H,D,glass) );
 
 	// BACK
-	triangles.push_back( Triangle(H,C,D,red) );
-	triangles.push_back( Triangle(H,G,C,red) );
+	triangles.push_back( Triangle(H,C,D,glass) );
+	triangles.push_back( Triangle(H,G,C,glass) );
 
 	// LEFT
-	triangles.push_back( Triangle(G,E,C,red) );
-	triangles.push_back( Triangle(E,A,C,red) );
+	triangles.push_back( Triangle(G,E,C,glass) );
+	triangles.push_back( Triangle(E,A,C,glass) );
 
 	// TOP
-	triangles.push_back( Triangle(G,F,E,red) );
-	triangles.push_back( Triangle(G,H,F,red) );
+	triangles.push_back( Triangle(G,F,E,glass) );
+	triangles.push_back( Triangle(G,H,F,glass) );
 
 	// ---------------------------------------------------------------------------
 	// Tall block

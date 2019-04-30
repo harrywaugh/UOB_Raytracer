@@ -2,13 +2,15 @@
 
 constant float3 indirect_light = (float3)(0.35f, 0.35f, 0.35f);
 constant float3 light_color    = (float3) (15.0f, 15.0f, 15.0f);
-constant float3 bias           = (float3) (0.00001f, 0.00001f, 0.00001f);
+constant float3 bias           = (float3) (0.000001f, 0.000001f, 0.000001f);
 constant char rays_x = 3;
 constant char rays_y = 3;
 #define aa_rays 9
 
 #define SCREEN_WIDTH 1024.0f
 #define SCREEN_HEIGHT 1024.0f
+#define GLASS 1.52f
+#define AIR 1.00f
 
 /////READ ONLY BUFFERS
 
@@ -22,10 +24,14 @@ typedef struct  {
   float3 start;
   float3 direction;
   float3 intersect;
+  float3 intersect_normal;
+  float4 intersect_color;
+  float medium;
   int intersect_triangle;
+
 } Ray;
 
-inline float det(float3 *M) {
+inline float det(const float3 *M) {
 	return M[0].x * (M[1].y * M[2].z - M[1].z * M[2].y) -
 		     M[0].y * (M[1].x * M[2].z - M[1].z * M[2].x) +
 		     M[0].z * (M[1].x * M[2].y - M[1].y * M[2].x);
@@ -61,21 +67,46 @@ inline float3 crush(uint3 vector, float range) { // XORSHIFT Alg.
   return fl_seed - range/2.f;
 }
 
-inline void check_ray(Ray *ray, float *current_t, const float3 v0, const float3 e1, const float3 e2, int i)  {
-  
+inline Ray reflect_ray(Ray ray)  {
+  Ray reflected_ray;
+  reflected_ray.intersect_triangle = -1;
+  reflected_ray.direction = (ray.direction-2*(dot(ray.direction, ray.intersect_normal)*ray.intersect_normal)); // MINUS here???
+  reflected_ray.start = ray.intersect + bias*reflected_ray.direction;
+  reflected_ray.medium = AIR;
+  return reflected_ray;
+}
+
+inline Ray refract_ray(Ray ray)  {
+  Ray refracted_ray;
+
+  const char medium_mask = (ray.medium == AIR); 
+  const float n1 = medium_mask*AIR   + (medium_mask^1)*GLASS; 
+  const float n2 = medium_mask*GLASS + (medium_mask^1)*AIR; 
+  const float n = native_divide(n1, n2);
+
+
+  const float c1 = dot(ray.intersect_normal, ray.direction);
+  const float c2 = native_sqrt(1-(n*n)*(1-(c1*c1)));
+
+  refracted_ray.intersect_triangle = -1;
+  refracted_ray.direction = (n*ray.direction + (n*c1-c2)*(-ray.intersect_normal));
+  refracted_ray.start = ray.intersect + bias*refracted_ray.direction;
+  refracted_ray.medium = n2;
+  return refracted_ray;
 }
 
 
 
-void batch_ray_intersections(Ray *rays, local float3 *triangle_vertexes, local float3 *triangle_normals, int triangle_n) {
+void batch_ray_intersections(Ray *rays, local float3 *triangle_vertexes, local float3 *triangle_normals, local float4 *triangle_colors, int triangle_n) {
   // Set closest intersection to be the max float value
   // Make 4D ray into 3D ray
 
-  for (uint r = 0; r < aa_rays; r++)  {
+  for (uint r = 1; r < aa_rays-1; r+=2)  {
     float current_t = MAXFLOAT;
+    
 
     for (uint i = 0; i < triangle_n; i++) {
-      // Define two corners of triangle relative to the other corner
+        // Define two corners of triangle relative to the other corner
       const float3 v0 = triangle_vertexes[i*3];
       const float3 e1 = triangle_vertexes[i*3+1] - v0;
       const float3 e2 = triangle_vertexes[i*3+2] - v0;
@@ -98,7 +129,7 @@ void batch_ray_intersections(Ray *rays, local float3 *triangle_vertexes, local f
       const float v = det(A2)*detA_recip; 
 
 
-      const int intersected = (t < current_t && u >= 0 && v >= 0 && (u+v) <= 1);
+      const int intersected = (t < current_t && u >= 0 && v >= 0 && (u+v) <= 1 && t >=0);
       // const int not_intersected = intersected ^ 1;
 
       // If ray goes through triangle, and is the closest triangle
@@ -108,92 +139,96 @@ void batch_ray_intersections(Ray *rays, local float3 *triangle_vertexes, local f
         // ray->intersect_triangle = intersected*i + not_intersected*ray->intersect_triangle;
         rays[r].intersect_triangle = i;
         rays[r].intersect          = (v0 + (u*e1) + (v*e2));
-        *current_t                 = t;
+        rays[r].intersect_normal   = triangle_normals[i];
+        rays[r].intersect_color    = triangle_colors[i];
+        current_t                  = t;
       }
-    }
+    }  
   }
-
-  
 }
 
-// bool closest_intersection2(float3 start, float3 dir, local float3 *triangle_vertexes, local float3 *triangle_normals, private Intersection* closest_intersection, int triangle_n) {
-//   // Set closest intersection to be the max float value
-//   float current_t = MAXFLOAT;
-//   // Make 4D ray into 3D ray
-//   for (uint i = 0; i < triangle_n; i++) {
-//     // Define two corners of triangle relative to the other corner
-//     if(dot(dir, triangle_normals[i]) < 0.f)  {
-//       const float3 v0 = triangle_vertexes[i*3];
+void single_ray_intersections(Ray *ray, local float3 *triangle_vertexes, local float3 *triangle_normals, local float4 *triangle_colors, int triangle_n) {
+  // Set closest intersection to be the max float value
+  // Make 4D ray into 3D ray
 
-//       const float3 e1 = triangle_vertexes[i*3+1] - v0;
-//       const float3 e2 = triangle_vertexes[i*3+2] - v0;
-//       const float3 b  = start - v0;
+  float current_t = MAXFLOAT;
 
-//       const float3 A[3]  = {-dir, e1, e2};
-//       const float3 A0[3] = {b,  e1, e2};
-
-//       const float detA_recip  = native_recip(det(A));
-//       const float t           = det(A0)*detA_recip;
-
-//       // If ray goes through triangle, and is the closest triangle
-//       if (  t < current_t  ) {
-//         const float3 A1[3] = {-dir, b,  e2};
-//         const float3 A2[3] = {-dir, e1, b};
-//         const float u = det(A1)*detA_recip;
-//         const float v = det(A2)*detA_recip; 
-
-//         if (u >= 0 && v >= 0 && (u+v) <= 1) {
-//           // float3 dist_vec                      = t*dir;
-//           // closest_intersection->distance       = native_sqrt(dist_vec.x*dist_vec.x + dist_vec.y*dist_vec.y + dist_vec.z*dist_vec.z);
-//           closest_intersection->position       = v0 + (u * e1) + (v * e2);
-//           closest_intersection->triangle_index = i;
-//           current_t                            = t;
-//         }
-
-//       }
-//     }
-//   }
-//   if (current_t == MAXFLOAT) return false;
-//   return true;
-// }
+  for (uint i = 0; i < triangle_n; i++) {
+    // Define two corners of triangle relative to the other corner
+    const float3 v0 = triangle_vertexes[i*3];
+    const float3 e1 = triangle_vertexes[i*3+1] - v0;
+    const float3 e2 = triangle_vertexes[i*3+2] - v0;
 
 
-bool in_shadow(float3 start, float3 dir, local float3 *triangle_vertexes, local float3 *triangle_normals,  float radius_sq, int triangle_n) {
+    const float3 b  = ray->start - v0;
+
+
+    const float3 A[3]  = {-ray->direction, e1, e2};
+    const float3 A0[3] = {b,  e1, e2};
+
+
+    const float detA_recip  = native_recip(det(A));
+    const float t           = det(A0)*detA_recip;
+
+
+    const float3 A1[3] = {-ray->direction, b,  e2};
+    const float3 A2[3] = {-ray->direction, e1, b};
+    const float u = det(A1)*detA_recip;
+    const float v = det(A2)*detA_recip; 
+
+
+    const int intersected = (t < current_t && u >= 0 && v >= 0 && (u+v) <= 1 && t >=0);
+    // const int not_intersected = intersected ^ 1;
+
+    // If ray goes through triangle, and is the closest triangle
+    if (  intersected  ) {
+      // ray->intersect          = intersected*(v0 + (u*e1) + (v*e2)) + not_intersected*ray->intersect;
+      // current_t[r]               = intersected*t + not_intersected*current_t[r] ;
+      // ray->intersect_triangle = intersected*i + not_intersected*ray->intersect_triangle;
+      ray->intersect_triangle = i;
+      ray->intersect          = (v0 + (u*e1) + (v*e2));
+      ray->intersect_normal   = triangle_normals[i];
+      ray->intersect_color    = triangle_colors[i];
+      current_t               = t;
+    }
+  }
+}
+
+
+bool in_shadow(float3 start, float3 dir, local float3 *triangle_vertexes, float radius_sq, int triangle_n) {
   // Make 4D ray into 3D ray
 
   for (uint i = 0; i < triangle_n; i++) {
     // Define two corners of triangle relative to the other corner
-    if(dot(dir, triangle_normals[i]) < 0.f)  {
-      const float3 v0 = triangle_vertexes[i*3];
+    const float3 v0 = triangle_vertexes[i*3];
 
-      const float3 e1 = triangle_vertexes[i*3+1] - v0;
-      const float3 e2 = triangle_vertexes[i*3+2] - v0;
-      const float3 b  = start - v0;
+    const float3 e1 = triangle_vertexes[i*3+1] - v0;
+    const float3 e2 = triangle_vertexes[i*3+2] - v0;
+    const float3 b  = start - v0;
 
-      const float3 A[3]  = {-dir, e1, e2};
-      const float3 A0[3] = {b,  e1, e2};
-      const float detA_recip  = native_recip(det(A));
-      const float t = det(A0)*detA_recip;
+    const float3 A[3]  = {-dir, e1, e2};
+    const float3 A0[3] = {b,  e1, e2};
+    const float detA_recip  = native_recip(det(A));
+    const float t = det(A0)*detA_recip;
 
-      const float3 dist_vec            = t*dir;
-      const float intersect_dist       = dist_vec.x*dist_vec.x + dist_vec.y*dist_vec.y + dist_vec.z*dist_vec.z;
+    const float3 dist_vec            = t*dir;
+    const float intersect_dist       = dist_vec.x*dist_vec.x + dist_vec.y*dist_vec.y + dist_vec.z*dist_vec.z;
 
-      if (t >= 0 && intersect_dist < radius_sq ) {
-        const float3 A1[3] = {-dir, b,  e2};
-        const float3 A2[3] = {-dir, e1, b};
-        const float u = det(A1)*detA_recip;
-        const float v = det(A2)*detA_recip; 
+    if (t >= 0 && intersect_dist < radius_sq ) {
+      const float3 A1[3] = {-dir, b,  e2};
+      const float3 A2[3] = {-dir, e1, b};
+      const float u = det(A1)*detA_recip;
+      const float v = det(A2)*detA_recip; 
 
-        if (u >= 0 && v >= 0 && (u+v) <= 1 ) {
-          return true;
-        }
+      if (u >= 0 && v >= 0 && (u+v) <= 1 ) {
+        return true;
       }
     }
   }
   return false;
 }
 
-float3 direct_light(const Ray ray, local float3 *triangle_vertexes, local float3 *triangle_normals, float3 light_pos, int triangle_n, const float3 intersect_normal, const int global_id) {
+float3 direct_light(const Ray ray, local float3 *triangle_vertexes, float3 light_pos, int triangle_n, const float3 intersect_normal, const int global_id) {
 
   //Declare colour for point to be 0
   const short light_sources = 10;
@@ -213,7 +248,7 @@ float3 direct_light(const Ray ray, local float3 *triangle_vertexes, local float3
   for (int i = 0; i < light_sources; i++)  {
     rand_vec = random(rand_vec);
 
-    int mask = (!in_shadow(shadow_ray.start, shadow_ray.direction + crush(rand_vec, light_spread), triangle_vertexes, triangle_normals, radius_sq, triangle_n));
+    int mask = (!in_shadow(shadow_ray.start, shadow_ray.direction + crush(rand_vec, light_spread), triangle_vertexes, radius_sq, triangle_n));
     total_light += mask*(light_color * max(dot(shadow_ray.direction , intersect_normal), 0.0f)) / ( 4.0f * ((float)M_PI) * radius_sq);
     // total_light += (light_color * max(dot(dir, intersect_normal+5*rand_vec), 0.0f)) / ( 4 * ((float)M_PI) * radius_sq);
   }
@@ -221,33 +256,30 @@ float3 direct_light(const Ray ray, local float3 *triangle_vertexes, local float3
   return total_light/light_sources;
 }
 
-inline Ray reflect_ray(Ray ray, float3 normal)  {
-  Ray reflected_ray;
-  reflected_ray.intersect_triangle = -1;
-  reflected_ray.direction = ray.direction-2*(dot(ray.direction, normal)*normal);
-  reflected_ray.start = ray.intersect + bias*reflected_ray.direction;
+float3 secondary_light(Ray ray, local float3 *triangle_vertexes, local float3 *triangle_normals, local float4 *triangle_colors, int triangle_n, float3 light_pos, const int global_id)  {
+  const int bounces = 3;
 
-  return reflected_ray;
-}
+  Ray perturbed_ray = ray;
+  float3 light_accumulator = (float3) 0.f;
 
-// float3 secondary_light(Ray ray, local float3 *triangle_vertexes, local float3 *triangle_normals, local float4 *triangle_colors, int triangle_n, float3 light_pos, const int global_id)  {
+  for (int b = 0; b < bounces && perturbed_ray.intersect_color.w <= 0.0f; b++ )  {
+    perturbed_ray = (perturbed_ray.intersect_color.w == 0.0f) ? reflect_ray(perturbed_ray) : refract_ray(perturbed_ray);
+    single_ray_intersections(&perturbed_ray, triangle_vertexes, triangle_normals, triangle_colors, triangle_n);
+
+    int intersected = (perturbed_ray.intersect_triangle != -1  && perturbed_ray.intersect_color.w > 0.0f);
+
+    if (intersected)  {
+      light_accumulator += indirect_light + direct_light(perturbed_ray, triangle_vertexes, light_pos, triangle_n, perturbed_ray.intersect_normal, global_id);
+    }
+
+  }
   
-//   float3 light_accumulator = (float3) 0.f;
-//   float fraction = 0.8;
-//   if (get_ray_intersections(ray, triangle_vertexes, triangle_normals, triangle_n)) {
-//     float3 light_accumulator = indirect_light+direct_light(intersect, triangle_vertexes, triangle_normals, light_pos, triangle_n, triangle_normals[intersect.triangle_index], global_id);
-//     light_accumulator *= fraction*(1-diffusity)*triangle_colors[intersect.triangle_index].xyz;
-//     light_accumulator_total += light_accumulator;
-    
-//     dir = reflect_ray(dir, triangle_normals[intersect.triangle_index]);
-//     start = intersect.position;
-//     diffusity = triangle_colors[intersect.triangle_index].w;
-//     fraction *= 0.8f;
+  // dir = reflect_ray(dir, triangle_normals[intersect.triangle_index]);
+  // start = intersect.position;
+  // diffusity = triangle_colors[intersect.triangle_index].w;
 
-//   }
-
-//   return light_accumulator_total;
-// }
+  return 0.8f*light_accumulator*perturbed_ray.intersect_color.xyz;
+}
 
 
 kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexes,   global float3 *triangle_normals,
@@ -283,28 +315,30 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
                                                  dot(r2, rays[dy*rays_y + dx].direction));
       rays[dy*rays_y + dx].intersect_triangle = -1;
       rays[dy*rays_y + dx].intersect = (float3) 0.0f;
+      rays[dy*rays_y + dx].medium = AIR;
     }
   }
 
   wait_group_events(3, &e);
 
-  batch_ray_intersections(&rays, LOC_triangle_vertexes, LOC_triangle_normals, triangle_n);
+  batch_ray_intersections(&rays, LOC_triangle_vertexes, LOC_triangle_normals, LOC_triangle_colors, triangle_n);
 
-
-
-  for (char r = 0; r < aa_rays; r++)  {
+  for (char r = 1; r < aa_rays-1; r+=2)  {
     // Find intersection point with closest geometry. If no intersection, paint the abyss
     if (rays[r].intersect_triangle != -1) {
-      const float4 color       = LOC_triangle_colors[rays[r].intersect_triangle];
-      const float3 first_light = direct_light(rays[r], LOC_triangle_vertexes, LOC_triangle_normals, light_pos, triangle_n, LOC_triangle_normals[rays[r].intersect_triangle], global_id);
       // const float diffusity = color.w; // Diffuse = 1, mirror = 0        
-      // const Ray reflected_ray = reflect_ray(dir, LOC_triangle_normals[intersect.triangle_index]);
-      // const float3 second_light = secondary_light(intersect.position, outgoing_dir, LOC_triangle_vertexes, LOC_triangle_normals, LOC_triangle_colors, triangle_n, light_pos, global_id, 1, diffusity);
-
-      final_color_total += color.xyz*(indirect_light+first_light); //Add indirect back! 
+      float3 second_light = (float3) 0.0f;
+      if(rays[r].intersect_color.w <= 0.0f)  { // Mirror or glass
+        // if (rays[r].intersect_color.w == 0.0f)
+          // printf(" (%f %f %f) (%f %f %f)\n", rays[r].direction.x, rays[r].direction.y, rays[r].direction.z, perturbed_ray.direction.x, perturbed_ray.direction.y, perturbed_ray.direction.z);
+        final_color_total += secondary_light(rays[r], LOC_triangle_vertexes, LOC_triangle_normals, LOC_triangle_colors, triangle_n, light_pos, global_id);
+      } else { 
+        const float3 first_light  = direct_light(rays[r], LOC_triangle_vertexes, light_pos, triangle_n, rays[r].intersect_normal, global_id);
+        final_color_total += rays[r].intersect_color.xyz*(indirect_light + first_light);
+      }
     }
   }
-  PutPixelSDL(screen_buffer, (short)x, (short)y, final_color_total/aa_rays);
+  PutPixelSDL(screen_buffer, (short)x, (short)y, final_color_total/4);
 }
 
 
