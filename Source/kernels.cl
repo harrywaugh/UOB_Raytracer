@@ -2,7 +2,7 @@
 
 constant float3 indirect_light = (float3)(0.35f, 0.35f, 0.35f);
 constant float3 light_color    = (float3) (15.0f, 15.0f, 15.0f);
-constant float3 bias           = (float3) (0.0000001f, 0.0000001f, 0.0000001f);
+constant float3 bias           = (float3) (0.000001f, 0.000001f, 0.000001f);
 constant char rays_x = 3;
 constant char rays_y = 3;
 #define aa_rays 9
@@ -10,7 +10,7 @@ constant char rays_y = 3;
 #define SCREEN_WIDTH 1024.0f
 #define SCREEN_HEIGHT 1024.0f
 #define GLASS 1.52f
-#define AIR 1.00f
+#define AIR 1.0f
 
 /////READ ONLY BUFFERS
 
@@ -28,7 +28,6 @@ typedef struct  {
   float4 intersect_color;
   float medium;
   int intersect_triangle;
-
 } Ray;
 
 inline float det(const float3 *M) {
@@ -37,11 +36,7 @@ inline float det(const float3 *M) {
 		     M[0].z * (M[1].x * M[2].y - M[1].y * M[2].x);
 }
 
-inline void PutPixelSDL(global uint *screen_buffer, int x, int y, float3 colour) {
-  // if(x<0 || x>=SCREEN_WIDTH || y<0 || y>=SCREEN_HEIGHT)  {
-  //   printf("apa\n");
-  //   return;
-  // }
+inline void color_pixel(global uint *screen_buffer, int x, int y, float3 colour) {
   uint3 rgb = convert_uint3(min(max(255*colour, 0.f), 255.f));
   screen_buffer[y*(short)SCREEN_WIDTH+x] = (rgb.x<<16) + (rgb.y<<8) + rgb.z;
 }
@@ -73,38 +68,34 @@ inline Ray reflect_ray(Ray ray)  {
   reflected_ray.intersect_color.w = 1.0f;
 
   reflected_ray.direction = (ray.direction-2*(dot(ray.direction, ray.intersect_normal)*ray.intersect_normal)); // MINUS here???
-  reflected_ray.start = ray.intersect + bias*reflected_ray.direction;
-  reflected_ray.medium = AIR;
+  reflected_ray.start     = ray.intersect + bias*reflected_ray.direction;
+  reflected_ray.medium    = AIR;
+  reflected_ray.direction = normalize(reflected_ray.direction);
+
   return reflected_ray;
 }
- 
-
-
 
 inline Ray refract_ray(Ray ray)  {
-
-
-  
   Ray refracted_ray;
-  float cosi = max(-1.0f, min(1.0f, (dot(ray.intersect_normal, ray.direction))));
-
-  float etai = AIR, etat = GLASS;
-  float3 n = ray.intersect_normal;
-  if (cosi < 0) { cosi = -cosi; } else { etai = GLASS; etat = AIR; n *= -1.0f; }
-
-  float eta = etai / etat;
-  float k = 1.0f - eta*eta*(1.0f - cosi*cosi);
-
-
-  refracted_ray.direction = (k < 0) ? (float3)(0.0f) : eta*ray.direction + (eta*cosi-sqrtf(k))*n;
+  float3 normal          = ray.intersect_normal;
+  const char medium_mask = (ray.medium == AIR); 
+  const float n1         = medium_mask*AIR   + (medium_mask^1)*GLASS; 
+  const float n2         = medium_mask*GLASS + (medium_mask^1)*AIR; 
+  float c1               = (dot(normal, ray.direction));
+  if (c1 < 0.0f) normal *= -1.0f;   
+  c1 = fabs(c1);
+  const float n          = native_divide(n1, n2);
+  const float c2         = native_sqrt(1-(n*n)*(1-(c1*c1)));
+  if(c2 < 0.0f)  {
+    return reflect_ray(ray);
+  }  
 
   refracted_ray.intersect_triangle = -1;
-  refracted_ray.intersect_color.w = 1.0f;
+  refracted_ray.intersect_color = (float4) (1.0f, 0.0f, 0.0f, 1.0f);
+  refracted_ray.direction = (n*ray.direction + (n*c1-c2)*(-normal));
   refracted_ray.start = ray.intersect + bias*refracted_ray.direction;
-  refracted_ray.medium = GLASS;
-
-  // printf(" (%f %f %f) (%f %f %f)\n", ray.direction.x, ray.direction.y, ray.direction.z, refracted_ray.direction.x, refracted_ray.direction.y, refracted_ray.direction.z);
-
+  refracted_ray.medium = n2;
+  refracted_ray.direction = normalize(refracted_ray.direction);
   return refracted_ray;
 }
 
@@ -272,30 +263,25 @@ float3 direct_light(const Ray ray, local float3 *triangle_vertexes, local float4
 }
 
 float3 secondary_light(Ray ray, local float3 *triangle_vertexes, local float3 *triangle_normals, local float4 *triangle_colors, int triangle_n, float3 light_pos, const int global_id)  {
-  const int bounces = 5;
+  const int bounces = 10;
 
   Ray perturbed_ray = ray;
-  float3 light_accumulator = (float3) 0.f;
 
-  for (int b = 0; b < bounces && perturbed_ray.intersect_color.w <= 0.0f; b++ )  {
+  for (int b = 0; b < bounces; b++ )  {
     perturbed_ray = (perturbed_ray.intersect_color.w == 0.0f) ? reflect_ray(perturbed_ray) : refract_ray(perturbed_ray);
     single_ray_intersections(&perturbed_ray, triangle_vertexes, triangle_normals, triangle_colors, triangle_n);
 
-
-
     int intersected = (perturbed_ray.intersect_triangle != -1  && perturbed_ray.intersect_color.w > 0.0f);
-
     if (intersected)  {
-      light_accumulator += indirect_light + direct_light(perturbed_ray, triangle_vertexes, triangle_colors,  light_pos, triangle_n, perturbed_ray.intersect_normal, global_id);
+      const float3 light = indirect_light + direct_light(perturbed_ray, triangle_vertexes, triangle_colors,  light_pos, triangle_n, perturbed_ray.intersect_normal, global_id);
+      return 0.75f*light*perturbed_ray.intersect_color.xyz;
     }
-
   }
-  
-  // dir = reflect_ray(dir, triangle_normals[intersect.triangle_index]);
-  // start = intersect.position;
-  // diffusity = triangle_colors[intersect.triangle_index].w;
+  // if(light_accumulator.x == 0.0f)  {
+  //   printf("(%f %f %f %f)\n", perturbed_ray.intersect_color.x, perturbed_ray.intersect_color.y, perturbed_ray.intersect_color.z, perturbed_ray.intersect_color.w);
 
-  return 0.8f*light_accumulator*perturbed_ray.intersect_color.xyz;
+  // }
+  return (float3) 0.0f;
 }
 
 
@@ -333,6 +319,8 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
       rays[dy*rays_y + dx].intersect_triangle = -1;
       rays[dy*rays_y + dx].intersect = (float3) 0.0f;
       rays[dy*rays_y + dx].medium = AIR;
+      rays[dy*rays_y + dx].direction = normalize(rays[dy*rays_y + dx].direction);
+
     }
   }
 
@@ -354,7 +342,7 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
       }
     }
   }
-  PutPixelSDL(screen_buffer, (short)x, (short)y, final_color_total/4);
+  color_pixel(screen_buffer, (short)x, (short)y, final_color_total/4.0f);
 }
 
 
