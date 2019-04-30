@@ -92,6 +92,11 @@ inline Ray refract_ray(Ray ray)  {
   refracted_ray.direction = (n*ray.direction + (n*c1-c2)*(-ray.intersect_normal));
   refracted_ray.start = ray.intersect + bias*refracted_ray.direction;
   refracted_ray.medium = n2;
+
+  ray.direction = normalize(ray.direction);
+  refracted_ray.direction = normalize(refracted_ray.direction);
+  // printf(" (%f %f %f) (%f %f %f)\n", ray.direction.x, ray.direction.y, ray.direction.z, refracted_ray.direction.x, refracted_ray.direction.y, refracted_ray.direction.z);
+
   return refracted_ray;
 }
 
@@ -195,10 +200,12 @@ void single_ray_intersections(Ray *ray, local float3 *triangle_vertexes, local f
 }
 
 
-bool in_shadow(float3 start, float3 dir, local float3 *triangle_vertexes, float radius_sq, int triangle_n) {
+bool in_shadow(float3 start, float3 dir, local float3 *triangle_vertexes, local float4 *triangle_colors, float radius_sq, int triangle_n) {
   // Make 4D ray into 3D ray
 
   for (uint i = 0; i < triangle_n; i++) {
+    if(triangle_colors[i].w == -1.0f)
+      i+=10;
     // Define two corners of triangle relative to the other corner
     const float3 v0 = triangle_vertexes[i*3];
 
@@ -228,7 +235,7 @@ bool in_shadow(float3 start, float3 dir, local float3 *triangle_vertexes, float 
   return false;
 }
 
-float3 direct_light(const Ray ray, local float3 *triangle_vertexes, float3 light_pos, int triangle_n, const float3 intersect_normal, const int global_id) {
+float3 direct_light(const Ray ray, local float3 *triangle_vertexes, local float4 *triangle_colors, float3 light_pos, int triangle_n, const float3 intersect_normal, const int global_id) {
 
   //Declare colour for point to be 0
   const short light_sources = 10;
@@ -248,7 +255,7 @@ float3 direct_light(const Ray ray, local float3 *triangle_vertexes, float3 light
   for (int i = 0; i < light_sources; i++)  {
     rand_vec = random(rand_vec);
 
-    int mask = (!in_shadow(shadow_ray.start, shadow_ray.direction + crush(rand_vec, light_spread), triangle_vertexes, radius_sq, triangle_n));
+    int mask = (!in_shadow(shadow_ray.start, shadow_ray.direction + crush(rand_vec, light_spread), triangle_vertexes, triangle_colors, radius_sq, triangle_n));
     total_light += mask*(light_color * max(dot(shadow_ray.direction , intersect_normal), 0.0f)) / ( 4.0f * ((float)M_PI) * radius_sq);
     // total_light += (light_color * max(dot(dir, intersect_normal+5*rand_vec), 0.0f)) / ( 4 * ((float)M_PI) * radius_sq);
   }
@@ -257,7 +264,7 @@ float3 direct_light(const Ray ray, local float3 *triangle_vertexes, float3 light
 }
 
 float3 secondary_light(Ray ray, local float3 *triangle_vertexes, local float3 *triangle_normals, local float4 *triangle_colors, int triangle_n, float3 light_pos, const int global_id)  {
-  const int bounces = 3;
+  const int bounces = 5;
 
   Ray perturbed_ray = ray;
   float3 light_accumulator = (float3) 0.f;
@@ -266,10 +273,12 @@ float3 secondary_light(Ray ray, local float3 *triangle_vertexes, local float3 *t
     perturbed_ray = (perturbed_ray.intersect_color.w == 0.0f) ? reflect_ray(perturbed_ray) : refract_ray(perturbed_ray);
     single_ray_intersections(&perturbed_ray, triangle_vertexes, triangle_normals, triangle_colors, triangle_n);
 
+
+
     int intersected = (perturbed_ray.intersect_triangle != -1  && perturbed_ray.intersect_color.w > 0.0f);
 
     if (intersected)  {
-      light_accumulator += indirect_light + direct_light(perturbed_ray, triangle_vertexes, light_pos, triangle_n, perturbed_ray.intersect_normal, global_id);
+      light_accumulator += indirect_light + direct_light(perturbed_ray, triangle_vertexes, triangle_colors,  light_pos, triangle_n, perturbed_ray.intersect_normal, global_id);
     }
 
   }
@@ -329,11 +338,10 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
       // const float diffusity = color.w; // Diffuse = 1, mirror = 0        
       float3 second_light = (float3) 0.0f;
       if(rays[r].intersect_color.w <= 0.0f)  { // Mirror or glass
-        // if (rays[r].intersect_color.w == 0.0f)
-          // printf(" (%f %f %f) (%f %f %f)\n", rays[r].direction.x, rays[r].direction.y, rays[r].direction.z, perturbed_ray.direction.x, perturbed_ray.direction.y, perturbed_ray.direction.z);
+
         final_color_total += secondary_light(rays[r], LOC_triangle_vertexes, LOC_triangle_normals, LOC_triangle_colors, triangle_n, light_pos, global_id);
       } else { 
-        const float3 first_light  = direct_light(rays[r], LOC_triangle_vertexes, light_pos, triangle_n, rays[r].intersect_normal, global_id);
+        const float3 first_light  = direct_light(rays[r], LOC_triangle_vertexes, LOC_triangle_colors,  light_pos, triangle_n, rays[r].intersect_normal, global_id);
         final_color_total += rays[r].intersect_color.xyz*(indirect_light + first_light);
       }
     }
