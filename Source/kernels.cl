@@ -2,7 +2,7 @@
 
 constant float3 indirect_light = (float3)(0.35f, 0.35f, 0.35f);
 constant float3 light_color    = (float3) (15.0f, 15.0f, 15.0f);
-constant float3 bias           = (float3) (0.000001f, 0.000001f, 0.000001f);
+constant float3 bias           = (float3) (0.0000001f, 0.0000001f, 0.0000001f);
 constant char rays_x = 3;
 constant char rays_y = 3;
 #define aa_rays 9
@@ -70,31 +70,39 @@ inline float3 crush(uint3 vector, float range) { // XORSHIFT Alg.
 inline Ray reflect_ray(Ray ray)  {
   Ray reflected_ray;
   reflected_ray.intersect_triangle = -1;
+  reflected_ray.intersect_color.w = 1.0f;
+
   reflected_ray.direction = (ray.direction-2*(dot(ray.direction, ray.intersect_normal)*ray.intersect_normal)); // MINUS here???
   reflected_ray.start = ray.intersect + bias*reflected_ray.direction;
   reflected_ray.medium = AIR;
   return reflected_ray;
 }
+ 
+
+
 
 inline Ray refract_ray(Ray ray)  {
+
+
+  
   Ray refracted_ray;
+  float cosi = max(-1.0f, min(1.0f, (dot(ray.intersect_normal, ray.direction))));
 
-  const char medium_mask = (ray.medium == AIR); 
-  const float n1 = medium_mask*AIR   + (medium_mask^1)*GLASS; 
-  const float n2 = medium_mask*GLASS + (medium_mask^1)*AIR; 
-  const float n = native_divide(n1, n2);
+  float etai = AIR, etat = GLASS;
+  float3 n = ray.intersect_normal;
+  if (cosi < 0) { cosi = -cosi; } else { etai = GLASS; etat = AIR; n *= -1.0f; }
+
+  float eta = etai / etat;
+  float k = 1.0f - eta*eta*(1.0f - cosi*cosi);
 
 
-  const float c1 = dot(ray.intersect_normal, ray.direction);
-  const float c2 = native_sqrt(1-(n*n)*(1-(c1*c1)));
+  refracted_ray.direction = (k < 0) ? (float3)(0.0f) : eta*ray.direction + (eta*cosi-sqrtf(k))*n;
 
   refracted_ray.intersect_triangle = -1;
-  refracted_ray.direction = (n*ray.direction + (n*c1-c2)*(-ray.intersect_normal));
+  refracted_ray.intersect_color.w = 1.0f;
   refracted_ray.start = ray.intersect + bias*refracted_ray.direction;
-  refracted_ray.medium = n2;
+  refracted_ray.medium = GLASS;
 
-  ray.direction = normalize(ray.direction);
-  refracted_ray.direction = normalize(refracted_ray.direction);
   // printf(" (%f %f %f) (%f %f %f)\n", ray.direction.x, ray.direction.y, ray.direction.z, refracted_ray.direction.x, refracted_ray.direction.y, refracted_ray.direction.z);
 
   return refracted_ray;
