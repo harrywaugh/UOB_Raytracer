@@ -1,8 +1,11 @@
 #pragma OPENCL EXTENSION cl_khr_fp64 : enable
 
-constant float3 indirect_light = (float3)(0.25f, 0.25f, 0.25f);
+constant float3 indirect_light = (float3)(0.5f, 0.5f, 0.5f);
 constant float3 light_color    = (float3) (16.0f, 16.0f, 16.0f);
-constant float3 bias           = (float3) (0.000001f, 0.000001f, 0.000001f);
+constant float3 bias           = (float3) (0.0001f, 0.0001f, 0.0001f);
+constant float4 ball_color     = (float4) (0.5f, 0.0f, 0.0f, -1.0f);
+constant float3 circle_center  = (float3) (0.0f, 0.6f, 0.0f);
+constant float circle_radius_sq = 0.2f;
 constant char rays_x = 3;
 constant char rays_y = 3;
 #define aa_rays 9
@@ -144,9 +147,42 @@ void batch_ray_intersections(Ray *rays, local float3 *triangle_vertexes, local f
         rays[r].intersect          = (v0 + (u*e1) + (v*e2));
         rays[r].intersect_normal   = triangle_normals[i];
         rays[r].intersect_color    = triangle_colors[i];
+        // printf("box %f %f %f\n", rays[r].intersect_color.x, rays[r].intersect_color.y, rays[r].intersect_color.z);
         current_t                  = t;
       }
-    }  
+    }
+
+    const float3 L = (rays[r].start - circle_center);
+    const float a = dot(rays[r].direction, rays[r].direction);
+    const float b = 2*dot(rays[r].direction, L);
+    const float c = dot(L, L) - circle_radius_sq;
+
+    const float discriminant = b*b - 4.0f*a*c;
+    if (discriminant < 0.0f) continue;
+    const float q = (b > 0) ? -0.5 * (b + sqrt(discriminant)) : -0.5 * (b - sqrt(discriminant)); 
+    const float x0 = q / a;
+    const float x1 = c / q;
+
+    const float x_min = min(x0, x1);
+    const float x_max = max(x0, x1);
+
+    if(x_min >= 0.0f && x_min < current_t)  {
+      rays[r].intersect_triangle = -2;
+      rays[r].intersect          = rays[r].start + rays[r].direction*x_min;
+      rays[r].intersect_normal   = normalize(rays[r].intersect - circle_center);
+      rays[r].intersect_color    = ball_color;
+      // printf("ball %f %f %f\n", rays[r].interisect_color.x, rays[r].intersect_color.y, rays[r].intersect_color.z);
+
+      current_t                  = x_min;
+    } else if(x_max >= 0.0f && x_max < current_t)  {
+      rays[r].intersect_triangle = -2;
+      rays[r].intersect          = rays[r].start + rays[r].direction*x_max;
+      rays[r].intersect_normal   = normalize(rays[r].intersect - circle_center);
+      rays[r].intersect_color    = ball_color;
+      // printf("ball %f %f %f\n", rays[r].intersect_color.x, rays[r].intersect_color.y, rays[r].intersect_color.z);
+
+      current_t                  = x_max;
+    }
   }
 }
 
@@ -195,6 +231,38 @@ void single_ray_intersections(Ray *ray, local float3 *triangle_vertexes, local f
       current_t               = t;
     }
   }
+
+ const float3 L = (ray->start - circle_center);
+  const float a = dot(ray->direction, ray->direction);
+  const float b = 2*dot(ray->direction, L);
+  const float c = dot(L, L) - circle_radius_sq;
+
+  const float discriminant = b*b - 4.0f*a*c;
+  if (discriminant < 0.0f) return;
+  const float q = (b > 0) ? -0.5 * (b + sqrt(discriminant)) : -0.5 * (b - sqrt(discriminant)); 
+  const float x0 = q / a;
+  const float x1 = c / q;
+
+  const float x_min = min(x0, x1);
+  const float x_max = max(x0, x1);
+
+  if(x_min >= 0.0f && x_min < current_t)  {
+    ray->intersect_triangle = -2;
+    ray->intersect          = ray->start + ray->direction*x_min;
+    ray->intersect_normal   = normalize(ray->intersect - circle_center);
+    ray->intersect_color    = ball_color;
+    // printf("ball %f %f %f\n", ray->intersect_color.x, ray->intersect_color.y, ray->intersect_color.z);
+
+    current_t                  = x_min;
+  } else if(x_max >= 0.0f && x_max < current_t)  {
+    ray->intersect_triangle = -2;
+    ray->intersect          = ray->start + ray->direction*x_max;
+    ray->intersect_normal   = normalize(ray->intersect - circle_center);
+    ray->intersect_color    = ball_color;
+    // printf("ball %f %f %f\n", rays[r].intersect_color.x, rays[r].intersect_color.y, rays[r].intersect_color.z);
+
+    current_t                  = x_max;
+  }
 }
 
 
@@ -217,7 +285,7 @@ bool in_shadow(float3 start, float3 dir, local float3 *triangle_vertexes, local 
     const float t = det(A0)*detA_recip;
 
     const float3 dist_vec            = t*dir;
-    const float intersect_dist       = dist_vec.x*dist_vec.x + dist_vec.y*dist_vec.y + dist_vec.z*dist_vec.z;
+    const float intersect_dist       = dist_vec.x*dist_vec.x + dist_vec.y*dist_vec.y + dist_vec.z*dist_vec.z; //// May be just t??
 
     if (t >= 0 && intersect_dist < radius_sq ) {
       const float3 A1[3] = {-dir, b,  e2};
@@ -230,6 +298,31 @@ bool in_shadow(float3 start, float3 dir, local float3 *triangle_vertexes, local 
       }
     }
   }
+  // const float3 L = (start - circle_center);
+  // const float a = dot(dir, dir);
+  // const float b = 2*dot(dir, L);
+  // const float c = dot(L, L) - circle_radius_sq;
+
+  // const float discriminant = b*b - 4.0f*a*c;
+  // if(discriminant < 0.0f)  return false;
+  // const float q = (b > 0) ? -0.5 * (b + sqrt(discriminant)) : -0.5 * (b - sqrt(discriminant)); 
+  // const float x0 = q / a;
+  // const float x1 = c / q;
+
+  // const float x_min = min(x0, x1);
+  // const float x_max = max(x0, x1);
+
+  // const float3 min_dir = x_min*dir;
+  // const float3 max_dir = x_max*dir;
+  // const float min_dist = dot(min_dir, min_dir);
+  // const float max_dist = dot(max_dir, max_dir);
+
+  // if(x_min >= 0.0f && min_dist < radius_sq)  {
+  //   return true;
+  // } else if(x_max >= 0.0f && max_dist < radius_sq)  {
+  //   return true;
+  // }
+
   return false;
 }
 
@@ -318,6 +411,7 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
       rays[dy*rays_y + dx].intersect_triangle = -1;
       rays[dy*rays_y + dx].intersect = (float3) 0.0f;
       rays[dy*rays_y + dx].medium = AIR;
+      rays[dy*rays_y + dx].intersect_color = (float4) (0.0f, 0.0f, 0.0f, 1.0f);
       rays[dy*rays_y + dx].direction = normalize(rays[dy*rays_y + dx].direction);
     }
   }
@@ -326,20 +420,21 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
 
   batch_ray_intersections(&rays, LOC_triangle_vertexes, LOC_triangle_normals, LOC_triangle_colors, triangle_n);
 
-  for (char r = 0; r < aa_rays; r++)  {
+  for (char r = 0; r < 9; r++)  {
     // Find intersection point with closest geometry. If no intersection, paint the abyss
     if (rays[r].intersect_triangle != -1) {
-      float3 second_light = (float3) 0.0f;
-      if(rays[r].intersect_color.w <= 0.0f)  { // Mirror or glass
 
+      if(rays[r].intersect_color.w <= 0.0f)  { // Mirror or glass
         final_color_total += secondary_light(rays[r], LOC_triangle_vertexes, LOC_triangle_normals, LOC_triangle_colors, triangle_n, light_pos, global_id);
       } else { 
         const float3 first_light  = direct_light(rays[r], LOC_triangle_vertexes, LOC_triangle_colors,  light_pos, triangle_n, rays[r].intersect_normal, global_id);
         final_color_total += rays[r].intersect_color.xyz*(indirect_light + first_light);
       }
+      // final_color_total += rays[r].intersect_color.xyz;
+      // printf("%d %f %f %f\n", r, (rays[r].intersect_color.xyz*(indirect_light)).x, (rays[r].intersect_color.xyz*(indirect_light)).y, (rays[r].intersect_color.xyz*(indirect_light)).z);
     }
   }
-  color_pixel(screen_buffer, (short)x, (short)y, final_color_total/aa_rays);
+  color_pixel(screen_buffer, (short)x, (short)y, final_color_total/((float)aa_rays));
 }
 
 

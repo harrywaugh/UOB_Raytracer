@@ -110,8 +110,8 @@ int main(int argc, char* argv[]) {
   // While user hasn't quit
   while (!quit) {
     // If there is an update to the scene, then draw changes. Check if user wants to quit
-    if (true)  {
-      update();
+    if (update())  {
+      // update();
       auto start = high_resolution_clock::now();
       offload_rendering(screen, ocl);
       auto stop = high_resolution_clock::now();
@@ -285,10 +285,12 @@ bool update() {
     if (e.type == SDL_QUIT) {
       quit = true;
       return false;
-    }else if (e.type == SDL_MOUSEMOTION) {
-      yaw   += e.motion.xrel * 0.01f;
-      pitch -= e.motion.yrel * 0.01f;
-    } else if (e.type == SDL_KEYDOWN) {
+    }
+    // else if (e.type == SDL_MOUSEMOTION) {
+    //   yaw   += e.motion.xrel * 0.01f;
+    //   pitch -= e.motion.yrel * 0.01f;
+    // } 
+    else if (e.type == SDL_KEYDOWN) {
       int key_code = e.key.keysym.sym;
       switch(key_code) {
         case SDLK_UP:
