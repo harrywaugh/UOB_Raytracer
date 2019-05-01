@@ -285,6 +285,9 @@ bool update() {
     if (e.type == SDL_QUIT) {
       quit = true;
       return false;
+    }else if (e.type == SDL_MOUSEMOTION) {
+      yaw   += e.motion.xrel * 0.01f;
+      pitch -= e.motion.yrel * 0.01f;
     } else if (e.type == SDL_KEYDOWN) {
       int key_code = e.key.keysym.sym;
       switch(key_code) {
@@ -322,10 +325,10 @@ bool update() {
         case SDLK_o:
           camera_position.z -= 0.1;
           break;
-        case SDLK_j:
+        case SDLK_k:
           camera_position.x += 0.1;
           break;
-        case SDLK_k:
+        case SDLK_j:
           camera_position.x -= 0.1;
           break;
         case SDLK_ESCAPE:

@@ -9,7 +9,7 @@ constant char rays_y = 3;
 
 #define SCREEN_WIDTH 1024.0f
 #define SCREEN_HEIGHT 1024.0f
-#define GLASS 1.52f
+#define GLASS 2.0f
 #define AIR 1.0f
 
 /////READ ONLY BUFFERS
