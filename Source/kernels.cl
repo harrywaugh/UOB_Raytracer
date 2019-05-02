@@ -8,7 +8,7 @@ constant float3 bias           = (float3) (0.0001f, 0.0001f, 0.0001f);
 constant float4 sphere_centers[2]   = {(float4) (0.3f, 0.2f, -0.5f, 0.0f), (float4) (0.5f, 0.7f, 0.0f, 0.0f)};
 constant float sphere_radius_sqs[2] = {0.1f, 0.1f};
 // constant float circle_radius_sq = 0.1f;
-constant float4 sphere_colors[2]     = {(float4) (0.4f, 0.0f, 0.0f, 1.0f), (float4) (0.6f, 0.0f, 0.0f, 1.0f)};
+constant float4 sphere_colors[2]     = {(float4) (0.4f, 0.0f, 0.0f, -1.0f), (float4) (0.6f, 0.0f, 0.0f, 1.0f)};
 
 constant char rays_x = 3;
 constant char rays_y = 3;
