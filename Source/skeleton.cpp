@@ -58,18 +58,20 @@ struct Intersection {
   float distance;
   int triangle_index;
 };
-float focal_length = 2800.0;
-vec4  camera_position(0.0, 0.0, -2.5, 1.0);
-cl_float3  cl_camera_position  = {0.0, 0.0, -3.2};
+float focal_length = 2200.0;
+vec4  camera_position(0.0, 0.0, -3.2, 1.0);
+cl_float3  cl_camera_position  = {0.0, 0.0, -6.2};
 
 float pitch = 0.0f;
 float yaw = 0.0f;
 vec4 light_position(0, -0.5, -0.7, 1.0);
+vec4 st_light_position(0, -0.5, -0.7, 1.0);
 vec3 light_color = 14.f * vec3(1, 1, 1);
 vec3 indirect_light = 0.25f * vec3(1, 1, 1);
 bool quit = false;
 vector<Triangle> triangles;
 
+bool lor = true;
 
 bool update();
 void draw(screen* screen, t_ocl ocl);
@@ -97,8 +99,8 @@ int main(int argc, char* argv[]) {
 
   // Load Cornell Box
   LoadTestModel(triangles);
-  vector<Triangle> bunny = load_obj("Source/bunny_200.obj");
-  triangles.insert(triangles.end(), bunny.begin(), bunny.end());
+  // vector<Triangle> bunny = load_obj("Source/bunny_200.obj");
+  // triangles.insert(triangles.end(), bunny.begin(), bunny.end());
   printf("Triangles Length size %lu\n",  triangles.size());
   
   opencl_initialise(&ocl);
@@ -106,32 +108,35 @@ int main(int argc, char* argv[]) {
   // Draw initial scene
   offload_rendering(screen, ocl);
   SDL_Renderframe(screen);
+  
+
+
+
 
   // While user hasn't quit
   while (!quit) {
     // If there is an update to the scene, then draw changes. Check if user wants to quit
-    if (update())  {
-      // update();
+    if (true)  {
+
+      
+      
+
+
+
+      update();
       auto start = high_resolution_clock::now();
       offload_rendering(screen, ocl);
       auto stop = high_resolution_clock::now();
       auto offload_duration = duration_cast<microseconds>(stop - start); 
       cout << "\nOffloaded GPU Rendertime: "<< offload_duration.count() << " micro seconds" <<  endl; 
       cout << "Frame Rate: "<< 1000000.0f/((float)offload_duration.count()) << "FPS" <<  endl; 
-
-      // start = high_resolution_clock::now();
-      // draw(screen, ocl);
-      // stop = high_resolution_clock::now();
-      // auto CPU_duration = duration_cast<microseconds>(stop - start); 
-      // cout << "CPU Draw Time: "<< CPU_duration.count() << " micro seconds" <<  endl; 
-
-      // cout << "GPU is "<< (500000.0f)/((float)offload_duration.count()) << "x faster" <<  endl; 
-
       SDL_Renderframe(screen);
-      SDL_SaveImage(screen, "screenshot.bmp");
+
+
 
     }
   }
+      SDL_SaveImage(screen, "screenshot.bmp");
 
 
   KillSDL(screen);
@@ -281,6 +286,17 @@ bool update() {
   // float dt = float(t2-t);
   // t = t2;
   // Change scene via key events
+
+  if(lor)  {
+    float diff =  -0.5f -light_position.x;
+    if(diff > -0.001f) lor =false;
+    light_position.x+= diff/20.0f;
+  } else {
+    float diff =  0.5f -light_position.x;
+    if(diff < 0.001f) lor =true;
+    light_position.x+= diff/20.0f;
+  }
+
   SDL_Event e;
   while(SDL_PollEvent(&e)) {
     if (e.type == SDL_QUIT) {
@@ -306,22 +322,22 @@ bool update() {
         case SDLK_RIGHT:
           yaw -= 0.1;
           break;
-        case SDLK_w:
-          // camera_position.z += 0.2;
-          light_position.z += 0.2;
-          break;
-        case SDLK_s:
-          // camera_position.z -= 0.2;
-          light_position.z -= 0.2;
-          break;
-        case SDLK_a:
-          // camera_position.x -= 0.2;
-          light_position.x -= 0.2;
-          break;
-        case SDLK_d:
-          // camera_position.x += 0.2;
-          light_position.x += 0.2;
-          break;
+        // case SDLK_w:
+        //   // camera_position.z += 0.2;
+        //   light_position.z += 0.2;
+        //   break;
+        // case SDLK_s:
+        //   // camera_position.z -= 0.2;
+        //   light_position.z -= 0.2;
+        //   break;
+        // case SDLK_a:
+        //   // camera_position.x -= 0.2;
+        //   light_position.x -= 0.2;
+        //   break;
+        // case SDLK_d:
+        //   // camera_position.x += 0.2;
+        //   light_position.x += 0.2;
+        //   break;
         case SDLK_i:
           camera_position.z += 0.1;
           break;

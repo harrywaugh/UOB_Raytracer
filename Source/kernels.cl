@@ -5,20 +5,21 @@ constant float3 light_color    = (float3) (16.0f, 16.0f, 16.0f);
 constant float3 bias           = (float3) (0.0001f, 0.0001f, 0.0001f);
 // constant float4 ball_color     = (float4) (0.5f, 0.0f, 0.0f, -1.0f);
 // constant float3 circle_center  = (float3) (0.0f, 0.6f, 0.0f);
-constant float4 sphere_centers[2]   = {(float4) (0.3f, 0.2f, -0.5f, 0.0f), (float4) (0.5f, 0.7f, 0.0f, 0.0f)};
-constant float sphere_radius_sqs[2] = {0.1f, 0.1f};
-// constant float circle_radius_sq = 0.1f;
-constant float4 sphere_colors[2]     = {(float4) (0.4f, 0.0f, 0.0f, -1.0f), (float4) (0.6f, 0.0f, 0.0f, 1.0f)};
+#define SPHERES 0
 
-constant char rays_x = 3;
-constant char rays_y = 3;
-#define aa_rays 9
+constant float4 sphere_centers[SPHERES]   = {(float4) (-0.4f, 0.7f, 0.0f, 0.0f), (float4) (0.4f, 0.7f, 0.0f, 0.0f) ,(float4) (0.0f, 0.0f, -0.8f, 0.0f) };
+constant float sphere_radius_sqs[SPHERES] = {0.1f, 0.1f, 0.1f};
+// constant float circle_radius_sq = 0.1f;
+constant float4 sphere_colors[SPHERES]     = {(float4) (0.0f, 0.f, 0.f, 0.0f),(float4) (0.0f, 0.f, 0.f, 0.0f), (float4) (0.6f, 0.0f, 0.0f, -1.0f) };
+
+constant char rays_x = 2;
+constant char rays_y = 2;
+#define aa_rays 4
 
 #define SCREEN_WIDTH 1280.0f
 #define SCREEN_HEIGHT 1280.0f
-#define GLASS 2.0f
+#define GLASS 1.52f
 #define AIR 1.0f
-#define SPHERES 1
 
 /////READ ONLY BUFFERS
 
@@ -280,8 +281,7 @@ bool in_shadow(float3 start, float3 dir, local float3 *triangle_vertexes, local 
   // Make 4D ray into 3D ray
 
   for (uint i = 0; i < triangle_n; i++) {
-    if(triangle_colors[i].w == -1.0f)
-      i+=10;
+    if(triangle_colors[i].w == -1.0f) continue;
     // Define two corners of triangle relative to the other corner
     const float3 v0 = triangle_vertexes[i*3];
 
@@ -316,7 +316,7 @@ bool in_shadow(float3 start, float3 dir, local float3 *triangle_vertexes, local 
     const float c = dot(L, L) - sphere_radius_sqs[i];
 
     const float discriminant = b*b - 4.0f*a*c;
-    if(discriminant < 0.0f)  return false;
+    if(discriminant < 0.0f)  continue;
     const float q = (b > 0) ? -0.5 * (b + sqrt(discriminant)) : -0.5 * (b - sqrt(discriminant)); 
     const float x0 = q / a;
     const float x1 = c / q;
@@ -343,7 +343,7 @@ bool in_shadow(float3 start, float3 dir, local float3 *triangle_vertexes, local 
 float3 direct_light(const Ray ray, local float3 *triangle_vertexes, local float4 *triangle_colors, float3 light_pos, int triangle_n, const float3 intersect_normal, const int global_id) {
 
   //Declare colour for point to be 0
-  const short light_sources = 100;
+  const short light_sources = 10;
   const float light_spread = 0.05f;
   float3 total_light = (float3) 0.0f;
   uint3 rand_vec = random((uint3) (global_id, global_id*91.0f, global_id*19.0f));
@@ -372,16 +372,20 @@ float3 secondary_light(Ray ray, local float3 *triangle_vertexes, local float3 *t
   const int bounces = 10;
 
   Ray perturbed_ray = ray;
+  // float3 last_color = ray.intersect_color.xyz;
+
 
   for (int b = 0; b < bounces && perturbed_ray.intersect_color.w <= 0.0f; b++ )  {
     perturbed_ray = (perturbed_ray.intersect_color.w == 0.0f) ? reflect_ray(perturbed_ray) : refract_ray(perturbed_ray);
     single_ray_intersections(&perturbed_ray, triangle_vertexes, triangle_normals, triangle_colors, triangle_n);
-
-    int intersected = (perturbed_ray.intersect_triangle != -1  );
+    int intersected = (perturbed_ray.intersect_triangle != -1 && perturbed_ray.intersect_color.w > 0.0f );
     if (intersected)  {
       const float3 light = indirect_light + direct_light(perturbed_ray, triangle_vertexes, triangle_colors,  light_pos, triangle_n, perturbed_ray.intersect_normal, global_id);
-      return 0.75f*light*perturbed_ray.intersect_color.xyz;
+      return 0.8f*light*perturbed_ray.intersect_color.xyz;
     }
+    // last_color = perturbed_ray.intersect_color.xyz;
+
+
   }
   // if(light_accumulator.x == 0.0f)  {
   //   printf("(%f %f %f %f)\n", perturbed_ray.intersect_color.x, perturbed_ray.intersect_color.y, perturbed_ray.intersect_color.z, perturbed_ray.intersect_color.w);

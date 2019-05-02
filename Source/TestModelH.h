@@ -5,7 +5,7 @@
 
 #include <glm/glm.hpp>
 #include <vector>
-
+#include <glm/gtc/type_ptr.hpp>
 
 // Used to describe a triangular surface:
 class Triangle
@@ -54,8 +54,8 @@ void LoadTestModel( std::vector<Triangle>& triangles )
 	vec4 green(  0.15f, 0.75f, 0.15f , 1.0f);
     vec4 dark_green(  0.0f, 0.25f, 0.0f , 1.0f);
 	vec4 cyan(   0.15f, 0.75f, 0.75f , 1.0f);
-	vec4 blue(   0.15f, 0.15f, 0.75f , 1.0f);
-	vec4 mirror( 0.0f, 0.0f, 0.5f, 0.0f);
+	vec4 blue(   0.0f, 0.2f, 0.5f , 1.0f);
+	vec4 mirror( 1.0f, 1.0f, 1.0f, 0.0f);
 	vec4 glass( 0.f, 0.f, 0.f, -1.0f);
 	vec4 purple( 0.75f, 0.15f, 0.75f , 1.0f);
     vec4 dark_purple(  0.25f, 0.0f, 0.25f , 1.0f);
@@ -110,37 +110,50 @@ void LoadTestModel( std::vector<Triangle>& triangles )
 	// ---------------------------------------------------------------------------
 	// Short block
 
-	A = vec4(290,0,114,1);
-	B = vec4(130,0, 65,1);
-	C = vec4(240,0,272,1);
-	D = vec4( 82,0,225,1);
-	       
-	E = vec4(290,165,114,1);
-	F = vec4(130,165, 65,1);
-	G = vec4(240,165,272,1);
-	H = vec4( 82,165,225,1);
 
-	// Front
-	// triangles.push_back( Triangle(E,B,A,red) );
-	// triangles.push_back( Triangle(E,F,B,red) );
+	glm::mat4 R;
+	float yaw=0.2f, pitch=0.3f;
+	float r[16] = {cos(yaw),  sin(pitch)*sin(yaw),   sin(yaw)*cos(pitch),  1.0f,
+	       0.0f,      cos(pitch),           -sin(pitch),             1.0f,
+	      -sin(yaw),  cos(yaw)*sin(pitch),   cos(pitch)*cos(yaw),    1.0f,
+	       1.0f,      1.0f,                  1.0f,                   1.0f};
+	memcpy(glm::value_ptr(R), r, sizeof(r));
+	
+
+	A = R*vec4(290,0 + 100,114,1);
+	B = R*vec4(130,0 + 100, 65,1);
+	C = R*vec4(240,0 + 100,272,1);
+	D = R*vec4( 82,0 + 100,225,1);
+	       
+	E = R*vec4(290,165 + 100,114,1);
+	F = R*vec4(130,165 + 100, 65,1);
+	G = R*vec4(240,165 + 100,272,1);
+	H = R*vec4( 82,165 + 100,225,1);
+
+
+
 
 	// // Front
-	// triangles.push_back( Triangle(F,D,B,red) );
-	// triangles.push_back( Triangle(F,H,D,red) );
+	// triangles.push_back( Triangle(E,B,A,glass) );
+	// triangles.push_back( Triangle(E,F,B,glass) );
+
+	// // Front
+	// triangles.push_back( Triangle(F,D,B,glass) );
+	// triangles.push_back( Triangle(F,H,D,glass) );
 
 	// // BACK
-	// triangles.push_back( Triangle(H,C,D,red) );
-	// triangles.push_back( Triangle(H,G,C,red) );
+	// triangles.push_back( Triangle(H,C,D,glass) );
+	// triangles.push_back( Triangle(H,G,C,glass) );
 
 	// // LEFT
-	// triangles.push_back( Triangle(G,E,C,red) );
-	// triangles.push_back( Triangle(E,A,C,red) );
+	// triangles.push_back( Triangle(G,E,C,glass) );
+	// triangles.push_back( Triangle(E,A,C,glass) );
 
 	// // TOP
-	// triangles.push_back( Triangle(G,F,E,red) );
-	// triangles.push_back( Triangle(G,H,F,red) );
+	// triangles.push_back( Triangle(G,F,E,glass) );
+	// triangles.push_back( Triangle(G,H,F,glass) );
 
-	// // Bottom
+	// Bottom
 		// A.y +=1;
 		// B.y +=1;
 		// C.y +=1;
@@ -162,25 +175,25 @@ void LoadTestModel( std::vector<Triangle>& triangles )
 	G = vec4(472,330,406,1);
 	H = vec4(314,330,456,1);
 
-	// Front
-	triangles.push_back( Triangle(E,B,A,mirror) );
-	triangles.push_back( Triangle(E,F,B,mirror) );
+	// // Front
+	triangles.push_back( Triangle(E,B,A,blue) );
+	triangles.push_back( Triangle(E,F,B,blue) );
 
 	// Front
-	triangles.push_back( Triangle(F,D,B,mirror) );
-	triangles.push_back( Triangle(F,H,D,mirror) );
+	triangles.push_back( Triangle(F,D,B,blue) );
+	triangles.push_back( Triangle(F,H,D,blue) );
 
 	// BACK
-	triangles.push_back( Triangle(H,C,D,mirror) );
-	triangles.push_back( Triangle(H,G,C,mirror) );
+	triangles.push_back( Triangle(H,C,D,blue) );
+	triangles.push_back( Triangle(H,G,C,blue) );
 
 	// LEFT
-	triangles.push_back( Triangle(G,E,C,mirror) );
-	triangles.push_back( Triangle(E,A,C,mirror) );
+	triangles.push_back( Triangle(G,E,C,blue) );
+	triangles.push_back( Triangle(E,A,C,blue) );
 
 	// TOP
-	triangles.push_back( Triangle(G,F,E,mirror) );
-	triangles.push_back( Triangle(G,H,F,mirror) );
+	triangles.push_back( Triangle(G,F,E,blue) );
+	triangles.push_back( Triangle(G,H,F,blue) );
 
 
 	// ----------------------------------------------
