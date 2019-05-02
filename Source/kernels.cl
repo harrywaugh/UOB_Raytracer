@@ -3,9 +3,13 @@
 constant float3 indirect_light = (float3)(0.5f, 0.5f, 0.5f);
 constant float3 light_color    = (float3) (16.0f, 16.0f, 16.0f);
 constant float3 bias           = (float3) (0.0001f, 0.0001f, 0.0001f);
-constant float4 ball_color     = (float4) (0.5f, 0.0f, 0.0f, -1.0f);
-constant float3 circle_center  = (float3) (0.0f, 0.6f, 0.0f);
-constant float circle_radius_sq = 0.2f;
+// constant float4 ball_color     = (float4) (0.5f, 0.0f, 0.0f, -1.0f);
+// constant float3 circle_center  = (float3) (0.0f, 0.6f, 0.0f);
+constant float4 sphere_centers[2]   = {(float4) (-0.5f, 0.7f, 0.0f, 0.0f), (float4) (0.5f, 0.7f, 0.0f, 0.0f)};
+constant float sphere_radius_sqs[2] = {0.1f, 0.1f};
+// constant float circle_radius_sq = 0.1f;
+constant float4 sphere_colors[2]     = {(float4) (0.0f, 0.0f, 0.0f, 0.0f), (float4) (0.0f, 0.0f, 0.0f, -1.0f)};
+
 constant char rays_x = 3;
 constant char rays_y = 3;
 #define aa_rays 9
@@ -14,6 +18,7 @@ constant char rays_y = 3;
 #define SCREEN_HEIGHT 1024.0f
 #define GLASS 2.0f
 #define AIR 1.0f
+#define SPHERES 2
 
 /////READ ONLY BUFFERS
 
@@ -151,38 +156,41 @@ void batch_ray_intersections(Ray *rays, local float3 *triangle_vertexes, local f
         current_t                  = t;
       }
     }
+    for (int i=0; i < SPHERES; i++)  {
+      
+      
 
-    const float3 L = (rays[r].start - circle_center);
-    const float a = dot(rays[r].direction, rays[r].direction);
-    const float b = 2*dot(rays[r].direction, L);
-    const float c = dot(L, L) - circle_radius_sq;
+      const float3 L = (rays[r].start - sphere_centers[i].xyz);
+      const float a = dot(rays[r].direction, rays[r].direction);
+      const float b = 2*dot(rays[r].direction, L);
+      const float c = dot(L, L) - sphere_radius_sqs[i];
 
-    const float discriminant = b*b - 4.0f*a*c;
-    if (discriminant < 0.0f) continue;
-    const float q = (b > 0) ? -0.5 * (b + sqrt(discriminant)) : -0.5 * (b - sqrt(discriminant)); 
-    const float x0 = q / a;
-    const float x1 = c / q;
+      const float discriminant = b*b - 4.0f*a*c;
+      if (discriminant < 0.0f) continue;
+      const float q = (b > 0) ? -0.5 * (b + sqrt(discriminant)) : -0.5 * (b - sqrt(discriminant)); 
+      const float x0 = q / a;
+      const float x1 = c / q;
 
-    const float x_min = min(x0, x1);
-    const float x_max = max(x0, x1);
+      const float x_min = min(x0, x1);
+      const float x_max = max(x0, x1);
 
-    if(x_min >= 0.0f && x_min < current_t)  {
-      rays[r].intersect_triangle = -2;
-      rays[r].intersect          = rays[r].start + rays[r].direction*x_min;
-      rays[r].intersect_normal   = normalize(rays[r].intersect - circle_center);
-      rays[r].intersect_color    = ball_color;
-      // printf("ball %f %f %f\n", rays[r].interisect_color.x, rays[r].intersect_color.y, rays[r].intersect_color.z);
+      if(x_min >= 0.0f && x_min < current_t)  {
+        rays[r].intersect_triangle = -2;
+        rays[r].intersect          = rays[r].start + rays[r].direction*x_min;
+        rays[r].intersect_normal   = normalize(rays[r].intersect - sphere_centers[i].xyz);
+        rays[r].intersect_color    = sphere_colors[i];
 
-      current_t                  = x_min;
-    } else if(x_max >= 0.0f && x_max < current_t)  {
-      rays[r].intersect_triangle = -2;
-      rays[r].intersect          = rays[r].start + rays[r].direction*x_max;
-      rays[r].intersect_normal   = normalize(rays[r].intersect - circle_center);
-      rays[r].intersect_color    = ball_color;
-      // printf("ball %f %f %f\n", rays[r].intersect_color.x, rays[r].intersect_color.y, rays[r].intersect_color.z);
+        current_t                  = x_min;
+      } else if(x_max >= 0.0f && x_max < current_t)  {
+        rays[r].intersect_triangle = -2;
+        rays[r].intersect          = rays[r].start + rays[r].direction*x_max;
+        rays[r].intersect_normal   = normalize(rays[r].intersect - sphere_centers[i].xyz);
+        rays[r].intersect_color    = sphere_colors[i];
 
-      current_t                  = x_max;
+        current_t                  = x_max;
+      }
     }
+    
   }
 }
 
@@ -231,38 +239,40 @@ void single_ray_intersections(Ray *ray, local float3 *triangle_vertexes, local f
       current_t               = t;
     }
   }
+  for (int i=0; i < SPHERES; i++)  {
+    const float3 L = (ray->start - sphere_centers[i].xyz);
+    const float a = dot(ray->direction, ray->direction);
+    const float b = 2*dot(ray->direction, L);
+    const float c = dot(L, L) - sphere_radius_sqs[i];
 
- const float3 L = (ray->start - circle_center);
-  const float a = dot(ray->direction, ray->direction);
-  const float b = 2*dot(ray->direction, L);
-  const float c = dot(L, L) - circle_radius_sq;
+    const float discriminant = b*b - 4.0f*a*c;
+    if (discriminant < 0.0f) continue;
+    const float q = (b > 0) ? -0.5 * (b + sqrt(discriminant)) : -0.5 * (b - sqrt(discriminant)); 
+    const float x0 = q / a;
+    const float x1 = c / q;
 
-  const float discriminant = b*b - 4.0f*a*c;
-  if (discriminant < 0.0f) return;
-  const float q = (b > 0) ? -0.5 * (b + sqrt(discriminant)) : -0.5 * (b - sqrt(discriminant)); 
-  const float x0 = q / a;
-  const float x1 = c / q;
+    const float x_min = min(x0, x1);
+    const float x_max = max(x0, x1);
 
-  const float x_min = min(x0, x1);
-  const float x_max = max(x0, x1);
+    if(x_min >= 0.0f && x_min < current_t)  {
+      ray->intersect_triangle = -2;
+      ray->intersect          = ray->start + ray->direction*x_min;
+      ray->intersect_normal   = normalize(ray->intersect - sphere_centers[i].xyz);
+      ray->intersect_color    = sphere_colors[i];
+      // printf("ball %f %f %f\n", ray->intersect_color.x, ray->intersect_color.y, ray->intersect_color.z);
 
-  if(x_min >= 0.0f && x_min < current_t)  {
-    ray->intersect_triangle = -2;
-    ray->intersect          = ray->start + ray->direction*x_min;
-    ray->intersect_normal   = normalize(ray->intersect - circle_center);
-    ray->intersect_color    = ball_color;
-    // printf("ball %f %f %f\n", ray->intersect_color.x, ray->intersect_color.y, ray->intersect_color.z);
+      current_t                  = x_min;
+    } else if(x_max >= 0.0f && x_max < current_t)  {
+      ray->intersect_triangle = -2;
+      ray->intersect          = ray->start + ray->direction*x_max;
+      ray->intersect_normal   = normalize(ray->intersect - sphere_centers[i].xyz);
+      ray->intersect_color    = sphere_colors[i];
+      // printf("ball %f %f %f\n", rays[r].intersect_color.x, rays[r].intersect_color.y, rays[r].intersect_color.z);
 
-    current_t                  = x_min;
-  } else if(x_max >= 0.0f && x_max < current_t)  {
-    ray->intersect_triangle = -2;
-    ray->intersect          = ray->start + ray->direction*x_max;
-    ray->intersect_normal   = normalize(ray->intersect - circle_center);
-    ray->intersect_color    = ball_color;
-    // printf("ball %f %f %f\n", rays[r].intersect_color.x, rays[r].intersect_color.y, rays[r].intersect_color.z);
-
-    current_t                  = x_max;
+      current_t                  = x_max;
+    }
   }
+  
 }
 
 
@@ -298,30 +308,34 @@ bool in_shadow(float3 start, float3 dir, local float3 *triangle_vertexes, local 
       }
     }
   }
-  // const float3 L = (start - circle_center);
-  // const float a = dot(dir, dir);
-  // const float b = 2*dot(dir, L);
-  // const float c = dot(L, L) - circle_radius_sq;
+  for (int i=0; i<SPHERES; i++)  {
+    if(sphere_colors[i].w == -1.0f) continue;
+    const float3 L = (start - sphere_centers[i].xyz);
+    const float a = dot(dir, dir);
+    const float b = 2*dot(dir, L);
+    const float c = dot(L, L) - sphere_radius_sqs[i];
 
-  // const float discriminant = b*b - 4.0f*a*c;
-  // if(discriminant < 0.0f)  return false;
-  // const float q = (b > 0) ? -0.5 * (b + sqrt(discriminant)) : -0.5 * (b - sqrt(discriminant)); 
-  // const float x0 = q / a;
-  // const float x1 = c / q;
+    const float discriminant = b*b - 4.0f*a*c;
+    if(discriminant < 0.0f)  return false;
+    const float q = (b > 0) ? -0.5 * (b + sqrt(discriminant)) : -0.5 * (b - sqrt(discriminant)); 
+    const float x0 = q / a;
+    const float x1 = c / q;
 
-  // const float x_min = min(x0, x1);
-  // const float x_max = max(x0, x1);
+    const float x_min = min(x0, x1);
+    const float x_max = max(x0, x1);
 
-  // const float3 min_dir = x_min*dir;
-  // const float3 max_dir = x_max*dir;
-  // const float min_dist = dot(min_dir, min_dir);
-  // const float max_dist = dot(max_dir, max_dir);
+    const float3 min_dir = x_min*dir;
+    const float3 max_dir = x_max*dir;
+    const float min_dist = dot(min_dir, min_dir);
+    const float max_dist = dot(max_dir, max_dir);
 
-  // if(x_min >= 0.0f && min_dist < radius_sq)  {
-  //   return true;
-  // } else if(x_max >= 0.0f && max_dist < radius_sq)  {
-  //   return true;
-  // }
+    if(x_min >= 0.0f && min_dist < radius_sq)  {
+      return true;
+    } else if(x_max >= 0.0f && max_dist < radius_sq)  {
+      return true;
+    }
+  }
+  
 
   return false;
 }
@@ -430,8 +444,6 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
         const float3 first_light  = direct_light(rays[r], LOC_triangle_vertexes, LOC_triangle_colors,  light_pos, triangle_n, rays[r].intersect_normal, global_id);
         final_color_total += rays[r].intersect_color.xyz*(indirect_light + first_light);
       }
-      // final_color_total += rays[r].intersect_color.xyz;
-      // printf("%d %f %f %f\n", r, (rays[r].intersect_color.xyz*(indirect_light)).x, (rays[r].intersect_color.xyz*(indirect_light)).y, (rays[r].intersect_color.xyz*(indirect_light)).z);
     }
   }
   color_pixel(screen_buffer, (short)x, (short)y, final_color_total/((float)aa_rays));
