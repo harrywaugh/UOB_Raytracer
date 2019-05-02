@@ -29,8 +29,8 @@ SDL_Event event;
 #define WORK_SIZE_Y 4       
 
 
-#define SCREEN_WIDTH 1024
-#define SCREEN_HEIGHT 1024
+#define SCREEN_WIDTH 1280
+#define SCREEN_HEIGHT 1280
 #define FULLSCREEN_MODE false
 
 typedef struct
@@ -58,8 +58,8 @@ struct Intersection {
   float distance;
   int triangle_index;
 };
-float focal_length = 2400.0;
-vec4  camera_position(0.0, 0.0, -3.2, 1.0);
+float focal_length = 2800.0;
+vec4  camera_position(0.0, 0.0, -2.5, 1.0);
 cl_float3  cl_camera_position  = {0.0, 0.0, -3.2};
 
 float pitch = 0.0f;
@@ -97,8 +97,8 @@ int main(int argc, char* argv[]) {
 
   // Load Cornell Box
   LoadTestModel(triangles);
-  // vector<Triangle> bunny = load_obj("Source/bunny_200.obj");
-  // triangles.insert(triangles.end(), bunny.begin(), bunny.end());
+  vector<Triangle> bunny = load_obj("Source/bunny_200.obj");
+  triangles.insert(triangles.end(), bunny.begin(), bunny.end());
   printf("Triangles Length size %lu\n",  triangles.size());
   
   opencl_initialise(&ocl);
@@ -128,10 +128,11 @@ int main(int argc, char* argv[]) {
       // cout << "GPU is "<< (500000.0f)/((float)offload_duration.count()) << "x faster" <<  endl; 
 
       SDL_Renderframe(screen);
+      SDL_SaveImage(screen, "screenshot.bmp");
+
     }
   }
 
-  SDL_SaveImage(screen, "screenshot.bmp");
 
   KillSDL(screen);
   return 0;

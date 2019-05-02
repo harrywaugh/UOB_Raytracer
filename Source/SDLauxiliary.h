@@ -43,6 +43,7 @@ void SDL_SaveImage(screen *s, const char* filename)
   SDL_Surface* surf = SDL_CreateRGBSurfaceFrom((void*)s->buffer, s->width, s->height,
 					       32, s->width*sizeof(uint32_t),
 					       rmask,gmask,bmask,amask);
+
   if(SDL_SaveBMP(surf, filename) !=0)
     {
       std::cout << "Failed to save image: "

@@ -17,8 +17,8 @@ vector<Triangle> load_obj(string filename) {
   vec4 green(  0.15f, 0.75f, 0.15f , 0.5f);
     vec4 dark_green(  0.0f, 0.25f, 0.0f , 0.5f);
   vec4 cyan(   0.15f, 0.75f, 0.75f , 0.5f);
-  vec4 blue(   0.15f, 0.15f, 0.75f , 0.5f);
-  vec4 mirror( 0.0f, 0.0f, 0.0f, 0.0f);
+  vec4 blue(   0.0f, 0.2f, 0.4f , 0.5f);
+  vec4 mirror( 1.0f, 0.0f, 0.0f, -1.0f);
   vec4 purple( 0.75f, 0.15f, 0.75f , 0.5f);
     vec4 dark_purple(  0.25f, 0.0f, 0.25f , 0.5f);
   vec4 white(  0.75f, 0.75f, 0.75f , 0.5f);
@@ -43,7 +43,7 @@ vector<Triangle> load_obj(string filename) {
     } else if (s == "f") {
       int v1, v2, v3;
       in >> v1 >> v2 >> v3;
-      Triangle triangle = Triangle(vertices[v1-1], vertices[v2-1], vertices[v3-1], grey);
+      Triangle triangle = Triangle(vertices[v1-1], vertices[v2-1], vertices[v3-1], blue);
 
       vec4 translate(-0.4f, 1.15f, -0.7f, 1.0f);
 

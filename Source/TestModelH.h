@@ -47,7 +47,7 @@ void LoadTestModel( std::vector<Triangle>& triangles )
 	using glm::vec4;
 
 	// Defines colors:
-	vec4 red(    0.75f, 0.15f, 0.15f , 1.0f);
+	vec4 red(    0.6f, 0.0f, 0.0f , 1.0f);
 	vec4 dark_grey(    0.25f, 0.25f, 0.25f , 1.0f);
 	vec4 yellow( 0.75f, 0.75f, 0.15f , 1.0f);
 	vec4 dark_yellow( 0.3f, 0.3f, 0.0f , 1.0f);
@@ -84,8 +84,8 @@ void LoadTestModel( std::vector<Triangle>& triangles )
 	vec4 H2(0-4*L,10*L-4*L,-8*L,1);
 
 	// // Floor:
-	triangles.push_back( Triangle( C, B, A, white ) );
-	triangles.push_back( Triangle( C, D, B, white ) );
+	triangles.push_back( Triangle( C, B, A, dark_grey ) );
+	triangles.push_back( Triangle( C, D, B, dark_grey ) );
 
 	// Left wall
 	triangles.push_back( Triangle( A, E, C, dark_purple ) );
@@ -100,12 +100,12 @@ void LoadTestModel( std::vector<Triangle>& triangles )
 	triangles.push_back( Triangle( F, H, G, dark_yellow ) );
 
 	// Back wall
-	triangles.push_back( Triangle( G, D, C, mirror ) );
-	triangles.push_back( Triangle( G, H, D, mirror ) );
+	triangles.push_back( Triangle( G, D, C, white ) );
+	triangles.push_back( Triangle( G, H, D, white ) );
 
 	// Front wall
-	triangles.push_back( Triangle( G2, D2, C2, white ) );
-	triangles.push_back( Triangle( G2, H2, D2, white ) );
+	// triangles.push_back( Triangle( G2, D2, C2, white ) );
+	// triangles.push_back( Triangle( G2, H2, D2, white ) );
 
 	// ---------------------------------------------------------------------------
 	// Short block
@@ -120,25 +120,25 @@ void LoadTestModel( std::vector<Triangle>& triangles )
 	G = vec4(240,165,272,1);
 	H = vec4( 82,165,225,1);
 
-	// // Front
-	// triangles.push_back( Triangle(E,B,A,glass) );
-	// triangles.push_back( Triangle(E,F,B,glass) );
+	// Front
+	// triangles.push_back( Triangle(E,B,A,red) );
+	// triangles.push_back( Triangle(E,F,B,red) );
 
 	// // Front
-	// triangles.push_back( Triangle(F,D,B,glass) );
-	// triangles.push_back( Triangle(F,H,D,glass) );
+	// triangles.push_back( Triangle(F,D,B,red) );
+	// triangles.push_back( Triangle(F,H,D,red) );
 
 	// // BACK
-	// triangles.push_back( Triangle(H,C,D,glass) );
-	// triangles.push_back( Triangle(H,G,C,glass) );
+	// triangles.push_back( Triangle(H,C,D,red) );
+	// triangles.push_back( Triangle(H,G,C,red) );
 
 	// // LEFT
-	// triangles.push_back( Triangle(G,E,C,glass) );
-	// triangles.push_back( Triangle(E,A,C,glass) );
+	// triangles.push_back( Triangle(G,E,C,red) );
+	// triangles.push_back( Triangle(E,A,C,red) );
 
 	// // TOP
-	// triangles.push_back( Triangle(G,F,E,glass) );
-	// triangles.push_back( Triangle(G,H,F,glass) );
+	// triangles.push_back( Triangle(G,F,E,red) );
+	// triangles.push_back( Triangle(G,H,F,red) );
 
 	// // Bottom
 		// A.y +=1;
@@ -162,25 +162,25 @@ void LoadTestModel( std::vector<Triangle>& triangles )
 	G = vec4(472,330,406,1);
 	H = vec4(314,330,456,1);
 
-	// // Front
-	// triangles.push_back( Triangle(E,B,A,blue) );
-	// triangles.push_back( Triangle(E,F,B,blue) );
+	// Front
+	triangles.push_back( Triangle(E,B,A,mirror) );
+	triangles.push_back( Triangle(E,F,B,mirror) );
 
-	// // Front
-	// triangles.push_back( Triangle(F,D,B,blue) );
-	// triangles.push_back( Triangle(F,H,D,blue) );
+	// Front
+	triangles.push_back( Triangle(F,D,B,mirror) );
+	triangles.push_back( Triangle(F,H,D,mirror) );
 
-	// // BACK
-	// triangles.push_back( Triangle(H,C,D,blue) );
-	// triangles.push_back( Triangle(H,G,C,blue) );
+	// BACK
+	triangles.push_back( Triangle(H,C,D,mirror) );
+	triangles.push_back( Triangle(H,G,C,mirror) );
 
-	// // LEFT
-	// triangles.push_back( Triangle(G,E,C,blue) );
-	// triangles.push_back( Triangle(E,A,C,blue) );
+	// LEFT
+	triangles.push_back( Triangle(G,E,C,mirror) );
+	triangles.push_back( Triangle(E,A,C,mirror) );
 
-	// // TOP
-	// triangles.push_back( Triangle(G,F,E,blue) );
-	// triangles.push_back( Triangle(G,H,F,blue) );
+	// TOP
+	triangles.push_back( Triangle(G,F,E,mirror) );
+	triangles.push_back( Triangle(G,H,F,mirror) );
 
 
 	// ----------------------------------------------

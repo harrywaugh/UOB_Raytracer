@@ -5,20 +5,20 @@ constant float3 light_color    = (float3) (16.0f, 16.0f, 16.0f);
 constant float3 bias           = (float3) (0.0001f, 0.0001f, 0.0001f);
 // constant float4 ball_color     = (float4) (0.5f, 0.0f, 0.0f, -1.0f);
 // constant float3 circle_center  = (float3) (0.0f, 0.6f, 0.0f);
-constant float4 sphere_centers[2]   = {(float4) (-0.5f, 0.7f, 0.0f, 0.0f), (float4) (0.5f, 0.7f, 0.0f, 0.0f)};
+constant float4 sphere_centers[2]   = {(float4) (0.3f, 0.2f, -0.5f, 0.0f), (float4) (0.5f, 0.7f, 0.0f, 0.0f)};
 constant float sphere_radius_sqs[2] = {0.1f, 0.1f};
 // constant float circle_radius_sq = 0.1f;
-constant float4 sphere_colors[2]     = {(float4) (0.0f, 0.0f, 0.0f, 0.0f), (float4) (0.0f, 0.0f, 0.0f, -1.0f)};
+constant float4 sphere_colors[2]     = {(float4) (0.4f, 0.0f, 0.0f, 1.0f), (float4) (0.6f, 0.0f, 0.0f, 1.0f)};
 
 constant char rays_x = 3;
 constant char rays_y = 3;
 #define aa_rays 9
 
-#define SCREEN_WIDTH 1024.0f
-#define SCREEN_HEIGHT 1024.0f
+#define SCREEN_WIDTH 1280.0f
+#define SCREEN_HEIGHT 1280.0f
 #define GLASS 2.0f
 #define AIR 1.0f
-#define SPHERES 2
+#define SPHERES 1
 
 /////READ ONLY BUFFERS
 
@@ -46,7 +46,7 @@ inline float det(const float3 *M) {
 
 inline void color_pixel(global uint *screen_buffer, int x, int y, float3 colour) {
   uint3 rgb = convert_uint3(min(max(255*colour, 0.f), 255.f));
-  screen_buffer[y*(short)SCREEN_WIDTH+x] = (rgb.x<<16) + (rgb.y<<8) + rgb.z;
+  screen_buffer[y*(short)SCREEN_WIDTH+x] = (255<<24) + (rgb.x<<16) + (rgb.y<<8) + rgb.z;
 }
 
 inline uint3 random(uint3 seed) { // XORSHIFT Alg.
@@ -343,7 +343,7 @@ bool in_shadow(float3 start, float3 dir, local float3 *triangle_vertexes, local 
 float3 direct_light(const Ray ray, local float3 *triangle_vertexes, local float4 *triangle_colors, float3 light_pos, int triangle_n, const float3 intersect_normal, const int global_id) {
 
   //Declare colour for point to be 0
-  const short light_sources = 10;
+  const short light_sources = 100;
   const float light_spread = 0.05f;
   float3 total_light = (float3) 0.0f;
   uint3 rand_vec = random((uint3) (global_id, global_id*91.0f, global_id*19.0f));
@@ -362,7 +362,7 @@ float3 direct_light(const Ray ray, local float3 *triangle_vertexes, local float4
 
     int mask = (!in_shadow(shadow_ray.start, shadow_ray.direction + crush(rand_vec, light_spread), triangle_vertexes, triangle_colors, radius_sq, triangle_n));
     total_light += mask*(light_color * max(dot(shadow_ray.direction , intersect_normal), 0.0f)) / ( 4.0f * ((float)M_PI) * radius_sq);
-    // total_light += mask*(light_color * max(dot(shadow_ray.direction , intersect_normal+5*crush(rand_vec, 2*light_spread)), 0.0f)) / ( 4.0f * ((float)M_PI) * radius_sq);
+    // total_light += mask*(light_color * max(dot(shadow_ray.direction , intersect_normal+5*crush(rand_vec, 1*light_spread)), 0.0f)) / ( 4.0f * ((float)M_PI) * radius_sq);
   }
 
   return total_light/light_sources;
@@ -373,11 +373,11 @@ float3 secondary_light(Ray ray, local float3 *triangle_vertexes, local float3 *t
 
   Ray perturbed_ray = ray;
 
-  for (int b = 0; b < bounces; b++ )  {
+  for (int b = 0; b < bounces && perturbed_ray.intersect_color.w <= 0.0f; b++ )  {
     perturbed_ray = (perturbed_ray.intersect_color.w == 0.0f) ? reflect_ray(perturbed_ray) : refract_ray(perturbed_ray);
     single_ray_intersections(&perturbed_ray, triangle_vertexes, triangle_normals, triangle_colors, triangle_n);
 
-    int intersected = (perturbed_ray.intersect_triangle != -1  && perturbed_ray.intersect_color.w > 0.0f);
+    int intersected = (perturbed_ray.intersect_triangle != -1  );
     if (intersected)  {
       const float3 light = indirect_light + direct_light(perturbed_ray, triangle_vertexes, triangle_colors,  light_pos, triangle_n, perturbed_ray.intersect_normal, global_id);
       return 0.75f*light*perturbed_ray.intersect_color.xyz;
@@ -434,7 +434,7 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
 
   batch_ray_intersections(&rays, LOC_triangle_vertexes, LOC_triangle_normals, LOC_triangle_colors, triangle_n);
 
-  for (char r = 0; r < 9; r++)  {
+  for (char r = 0; r < aa_rays; r++)  {
     // Find intersection point with closest geometry. If no intersection, paint the abyss
     if (rays[r].intersect_triangle != -1) {
 
