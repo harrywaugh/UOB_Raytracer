@@ -111,47 +111,40 @@ void LoadTestModel( std::vector<Triangle>& triangles )
 	// Short block
 
 
-	glm::mat4 R;
-	float yaw=0.2f, pitch=0.3f;
-	float r[16] = {cos(yaw),  sin(pitch)*sin(yaw),   sin(yaw)*cos(pitch),  1.0f,
-	       0.0f,      cos(pitch),           -sin(pitch),             1.0f,
-	      -sin(yaw),  cos(yaw)*sin(pitch),   cos(pitch)*cos(yaw),    1.0f,
-	       1.0f,      1.0f,                  1.0f,                   1.0f};
-	memcpy(glm::value_ptr(R), r, sizeof(r));
-	
 
-	A = R*vec4(290,0 + 100,114,1);
-	B = R*vec4(130,0 + 100, 65,1);
-	C = R*vec4(240,0 + 100,272,1);
-	D = R*vec4( 82,0 + 100,225,1);
+
+	A = vec4(290,0 ,114,1);
+	B = vec4(130,0 , 65,1);
+	C = vec4(240,0 ,272,1);
+	D = vec4( 82,0 ,225,1);
 	       
-	E = R*vec4(290,165 + 100,114,1);
-	F = R*vec4(130,165 + 100, 65,1);
-	G = R*vec4(240,165 + 100,272,1);
-	H = R*vec4( 82,165 + 100,225,1);
+	E = vec4(290,165 ,114,1);
+	F = vec4(130,165 , 65,1);
+	G = vec4(240,165 ,272,1);
+	H = vec4( 82,165 ,225,1);
 
 
 
 
 	// // Front
-	// triangles.push_back( Triangle(E,B,A,glass) );
-	// triangles.push_back( Triangle(E,F,B,glass) );
+	triangles.push_back( Triangle(E,B,A,red) );
+	triangles.push_back( Triangle(E,F,B,red) );
 
-	// // Front
-	// triangles.push_back( Triangle(F,D,B,glass) );
-	// triangles.push_back( Triangle(F,H,D,glass) );
+	// Front
+	triangles.push_back( Triangle(F,D,B,red) );
+	triangles.push_back( Triangle(F,H,D,red) );
 
-	// // BACK
-	// triangles.push_back( Triangle(H,C,D,glass) );
-	// triangles.push_back( Triangle(H,G,C,glass) );
+	// BACK
+	// triangles.push_back( Triangle(H,C,D,red) );
+	// triangles.push_back( Triangle(H,G,C,red) );
 
-	// // LEFT
-	// triangles.push_back( Triangle(G,E,C,glass) );
-	// triangles.push_back( Triangle(E,A,C,glass) );
+	// LEFT
+	triangles.push_back( Triangle(G,E,C,red) );
+	triangles.push_back( Triangle(E,A,C,red) );
 
-	// // TOP
-	// triangles.push_back( Triangle(G,F,E,glass) );
-	// triangles.push_back( Triangle(G,H,F,glass) );
+	// TOP
+	triangles.push_back( Triangle(G,F,E,red) );
+	triangles.push_back( Triangle(G,H,F,red) );
 
 	// Bottom
 		// A.y +=1;
@@ -184,8 +177,8 @@ void LoadTestModel( std::vector<Triangle>& triangles )
 	triangles.push_back( Triangle(F,H,D,blue) );
 
 	// BACK
-	triangles.push_back( Triangle(H,C,D,blue) );
-	triangles.push_back( Triangle(H,G,C,blue) );
+	// triangles.push_back( Triangle(H,C,D,blue) );
+	// triangles.push_back( Triangle(H,G,C,blue) );
 
 	// LEFT
 	triangles.push_back( Triangle(G,E,C,blue) );

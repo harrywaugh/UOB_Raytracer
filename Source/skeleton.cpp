@@ -29,8 +29,8 @@ SDL_Event event;
 #define WORK_SIZE_Y 4       
 
 
-#define SCREEN_WIDTH 1280
-#define SCREEN_HEIGHT 1280
+#define SCREEN_WIDTH 1024
+#define SCREEN_HEIGHT 1024
 #define FULLSCREEN_MODE false
 
 typedef struct
@@ -109,12 +109,12 @@ int main(int argc, char* argv[]) {
   offload_rendering(screen, ocl);
   SDL_Renderframe(screen);
   
-
+   SDL_ShowCursor(SDL_DISABLE);
 
 
 
   // While user hasn't quit
-  while (!quit) {
+  while (!quit) {            
     // If there is an update to the scene, then draw changes. Check if user wants to quit
     if (true)  {
 
@@ -303,10 +303,10 @@ bool update() {
       quit = true;
       return false;
     }
-    // else if (e.type == SDL_MOUSEMOTION) {
-    //   yaw   += e.motion.xrel * 0.01f;
-    //   pitch -= e.motion.yrel * 0.01f;
-    // } 
+    else if (e.type == SDL_MOUSEMOTION) {
+      yaw   += e.motion.xrel * 0.0009f;
+      pitch -= e.motion.yrel * 0.0009f;
+    } 
     else if (e.type == SDL_KEYDOWN) {
       int key_code = e.key.keysym.sym;
       switch(key_code) {
