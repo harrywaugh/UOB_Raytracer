@@ -109,7 +109,7 @@ int main(int argc, char* argv[]) {
   offload_rendering(screen, ocl);
   SDL_Renderframe(screen);
   
-   SDL_ShowCursor(SDL_DISABLE);
+   // SDL_ShowCursor(SDL_DISABLE);
 
 
 
@@ -303,10 +303,10 @@ bool update() {
       quit = true;
       return false;
     }
-    else if (e.type == SDL_MOUSEMOTION) {
-      yaw   += e.motion.xrel * 0.0009f;
-      pitch -= e.motion.yrel * 0.0009f;
-    } 
+    // else if (e.type == SDL_MOUSEMOTION) {
+    //   yaw   += e.motion.xrel * 0.0009f;
+    //   pitch -= e.motion.yrel * 0.0009f;
+    // } 
     else if (e.type == SDL_KEYDOWN) {
       int key_code = e.key.keysym.sym;
       switch(key_code) {
@@ -322,22 +322,22 @@ bool update() {
         case SDLK_RIGHT:
           yaw -= 0.1;
           break;
-        // case SDLK_w:
-        //   // camera_position.z += 0.2;
-        //   light_position.z += 0.2;
-        //   break;
-        // case SDLK_s:
-        //   // camera_position.z -= 0.2;
-        //   light_position.z -= 0.2;
-        //   break;
-        // case SDLK_a:
-        //   // camera_position.x -= 0.2;
-        //   light_position.x -= 0.2;
-        //   break;
-        // case SDLK_d:
-        //   // camera_position.x += 0.2;
-        //   light_position.x += 0.2;
-        //   break;
+        case SDLK_w:
+          // camera_position.z += 0.2;
+          light_position.z += 0.2;
+          break;
+        case SDLK_s:
+          // camera_position.z -= 0.2;
+          light_position.z -= 0.2;
+          break;
+        case SDLK_a:
+          // camera_position.x -= 0.2;
+          light_position.x -= 0.2;
+          break;
+        case SDLK_d:
+          // camera_position.x += 0.2;
+          light_position.x += 0.2;
+          break;
         case SDLK_i:
           camera_position.z += 0.1;
           break;
