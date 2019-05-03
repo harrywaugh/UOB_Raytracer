@@ -240,43 +240,43 @@ vec3 direct_light(const Intersection& intersection) {
   return D;
 }
 
-// Place your drawing here
-void draw(screen* screen, t_ocl ocl) {
-  // Clear the buffer
-  // memset(screen->buffer, 0, screen->height*screen->width*sizeof(uint32_t));
-  mat4 R;
+// // Place your drawing here
+// void draw(screen* screen, t_ocl ocl) {
+//   // Clear the buffer
+//   // memset(screen->buffer, 0, screen->height*screen->width*sizeof(uint32_t));
+//   mat4 R;
 
-  float r[16] = {cos(yaw),  sin(pitch)*sin(yaw),   sin(yaw)*cos(pitch),  1.0f,
-               0.0f,      cos(pitch),           -sin(pitch),             1.0f,
-              -sin(yaw),  cos(yaw)*sin(pitch),   cos(pitch)*cos(yaw),    1.0f,
-               1.0f,      1.0f,                  1.0f,                   1.0f};
-  memcpy(glm::value_ptr(R), r, sizeof(r));
+//   float r[16] = {cos(yaw),  sin(pitch)*sin(yaw),   sin(yaw)*cos(pitch),  1.0f,
+//                0.0f,      cos(pitch),           -sin(pitch),             1.0f,
+//               -sin(yaw),  cos(yaw)*sin(pitch),   cos(pitch)*cos(yaw),    1.0f,
+//                1.0f,      1.0f,                  1.0f,                   1.0f};
+//   memcpy(glm::value_ptr(R), r, sizeof(r));
 
 
-  for (int y = 0; y < screen->height; y++) {
-    for (int x = 0; x < screen->width; x++) {
-      // Declare ray for given position on the screen. Rotate ray by current view angle
-      vec4 d = vec4(x - screen->width/2, y - screen->height/2, focal_length, 1.0);
-      d = R * d;
+//   for (int y = 0; y < screen->height; y++) {
+//     for (int x = 0; x < screen->width; x++) {
+//       // Declare ray for given position on the screen. Rotate ray by current view angle
+//       vec4 d = vec4(x - screen->width/2, y - screen->height/2, focal_length, 1.0);
+//       d = R * d;
 
-      // Find intersection point with closest geometry. If no intersection, paint the abyss
-      Intersection intersection;
-      if (closest_intersection(camera_position, d, triangles, intersection)) {
-        // If the ray drawn does intersect with geometry then draw the correct
-        // colour returned by direct_light()
-        // Get colour of the triangle the light has hit
-        vec3 p = triangles.at(intersection.triangle_index).color;
+//       // Find intersection point with closest geometry. If no intersection, paint the abyss
+//       Intersection intersection;
+//       if (closest_intersection(camera_position, d, triangles, intersection)) {
+//         // If the ray drawn does intersect with geometry then draw the correct
+//         // colour returned by direct_light()
+//         // Get colour of the triangle the light has hit
+//         vec3 p = triangles.at(intersection.triangle_index).color;
 
-        vec3 final_color = p*(direct_light(intersection) + indirect_light);
+//         vec3 final_color = p*(direct_light(intersection) + indirect_light);
 
-        PutPixelSDL(screen, x, y, final_color);
-      } else {
-        // Otherwise draw black
-        PutPixelSDL(screen, x, y, vec3(0.0f, 0.0f, 0.0f));
-      }
-    }
-  }
-}
+//         PutPixelSDL(screen, x, y, final_color);
+//       } else {
+//         // Otherwise draw black
+//         PutPixelSDL(screen, x, y, vec3(0.0f, 0.0f, 0.0f));
+//       }
+//     }
+//   }
+// }
 
 // Place updates of parameters here
 bool update() {
