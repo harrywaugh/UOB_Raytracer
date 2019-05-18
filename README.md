@@ -3,11 +3,14 @@
 ## Summary
 
 ## Gallery
-![](archive_photos/showcase1.bmp =300x)
+<img src="archive_photos/showcase1.bmp" width="400">
+<img src="archive_photos/showcase1.bmp" width="400">
+<img src="archive_photos/showcase1.bmp" width="400">
+
 
 ## Compile and Run
 
-## Requirementss
+## Requirements
 Raytracer:
 50% completed. Extensions:
 - Ported the code to OpenCL. Achieves 30-40 FPS on a GTX 1070, as seen in attached video
