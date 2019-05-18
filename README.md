@@ -3,9 +3,9 @@
 ## Summary
 
 ## Gallery
-<img src="archive_photos/showcase1.bmp" width="400">
-<img src="archive_photos/showcase1.bmp" width="400">
-<img src="archive_photos/showcase1.bmp" width="400">
+<img src="archive_photos/showcase1.bmp" width="200">
+<img src="archive_photos/showcase2.bmp" width="200">
+<img src="archive_photos/showcase3.bmp" width="200">
 
 
 ## Compile and Run
