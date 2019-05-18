@@ -3,7 +3,7 @@
 ## Summary
 
 ## Gallery
-![](archive_photos/showcase1.bmp | width=100)
+![](archive_photos/showcase1.bmp =300x)
 
 ## Compile and Run
 
