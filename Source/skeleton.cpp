@@ -109,7 +109,7 @@ int main(int argc, char* argv[]) {
   offload_rendering(screen, ocl);
   SDL_Renderframe(screen);
   
-   SDL_ShowCursor(SDL_DISABLE);
+  SDL_ShowCursor(SDL_DISABLE);
 
 
 
@@ -119,8 +119,6 @@ int main(int argc, char* argv[]) {
     if (true)  {
 
       
-      
-
 
 
       update();
@@ -240,43 +238,6 @@ vec3 direct_light(const Intersection& intersection) {
   return D;
 }
 
-// // Place your drawing here
-// void draw(screen* screen, t_ocl ocl) {
-//   // Clear the buffer
-//   // memset(screen->buffer, 0, screen->height*screen->width*sizeof(uint32_t));
-//   mat4 R;
-
-//   float r[16] = {cos(yaw),  sin(pitch)*sin(yaw),   sin(yaw)*cos(pitch),  1.0f,
-//                0.0f,      cos(pitch),           -sin(pitch),             1.0f,
-//               -sin(yaw),  cos(yaw)*sin(pitch),   cos(pitch)*cos(yaw),    1.0f,
-//                1.0f,      1.0f,                  1.0f,                   1.0f};
-//   memcpy(glm::value_ptr(R), r, sizeof(r));
-
-
-//   for (int y = 0; y < screen->height; y++) {
-//     for (int x = 0; x < screen->width; x++) {
-//       // Declare ray for given position on the screen. Rotate ray by current view angle
-//       vec4 d = vec4(x - screen->width/2, y - screen->height/2, focal_length, 1.0);
-//       d = R * d;
-
-//       // Find intersection point with closest geometry. If no intersection, paint the abyss
-//       Intersection intersection;
-//       if (closest_intersection(camera_position, d, triangles, intersection)) {
-//         // If the ray drawn does intersect with geometry then draw the correct
-//         // colour returned by direct_light()
-//         // Get colour of the triangle the light has hit
-//         vec3 p = triangles.at(intersection.triangle_index).color;
-
-//         vec3 final_color = p*(direct_light(intersection) + indirect_light);
-
-//         PutPixelSDL(screen, x, y, final_color);
-//       } else {
-//         // Otherwise draw black
-//         PutPixelSDL(screen, x, y, vec3(0.0f, 0.0f, 0.0f));
-//       }
-//     }
-//   }
-// }
 
 // Place updates of parameters here
 bool update() {
@@ -287,15 +248,15 @@ bool update() {
   // t = t2;
   // Change scene via key events
 
-  if(lor)  {
-    float diff =  -0.5f -light_position.x;
-    if(diff > -0.001f) lor =false;
-    light_position.x+= diff/20.0f;
-  } else {
-    float diff =  0.5f -light_position.x;
-    if(diff < 0.001f) lor =true;
-    light_position.x+= diff/20.0f;
-  }
+  // if(lor)  {
+  //   float diff =  -0.5f -light_position.x;
+  //   if(diff > -0.001f) lor =false;
+  //   light_position.x+= diff/20.0f;
+  // } else {
+  //   float diff =  0.5f -light_position.x;
+  //   if(diff < 0.001f) lor =true;
+  //   light_position.x+= diff/20.0f;
+  // }
 
   SDL_Event e;
   while(SDL_PollEvent(&e)) {
@@ -303,10 +264,10 @@ bool update() {
       quit = true;
       return false;
     }
-    else if (e.type == SDL_MOUSEMOTION) {
-      yaw   += e.motion.xrel * 0.0009f;
-      pitch -= e.motion.yrel * 0.0009f;
-    } 
+    // else if (e.type == SDL_MOUSEMOTION) {
+    //   yaw   += e.motion.xrel * 0.0009f;
+    //   pitch -= e.motion.yrel * 0.0009f;
+    // } 
     else if (e.type == SDL_KEYDOWN) {
       int key_code = e.key.keysym.sym;
       switch(key_code) {

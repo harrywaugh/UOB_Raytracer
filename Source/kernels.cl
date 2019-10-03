@@ -87,84 +87,6 @@ inline Ray refract_ray(Ray ray)  { // Takes ray and computes refracted ray, dire
   return refracted_ray;
 }
 
-
-
-void batch_ray_intersections(Ray *rays, local float3 *triangle_vertexes, local float3 *triangle_normals, local float4 *triangle_colors, int triangle_n) {
-  // Make 4D ray into 3D ray
-
-  for (uint r = 0; r < aa_rays; r++)  {  // For each anti-aliasing ray
-    // Set closest intersection to be the max float value
-    float current_t = MAXFLOAT;
-    
-    // Check triangle intersections
-    for (uint i = 0; i < triangle_n; i++) {
-      // Define two corners of triangle relative to the other corner
-      const float3 v0 = triangle_vertexes[i*3];       
-      const float3 e1 = triangle_vertexes[i*3+1] - v0;
-      const float3 e2 = triangle_vertexes[i*3+2] - v0;
-
-      // Vector from start to triangle
-      const float3 b  = rays[r].start - v0;
-
-      // Cramers rule for inverse
-      const float3 A[3]  = {-rays[r].direction, e1, e2};
-      const float3 A0[3] = {b,  e1, e2};
-      const float detA_recip  = native_recip(det(A));
-      const float t           = det(A0)*detA_recip;
-      const float3 A1[3] = {-rays[r].direction, b,  e2};
-      const float3 A2[3] = {-rays[r].direction, e1, b};
-      const float u = det(A1)*detA_recip;
-      const float v = det(A2)*detA_recip; 
-
-      // If object closer than last found object, and passes through triangle
-      const int intersected = (t < current_t && u >= 0 && v >= 0 && (u+v) <= 1 && t >=0);
-      if (  intersected  ) {
-        // Store collision information in ray
-        rays[r].intersect_triangle = i;
-        rays[r].intersect          = (v0 + (u*e1) + (v*e2));
-        rays[r].intersect_normal   = triangle_normals[i];
-        rays[r].intersect_color    = triangle_colors[i];
-        current_t                  = t;
-      }
-    }
-
-    // Check circle intersections
-    for (int i=0; i < SPHERES; i++)  {
-      // Form quadratic equation, to check if ray intersects with the sphere
-      const float3 L = (rays[r].start - sphere_centers[i].xyz);
-      const float a = dot(rays[r].direction, rays[r].direction);
-      const float b = 2*dot(rays[r].direction, L);
-      const float c = dot(L, L) - sphere_radius_sqs[i];
-      const float discriminant = b*b - 4.0f*a*c;
-      if (discriminant < 0.0f) continue; // No solution to quadratic, so check next sphere
-      const float q = (b > 0) ? -0.5 * (b + sqrt(discriminant)) : -0.5 * (b - sqrt(discriminant)); 
-      // As per scratchapixel, this solution avoids catastrophic cancellation with similar terms
-      const float x0 = q / a;
-      const float x1 = c / q;
-
-      const float x_min = min(x0, x1);
-      const float x_max = max(x0, x1);
-      // If intersection is in front of camera and closest object
-      if(x_min >= 0.0f && x_min < current_t)  {
-        // Store collision information in ray
-        rays[r].intersect_triangle = -2;
-        rays[r].intersect          = rays[r].start + rays[r].direction*x_min;
-        rays[r].intersect_normal   = normalize(rays[r].intersect - sphere_centers[i].xyz);
-        rays[r].intersect_color    = sphere_colors[i];
-        current_t                  = x_min;
-      } else if(x_max >= 0.0f && x_max < current_t)  {
-        // Store collision information in ray
-        rays[r].intersect_triangle = -2;
-        rays[r].intersect          = rays[r].start + rays[r].direction*x_max;
-        rays[r].intersect_normal   = normalize(rays[r].intersect - sphere_centers[i].xyz);
-        rays[r].intersect_color    = sphere_colors[i];
-        current_t                  = x_max;
-      }
-    }
-    
-  }
-}
-
 void single_ray_intersections(Ray *ray, local float3 *triangle_vertexes, local float3 *triangle_normals, local float4 *triangle_colors, int triangle_n) {
   // Set closest intersection to be the max float value
   // Make 4D ray into 3D ray
@@ -408,7 +330,11 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
 
   wait_group_events(3, &e);
   // Calculate first intersection for all rays
-  batch_ray_intersections(&rays, LOC_triangle_vertexes, LOC_triangle_normals, LOC_triangle_colors, triangle_n);
+
+  for (char r = 0; r < aa_rays; r++)  {
+    single_ray_intersections(&rays[r], LOC_triangle_vertexes, LOC_triangle_normals, LOC_triangle_colors, triangle_n);
+  }
+
 
 
   // For each ray
