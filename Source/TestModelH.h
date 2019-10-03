@@ -68,19 +68,33 @@ void LoadTestModel( std::vector<Triangle>& triangles )
 	// Room
 
 	float L = 555;			// Length of Cornell Box side.
+	float p = 0.55f;
+
 
 	vec4 A(L,0,0,1);
 	vec4 B(0,0,0,1);
 	vec4 C(L,0,L,1);
-	vec4 C2(10*L-4*L,0-4*L,-8*L,1);
 	vec4 D(0,0,L,1);
+
+	vec4 C2(10*L-4*L,0-4*L,-8*L,1);
 	vec4 D2(0-4*L,0-4*L,-8*L,1);
 
-	vec4 E(L,L,0,1);
+	vec4 E(L, L, 0, 1);
 	vec4 F(0,L,0,1);
 	vec4 G(L,L,L,1);
-	vec4 G2(10*L-4*L,10*L-4*L,-8*L,1);
 	vec4 H(0,L,L,1);
+
+	vec4 E_(p*L,       L, (1.f-p)*L, 1);
+	vec4 F_((1.f-p)*L, L, (1.f-p)*L, 1);
+	vec4 G_(p*L,       L, p*L,       1);
+	vec4 H_((1.f-p)*L, L, p*L,       1);
+
+	vec4 EEG(L, L, (1.f - p) * L, 1);
+	vec4 FFH(0, L, (1.f - p) * L, 1);
+	vec4 EGG(L, L, p * L, 1);
+	vec4 FHH(0, L, p * L, 1);
+
+	vec4 G2(10*L-4*L,10*L-4*L,-8*L,1);
 	vec4 H2(0-4*L,10*L-4*L,-8*L,1);
 
 	// // Floor:
@@ -96,8 +110,20 @@ void LoadTestModel( std::vector<Triangle>& triangles )
 	triangles.push_back( Triangle( H, F, D, dark_green ) );
 
 	// Ceiling
-	triangles.push_back( Triangle( E, F, G, dark_yellow ) );
-	triangles.push_back( Triangle( F, H, G, dark_yellow ) );
+	// triangles.push_back( Triangle( E, F, G, dark_yellow ) );
+	// triangles.push_back( Triangle( F, H, G, dark_yellow ) );
+
+	triangles.push_back( Triangle( EEG, E, FFH, dark_yellow ) );
+	triangles.push_back(Triangle(FFH, E, F, dark_yellow));
+
+	triangles.push_back(Triangle(G, EGG, H, dark_yellow));
+	triangles.push_back(Triangle(EGG, FHH, H, dark_yellow));
+
+	triangles.push_back(Triangle(EGG, EEG, G_, dark_yellow));
+	triangles.push_back(Triangle(G_, EEG, E_, dark_yellow));
+
+	triangles.push_back(Triangle(FFH, FHH, F_, dark_yellow));
+	triangles.push_back(Triangle(F_, FHH, H_, dark_yellow));
 
 	// Back wall
 	triangles.push_back( Triangle( G, D, C, white ) );

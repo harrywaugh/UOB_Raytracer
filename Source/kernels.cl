@@ -352,6 +352,3 @@ kernel void draw(global uint  *screen_buffer,    global float3 *triangle_vertexe
   // Store in screen buffer
   color_pixel(screen_buffer, (short)x, (short)y, final_color_total/((float)aa_rays));
 }
-
-
-
